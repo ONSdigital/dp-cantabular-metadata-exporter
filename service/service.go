@@ -12,7 +12,7 @@ import (
 
 // Service contains all the configs, server and clients to run the dp-topic-api API
 type Service struct {
-	Config      *config.Config
+	config      *config.Config
 	server      HTTPServer
 	router      *mux.Router
 	api         *api.API
@@ -27,6 +27,8 @@ func New() *Service{
 // Init initialises the service
 func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit, ver string) error {
 	log.Event(ctx, "initialising service with config", log.Data{"config": cfg}, log.INFO)
+
+	svc.config = cfg
 
 	var err error
 
@@ -64,7 +66,7 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error){
 
 // Close gracefully shuts the service down in the required order, with timeout
 func (svc *Service) Close(ctx context.Context) error {
-	timeout := svc.Config.GracefulShutdownTimeout
+	timeout := svc.config.GracefulShutdownTimeout
 	log.Event(ctx, "commencing graceful shutdown", log.Data{"graceful_shutdown_timeout": timeout}, log.INFO)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 
