@@ -22,7 +22,7 @@ debug:
 	go build -tags 'debug' $(LDFLAGS) -o $(BINPATH)/dp-cantabular-metadata-exporter
 	HUMAN_LOG=1 DEBUG=1 $(BINPATH)/dp-cantabular-metadata-exporter
 
-uPHONY: debug-run
+PHONY: debug-run
 debug-run:
 	HUMAN_LOG=1 DEBUG=1 go run -tags 'debug' $(LDFLAGS) main.go
 

@@ -131,7 +131,6 @@ func TestClose(t *testing.T) {
 			return serverMock
 		}
 
-
 		Convey("Closing the service results in all the dependencies being closed in the expected order", func() {
 
 			svcErrors := make(chan error, 1)

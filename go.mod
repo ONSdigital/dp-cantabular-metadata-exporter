@@ -8,6 +8,7 @@ require (
 	github.com/ONSdigital/dp-net v1.2.0
 	github.com/ONSdigital/log.go v1.1.0
 	github.com/cucumber/godog v0.12.1
+	github.com/go-chi/chi/v5 v5.0.4
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pkg/errors v0.9.1

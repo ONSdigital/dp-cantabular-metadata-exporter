@@ -7,15 +7,15 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/api"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/log.go/log"
-	"github.com/gorilla/mux"
+
+	"github.com/go-chi/chi/v5"
 )
 
 // Service contains all the configs, server and clients to run the dp-topic-api API
 type Service struct {
 	config      *config.Config
 	server      HTTPServer
-	router      *mux.Router
-	api         *api.API
+	router      chi.Router
 	healthCheck HealthChecker
 }
 
@@ -32,8 +32,8 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 
 	var err error
 
-	svc.router = mux.NewRouter()
-	svc.api    = api.Setup(ctx, svc.router)
+	svc.router = api.Init()
+
 	svc.server = GetHTTPServer(cfg.BindAddr, svc.router)
 	// TODO: Add other(s) to serviceList here
 
@@ -45,7 +45,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 		return fmt.Errorf("unable to register checkers: %w", err)
 	}
 
-	svc.router.StrictSlash(true).Path("/health").HandlerFunc(svc.healthCheck.Handler)
+	svc.router.HandleFunc("/health", svc.healthCheck.Handler)
 
 	return nil
 }
