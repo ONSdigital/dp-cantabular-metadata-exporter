@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"fmt"
 	"os/signal"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
@@ -45,7 +46,6 @@ func run(ctx context.Context) error {
 
 	// Run the service, providing an error channel for fatal errors
 	svcErrors := make(chan error, 1)
-	svcList := service.NewServiceList(&service.Init{})
 
 	log.Event(ctx, "dp-cantabular-metadata-exporter version", log.INFO, log.Data{"version": Version})
 
@@ -55,11 +55,14 @@ func run(ctx context.Context) error {
 		return errors.Wrap(err, "error getting configuration")
 	}
 
-	// Start service
-	svc, err := service.Run(ctx, cfg, svcList, BuildTime, GitCommit, Version, svcErrors)
-	if err != nil {
-		return errors.Wrap(err, "running service failed")
+	// Create, initialise and start service
+	svc := service.New()
+
+	if err := svc.Init(ctx, cfg, BuildTime, GitCommit, Version); err != nil{
+		return fmt.Errorf("failed to initialise service: %w", err)
 	}
+
+	svc.Start(ctx, 	svcErrors)
 
 	// blocks until an os interrupt or a fatal error occurs
 	select {
