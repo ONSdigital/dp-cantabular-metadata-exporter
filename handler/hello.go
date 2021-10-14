@@ -23,23 +23,21 @@ func NewHello(message string) *Hello{
 	}
 }
 
-// Get handles HTTP requests for GET /hello
+// Get handles HTTP requests for GET /hello. Includes examples
+// of returning regular JSON response, regular Go error and custom
+// error type with defined response status code. See api/respond_test.go
+// for expected behaviour.
 func (h *Hello) Get(w http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
 
-	// get URL parameter /hello/{name}
 	name := chi.URLParam(req, "name")
 
 	if len(h.message) == 0 {
-		// standard Go error defaults to status 500, logs error and returns
-		// same error message to caller
 		api.RespondError(ctx, w, errors.New("response message length 0"))
 		return
 	}
 
 	if name == "dave"{
-		// use error that satisfies various interfaces to tailor error
-		// including status code and specific message to caller (resp)
 		api.RespondError(ctx, w, Error{
 			err:        errors.New("inappropriate name"),
 			resp:       "you're my wife now",

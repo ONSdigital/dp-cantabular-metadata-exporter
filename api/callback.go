@@ -13,7 +13,9 @@ import (
 func statusCode(err error) int {
 	var cerr coder
 	if errors.As(err, &cerr) {
-		return cerr.Code()
+		if code := cerr.Code(); code != 0 {
+			return code
+		}
 	}
 
 	return http.StatusInternalServerError

@@ -4,7 +4,7 @@ import ()
 
 // ErrorResponse is the generic ONS error response for HTTP errors
 type ErrorResponse struct{
-	Errors []string `json: "errors"`
+	Errors []string `json:"errors"`
 }
 
 // GetHelloResponse is the response for GET /hello
