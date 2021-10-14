@@ -80,7 +80,7 @@ func unwrapLogData(err error) log.Data {
 // string
 func errorResponse(err error) string {
 	var rerr responser
-	if errors.As(err, &rerr){
+	if errors.As(err, &rerr) {
 		if resp := rerr.Response(); resp != "" {
 			return resp
 		}

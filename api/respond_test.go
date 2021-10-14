@@ -12,28 +12,28 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type testResponse struct{
+type testResponse struct {
 	Message string `json:"message"`
 }
 
-type testError struct{
+type testError struct {
 	err  error
 	resp string
 	code int
 }
 
-func (e testError) Error() string{
-	if e.err == nil{
+func (e testError) Error() string {
+	if e.err == nil {
 		return ""
 	}
 	return e.err.Error()
 }
 
-func (e testError) Code() int{
+func (e testError) Code() int {
 	return e.code
 }
 
-func (e testError) Response() string{
+func (e testError) Response() string {
 	return e.resp
 }
 
@@ -109,9 +109,9 @@ func TestRespondError(t *testing.T) {
 
 		Convey("Given an error that satisfies interfaces providing Code() and Response() functions", func() {
 			err := testError{
-				err:        errors.New("test error"),
-				resp:       "test response",
-				code:       http.StatusUnauthorized,
+				err:  errors.New("test error"),
+				resp: "test response",
+				code: http.StatusUnauthorized,
 			}
 
 			Convey("when RespondError is called", func() {

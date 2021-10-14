@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"os"
 	"fmt"
+	"os"
 	"os/signal"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
@@ -57,11 +57,11 @@ func run(ctx context.Context) error {
 	// Create, initialise and start service
 	svc := service.New()
 
-	if err := svc.Init(ctx, cfg, BuildTime, GitCommit, Version); err != nil{
+	if err := svc.Init(ctx, cfg, BuildTime, GitCommit, Version); err != nil {
 		return fmt.Errorf("failed to initialise service: %w", err)
 	}
 
-	svc.Start(ctx, 	svcErrors)
+	svc.Start(ctx, svcErrors)
 
 	// blocks until an os interrupt or a fatal error occurs
 	select {

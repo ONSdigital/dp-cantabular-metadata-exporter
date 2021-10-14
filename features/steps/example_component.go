@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	
+
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"

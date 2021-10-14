@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"net/http"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/api"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -12,12 +12,12 @@ import (
 )
 
 // Hello is the handler struct which holds dependencies for requests to /hello
-type Hello struct{
+type Hello struct {
 	message string
 }
 
 // NewHello returns a new Hello Handler
-func NewHello(message string) *Hello{
+func NewHello(message string) *Hello {
 	return &Hello{
 		message: message,
 	}
@@ -37,12 +37,12 @@ func (h *Hello) Get(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if name == "dave"{
+	if name == "dave" {
 		api.RespondError(ctx, w, Error{
 			err:        errors.New("inappropriate name"),
 			resp:       "you're my wife now",
 			statusCode: http.StatusTeapot,
-			logData:    log.Data{
+			logData: log.Data{
 				"hello": "dave",
 			},
 		})

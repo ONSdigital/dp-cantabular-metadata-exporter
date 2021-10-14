@@ -19,7 +19,7 @@ type Service struct {
 }
 
 // New returns a new Service
-func New() *Service{
+func New() *Service {
 	return &Service{}
 }
 
@@ -46,7 +46,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 }
 
 // Start starts the service
-func (svc *Service) Start(ctx context.Context, svcErrors chan error){
+func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 	log.Info(ctx, "starting service", log.Data{})
 
 	svc.healthCheck.Start(ctx)

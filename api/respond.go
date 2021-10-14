@@ -2,22 +2,22 @@ package api
 
 import (
 	"context"
-	"net/http"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
 // RespondJSON responds to a HTTP request, expecting the response body
 // to be marshall-able into JSON
-func RespondJSON(ctx context.Context, w http.ResponseWriter, status int, resp interface{}){
+func RespondJSON(ctx context.Context, w http.ResponseWriter, status int, resp interface{}) {
 	b, err := json.Marshal(resp)
 	if err != nil {
 		RespondError(ctx, w, Error{
 			statusCode: http.StatusInternalServerError,
 			err:        fmt.Errorf("failed to marshal response: %w", err),
-			resp:      "Internal Server Error: Badly formed reponse attempt",
+			resp:       "Internal Server Error: Badly formed reponse attempt",
 			logData: log.Data{
 				"response": resp,
 			},
@@ -38,20 +38,20 @@ func RespondJSON(ctx context.Context, w http.ResponseWriter, status int, resp in
 
 // RespondError responds with a single error, formatted to fit in ONS's desired error
 // response structure (essentially an array of errors)
-func RespondError(ctx context.Context, w http.ResponseWriter, err error){
+func RespondError(ctx context.Context, w http.ResponseWriter, err error) {
 	log.Error(ctx, "error responding to HTTP request", err, unwrapLogData(err))
 
 	status := statusCode(err)
-	msg    := errorResponse(err)
+	msg := errorResponse(err)
 
 	resp := ErrorResponse{
 		Errors: []string{msg},
 	}
 
 	logData := log.Data{
-			"error":       err.Error(),
-			"response":    msg,
-			"status_code": status,
+		"error":       err.Error(),
+		"response":    msg,
+		"status_code": status,
 	}
 
 	b, err := json.Marshal(resp)

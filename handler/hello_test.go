@@ -2,15 +2,15 @@ package handler_test
 
 import (
 	"context"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"io/ioutil"
-	"io"
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/go-chi/chi/v5"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 var ctx = context.Background()
@@ -34,7 +34,7 @@ func TestHello(t *testing.T) {
 				So(resp.StatusCode, ShouldEqual, http.StatusOK)
 				So(string(body), ShouldResemble, `{"message":"james says: Hello, World!"}`)
 			})
-			
+
 		})
 
 	})
