@@ -1,6 +1,6 @@
 package api
 
-// Error is the packages error type
+// Error is the package's error type
 type Error struct{
 	err        error
 	resp       string
