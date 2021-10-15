@@ -11,3 +11,6 @@ type ErrorResponse struct {
 type GetHelloResponse struct {
 	Message string `json:"message,omitempty"`
 }
+
+// ExportMetadataRequest is the request for POST /metadata
+type ExportMetadataRequest struct {}

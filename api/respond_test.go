@@ -37,54 +37,7 @@ func (e testError) Response() string {
 	return e.resp
 }
 
-func TestRespondJSON(t *testing.T) {
-
-	Convey("Given a valid context and response writer", t, func() {
-		ctx := context.Background()
-		w := httptest.NewRecorder()
-
-		Convey("Given a valid JSON response object", func() {
-			resp := testResponse{
-				Message: "Hello, World!",
-			}
-
-			Convey("when RespondJSON is called with a given statusCode", func() {
-				statusCode := http.StatusCreated
-
-				api.RespondJSON(ctx, w, statusCode, resp)
-
-				Convey("the response writer should record the appropriate status code and response body", func() {
-					expectedCode := http.StatusCreated
-					expectedBody := `{"message":"Hello, World!"}`
-
-					So(w.Code, ShouldEqual, expectedCode)
-					So(w.Body.String(), ShouldResemble, expectedBody)
-				})
-
-			})
-		})
-
-		Convey("Given an invalid JSON response object", func() {
-			resp := make(chan int, 3)
-
-			Convey("when RespondJSON is called with a given statusCode", func() {
-				statusCode := http.StatusCreated
-
-				api.RespondJSON(ctx, w, statusCode, resp)
-
-				Convey("the response writer should record an error status code and response body", func() {
-					expectedCode := http.StatusInternalServerError
-					expectedBody := `{"errors":["Internal Server Error: Badly formed reponse attempt"]}`
-
-					So(w.Code, ShouldEqual, expectedCode)
-					So(w.Body.String(), ShouldResemble, expectedBody)
-				})
-			})
-		})
-	})
-}
-
-func TestRespondError(t *testing.T) {
+func TestError(t *testing.T) {
 
 	Convey("Given a valid context and response writer", t, func() {
 		ctx := context.Background()
@@ -94,7 +47,7 @@ func TestRespondError(t *testing.T) {
 			err := errors.New("test error")
 
 			Convey("when RespondError is called", func() {
-				api.RespondError(ctx, w, err)
+				api.Error(ctx, w, err)
 
 				Convey("the response writer should record status code 500 and appropriate error response body", func() {
 					expectedCode := http.StatusInternalServerError
@@ -115,7 +68,7 @@ func TestRespondError(t *testing.T) {
 			}
 
 			Convey("when RespondError is called", func() {
-				api.RespondError(ctx, w, err)
+				api.Error(ctx, w, err)
 
 				Convey("the response writer should record the appropriate status code and response message", func() {
 					expectedCode := http.StatusUnauthorized

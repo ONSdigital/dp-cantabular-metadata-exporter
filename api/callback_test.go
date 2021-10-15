@@ -10,10 +10,35 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+type testError struct {
+	err        error
+	statusCode int
+	logData    map[string]interface{}
+}
+
+func (e testError) Error() string {
+	if e.err == nil {
+		return "nil"
+	}
+	return e.err.Error()
+}
+
+func (e testError) Unwrap() error {
+	return e.err
+}
+
+func (e testError) Code() int {
+	return e.statusCode
+}
+
+func (e testError) LogData() map[string]interface{} {
+	return e.logData
+}
+
 func TestCallbackHappy(t *testing.T) {
 
 	Convey("Given an error with embedded logData", t, func() {
-		err := &Error{
+		err := &testError{
 			logData: log.Data{
 				"log": "data",
 			},
@@ -26,21 +51,21 @@ func TestCallbackHappy(t *testing.T) {
 	})
 
 	Convey("Given an error chain with wrapped logData", t, func() {
-		err1 := &Error{
+		err1 := &testError{
 			err: errors.New("original error"),
 			logData: log.Data{
 				"log": "data",
 			},
 		}
 
-		err2 := &Error{
+		err2 := &testError{
 			err: fmt.Errorf("err1: %w", err1),
 			logData: log.Data{
 				"additional": "data",
 			},
 		}
 
-		err3 := &Error{
+		err3 := &testError{
 			err: fmt.Errorf("err2: %w", err2),
 			logData: log.Data{
 				"final": "data",
@@ -60,18 +85,18 @@ func TestCallbackHappy(t *testing.T) {
 	})
 
 	Convey("Given an error chain with intermittent wrapped logData", t, func() {
-		err1 := &Error{
+		err1 := &testError{
 			err: errors.New("original error"),
 			logData: log.Data{
 				"log": "data",
 			},
 		}
 
-		err2 := &Error{
+		err2 := &testError{
 			err: fmt.Errorf("err1: %w", err1),
 		}
 
-		err3 := &Error{
+		err3 := &testError{
 			err: fmt.Errorf("err2: %w", err2),
 			logData: log.Data{
 				"final": "data",
@@ -90,7 +115,7 @@ func TestCallbackHappy(t *testing.T) {
 	})
 
 	Convey("Given an error chain with wrapped logData with duplicate key values", t, func() {
-		err1 := &Error{
+		err1 := &testError{
 			err: errors.New("original error"),
 			logData: log.Data{
 				"log":        "data",
@@ -99,7 +124,7 @@ func TestCallbackHappy(t *testing.T) {
 			},
 		}
 
-		err2 := &Error{
+		err2 := &testError{
 			err: fmt.Errorf("err1: %w", err1),
 			logData: log.Data{
 				"additional": "data",
@@ -108,7 +133,7 @@ func TestCallbackHappy(t *testing.T) {
 			},
 		}
 
-		err3 := &Error{
+		err3 := &testError{
 			err: fmt.Errorf("err2: %w", err2),
 			logData: log.Data{
 				"final":      "data",
