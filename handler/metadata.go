@@ -47,5 +47,5 @@ func (h *Metadata) Post(w http.ResponseWriter, r *http.Request) {
 
 	// Add export job to queue
 
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusAccepted)
 }
