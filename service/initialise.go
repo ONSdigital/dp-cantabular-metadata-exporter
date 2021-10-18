@@ -40,8 +40,8 @@ var GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (dpkafka.IC
 	return dpkafka.NewConsumerGroup(
 		ctx,
 		cfg.KafkaAddr,
-		cfg.InstanceCompleteTopic,
-		cfg.InstanceCompleteGroup,
+		cfg.CantabularMetadataExportTopic,
+		cfg.CantabularMetadataExportGroup,
 		cgChannels,
 		&dpkafka.ConsumerGroupConfig{
 			KafkaVersion: &cfg.KafkaVersion,
@@ -56,7 +56,7 @@ var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (dpkafka.IP
 	return dpkafka.NewProducer(
 		ctx,
 		cfg.KafkaAddr,
-		cfg.CommonOutputCreatedTopic,
+		cfg.CantabularMetadataExportTopic,
 		pChannels,
 		&kafka.ProducerConfig{},
 	)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/log.go/v2/log"
+	kafka "github.com/ONSdigital/dp-kafka/v2"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -15,6 +16,8 @@ type Service struct {
 	config      *config.Config
 	server      HTTPServer
 	router      chi.Router
+	consumer    kafka.IConsumerGroup
+	producer    kafka.IProducer
 	healthCheck HealthChecker
 }
 
@@ -30,6 +33,13 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 	svc.config = cfg
 
 	var err error
+
+	if svc.consumer, err = GetKafkaConsumer(ctx, cfg); err != nil {
+		return fmt.Errorf("failed to create kafka consumer: %w", err)
+	}
+	if svc.producer, err = GetKafkaProducer(ctx, cfg); err != nil {
+		return fmt.Errorf("failed to create kafka producer: %w", err)
+	}
 
 	if svc.healthCheck, err = GetHealthCheck(cfg, buildT, commit, ver); err != nil {
 		return fmt.Errorf("could not get healtcheck: %w", err)
@@ -50,6 +60,18 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 	log.Info(ctx, "starting service", log.Data{})
 
 	svc.healthCheck.Start(ctx)
+
+	// Kafka error logging go-routine
+	svc.consumer.Channels().LogErrors(ctx, "kafka consumer")
+
+	// Event Handler for Kafka Consumer
+	svc.processor.Consume(
+		ctx,
+		svc.consumer,
+		handler.NewCantabularMetadataExport(
+			*svc.cfg,
+		),
+	)
 
 	// Run the http server in a new go-routine
 	go func() {
