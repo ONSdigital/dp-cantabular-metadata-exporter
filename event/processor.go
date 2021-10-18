@@ -1,7 +1,7 @@
 package event
 
 import (
-	"github.com/ONSdigital/dp-cantabular-csv-exporter/config"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 )
 
 // Processor handles consuming and processing Kafka messages

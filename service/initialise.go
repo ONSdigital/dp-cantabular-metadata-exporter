@@ -3,9 +3,10 @@ package service
 import (
 	"fmt"
 	"net/http"
+	"context"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
-
+	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	dphttp "github.com/ONSdigital/dp-net/http"
 )
@@ -29,21 +30,21 @@ var GetHealthCheck = func(cfg *config.Config, buildT, commit, ver string) (Healt
 }
 
 // GetKafkaConsumer creates a Kafka consumer
-var GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (dpkafka.IConsumerGroup, error) {
-	cgChannels := dpkafka.CreateConsumerGroupChannels(1)
+var GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
+	cgChannels := kafka.CreateConsumerGroupChannels(1)
 
-	kafkaOffset := dpkafka.OffsetNewest
+	kafkaOffset := kafka.OffsetNewest
 	if cfg.KafkaOffsetOldest {
-		kafkaOffset = dpkafka.OffsetOldest
+		kafkaOffset = kafka.OffsetOldest
 	}
 
-	return dpkafka.NewConsumerGroup(
+	return kafka.NewConsumerGroup(
 		ctx,
 		cfg.KafkaAddr,
 		cfg.CantabularMetadataExportTopic,
 		cfg.CantabularMetadataExportGroup,
 		cgChannels,
-		&dpkafka.ConsumerGroupConfig{
+		&kafka.ConsumerGroupConfig{
 			KafkaVersion: &cfg.KafkaVersion,
 			Offset:       &kafkaOffset,
 		},
@@ -51,9 +52,9 @@ var GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (dpkafka.IC
 }
 
 // GetKafkaProducer creates a Kafka producer
-var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (dpkafka.IProducer, error) {
-	pChannels := dpkafka.CreateProducerChannels()
-	return dpkafka.NewProducer(
+var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
+	pChannels := kafka.CreateProducerChannels()
+	return kafka.NewProducer(
 		ctx,
 		cfg.KafkaAddr,
 		cfg.CantabularMetadataExportTopic,

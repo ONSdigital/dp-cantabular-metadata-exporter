@@ -6,10 +6,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ONSdigital/dp-cantabular-csv-exporter/config"
-	"github.com/ONSdigital/dp-cantabular-csv-exporter/event"
-	"github.com/ONSdigital/dp-cantabular-csv-exporter/event/mock"
-	"github.com/ONSdigital/dp-cantabular-csv-exporter/schema"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event/mock"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
 
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/dp-kafka/v2/kafkatest"

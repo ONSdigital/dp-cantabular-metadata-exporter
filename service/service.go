@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
 	"github.com/ONSdigital/log.go/v2/log"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 
@@ -18,6 +19,7 @@ type Service struct {
 	router      chi.Router
 	consumer    kafka.IConsumerGroup
 	producer    kafka.IProducer
+	processor   Processor
 	healthCheck HealthChecker
 }
 
@@ -69,7 +71,7 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 		ctx,
 		svc.consumer,
 		handler.NewCantabularMetadataExport(
-			*svc.cfg,
+			*svc.config,
 		),
 	)
 

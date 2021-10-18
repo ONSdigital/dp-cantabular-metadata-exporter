@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ONSdigital/dp-cantabular-csv-exporter/schema"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/log.go/v2/log"
 )

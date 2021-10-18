@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 )
 
 // CantabularMetadataExport is the event handler for the CantabularMetadataExport event
