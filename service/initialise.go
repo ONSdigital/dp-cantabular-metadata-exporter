@@ -27,3 +27,37 @@ var GetHealthCheck = func(cfg *config.Config, buildT, commit, ver string) (Healt
 	hc := healthcheck.New(versionInfo, cfg.HealthCheckCriticalTimeout, cfg.HealthCheckInterval)
 	return &hc, nil
 }
+
+// GetKafkaConsumer creates a Kafka consumer
+var GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (dpkafka.IConsumerGroup, error) {
+	cgChannels := dpkafka.CreateConsumerGroupChannels(1)
+
+	kafkaOffset := dpkafka.OffsetNewest
+	if cfg.KafkaOffsetOldest {
+		kafkaOffset = dpkafka.OffsetOldest
+	}
+
+	return dpkafka.NewConsumerGroup(
+		ctx,
+		cfg.KafkaAddr,
+		cfg.InstanceCompleteTopic,
+		cfg.InstanceCompleteGroup,
+		cgChannels,
+		&dpkafka.ConsumerGroupConfig{
+			KafkaVersion: &cfg.KafkaVersion,
+			Offset:       &kafkaOffset,
+		},
+	)
+}
+
+// GetKafkaProducer creates a Kafka producer
+var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (dpkafka.IProducer, error) {
+	pChannels := dpkafka.CreateProducerChannels()
+	return dpkafka.NewProducer(
+		ctx,
+		cfg.KafkaAddr,
+		cfg.CommonOutputCreatedTopic,
+		pChannels,
+		&kafka.ProducerConfig{},
+	)
+}
