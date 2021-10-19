@@ -24,10 +24,17 @@ func TestConfig(t *testing.T) {
 				configuration, err = Get() // This Get() is only called once, when inside this function
 				So(err, ShouldBeNil)
 				So(configuration, ShouldResemble, &Config{
-					BindAddr:                   "localhost:26700",
+					BindAddr:                   ":26700",
 					GracefulShutdownTimeout:    5 * time.Second,
 					HealthCheckInterval:        30 * time.Second,
 					HealthCheckCriticalTimeout: 90 * time.Second,
+					KafkaAddr:                     []string{"localhost:9092"},
+					KafkaVersion:                 "1.0.2",
+					KafkaOffsetOldest:            true,
+					KafkaNumWorkers:              1,
+					KafkaMaxBytes:                2000000,
+					CantabularMetadataExportGroup: "cantabular-metadata-export",
+					CantabularMetadataExportTopic: "cantabular-metadata-export",
 				})
 			})
 

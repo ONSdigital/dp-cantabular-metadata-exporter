@@ -65,7 +65,7 @@ func TestConsume(t *testing.T) {
 
 				Convey("An event is sent to the mockEventHandler ", func() {
 					So(len(mockEventHandler.HandleCalls()), ShouldEqual, 1)
-					So(*mockEventHandler.HandleCalls()[0].CantabularMetadataExport, ShouldResemble, testEvent)
+					So(*mockEventHandler.HandleCalls()[0].EventMoqParam, ShouldResemble, testEvent)
 				})
 
 				Convey("The message is committed and the consumer is released", func() {
@@ -91,7 +91,7 @@ func TestConsume(t *testing.T) {
 
 				Convey("Only the valid event is sent to the mockEventHandler ", func() {
 					So(len(mockEventHandler.HandleCalls()), ShouldEqual, 1)
-					So(*mockEventHandler.HandleCalls()[0].CantabularMetadataExport, ShouldResemble, testEvent)
+					So(*mockEventHandler.HandleCalls()[0].EventMoqParam, ShouldResemble, testEvent)
 				})
 
 				Convey("Only the valid message is committed, but the consumer is released for both messages", func() {
@@ -121,7 +121,7 @@ func TestConsume(t *testing.T) {
 
 				Convey("An event is sent to the mockEventHandler ", func() {
 					So(len(mockEventHandler.HandleCalls()), ShouldEqual, 1)
-					So(*mockEventHandler.HandleCalls()[0].CantabularMetadataExport, ShouldResemble, testEvent)
+					So(*mockEventHandler.HandleCalls()[0].EventMoqParam, ShouldResemble, testEvent)
 				})
 
 				Convey("The message is committed and the consumer is released", func() {

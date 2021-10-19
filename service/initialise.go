@@ -6,6 +6,8 @@ import (
 	"context"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	dphttp "github.com/ONSdigital/dp-net/http"
@@ -61,4 +63,9 @@ var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IPro
 		pChannels,
 		&kafka.ProducerConfig{},
 	)
+}
+
+// GetProcessor gets and initialises the event Processor
+var GetProcessor = func(cfg *config.Config) Processor {
+	return event.NewProcessor(*cfg)
 }

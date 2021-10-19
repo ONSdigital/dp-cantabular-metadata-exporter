@@ -11,6 +11,7 @@ import (
 
 //go:generate moq -out mock/server.go -pkg mock . HTTPServer
 //go:generate moq -out mock/healthCheck.go -pkg mock . HealthChecker
+//go:generate moq -out mock/processor.go -pkg mock . Processor
 
 // HTTPServer defines the required methods from the HTTP server
 type HTTPServer interface {

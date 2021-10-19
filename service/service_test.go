@@ -8,9 +8,12 @@ import (
 	"time"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
-	serviceMock "github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
+
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
+	"github.com/ONSdigital/dp-kafka/v2"
+	"github.com/ONSdigital/dp-kafka/v2/kafkatest"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -40,7 +43,7 @@ func TestInit(t *testing.T) {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
 
-		hcMock := &serviceMock.HealthCheckerMock{
+		hcMock := &mock.HealthCheckerMock{
 			AddCheckFunc: func(name string, checker healthcheck.Checker) error { return nil },
 			StartFunc:    func(ctx context.Context) {},
 			StopFunc:     func() {},
@@ -50,7 +53,25 @@ func TestInit(t *testing.T) {
 			return hcMock, nil
 		}
 
-		serverMock := &serviceMock.HTTPServerMock{
+		GetProcessor = func(cfg *config.Config) Processor{
+			return &mock.ProcessorMock{
+				ConsumeFunc: func(context.Context, kafka.IConsumerGroup, event.Handler) {},
+			}
+		}
+
+		GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
+			return &kafkatest.IProducerMock{}, nil
+		}
+
+		GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
+			return &kafkatest.IConsumerGroupMock{
+				ChannelsFunc: func() *kafka.ConsumerGroupChannels { 
+					return &kafka.ConsumerGroupChannels{}
+				},
+			}, nil
+		}
+
+		serverMock := &mock.HTTPServerMock{
 			ListenAndServeFunc: func() error {
 				return nil
 			},
@@ -108,7 +129,7 @@ func TestClose(t *testing.T) {
 		hcStopped := false
 
 		// healthcheck Stop does not depend on any other service being closed/stopped
-		hcMock := &serviceMock.HealthCheckerMock{
+		hcMock := &mock.HealthCheckerMock{
 			AddCheckFunc: func(name string, checker healthcheck.Checker) error { return nil },
 			StartFunc:    func(ctx context.Context) {},
 			StopFunc:     func() { hcStopped = true },
@@ -127,9 +148,29 @@ func TestClose(t *testing.T) {
 				return nil
 			},
 		}
+
 		GetHTTPServer = func(bindAddr string, router http.Handler) HTTPServer {
 			return serverMock
 		}
+
+		GetProcessor = func(cfg *config.Config) Processor {
+			return &mock.ProcessorMock{
+				ConsumeFunc: func(context.Context, kafka.IConsumerGroup, event.Handler) {},
+			}
+		}
+
+		GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
+			return &kafkatest.IProducerMock{}, nil
+		}
+
+		GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
+			return &kafkatest.IConsumerGroupMock{
+				ChannelsFunc: func() *kafka.ConsumerGroupChannels { 
+					return &kafka.ConsumerGroupChannels{}
+				},
+			}, nil
+		}
+
 
 		Convey("Closing the service results in all the dependencies being closed in the expected order", func() {
 

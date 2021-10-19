@@ -43,6 +43,8 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 		return fmt.Errorf("failed to create kafka producer: %w", err)
 	}
 
+	svc.processor = GetProcessor(cfg)
+
 	if svc.healthCheck, err = GetHealthCheck(cfg, buildT, commit, ver); err != nil {
 		return fmt.Errorf("could not get healtcheck: %w", err)
 	}
