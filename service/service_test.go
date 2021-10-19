@@ -2,15 +2,15 @@ package service
 
 import (
 	"context"
-	"time"
+	"errors"
 	"net/http"
 	"testing"
-	"errors"
+	"time"
 
-	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
 	serviceMock "github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
+	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -51,7 +51,7 @@ func TestInit(t *testing.T) {
 		}
 
 		serverMock := &serviceMock.HTTPServerMock{
-			ListenAndServeFunc: func() error{
+			ListenAndServeFunc: func() error {
 				return nil
 			},
 			ShutdownFunc: func(ctx context.Context) error {

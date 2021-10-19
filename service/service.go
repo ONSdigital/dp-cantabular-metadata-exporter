@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/api"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
-	"github.com/ONSdigital/log.go/log"
+	"github.com/ONSdigital/log.go/v2/log"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -20,22 +19,17 @@ type Service struct {
 }
 
 // New returns a new Service
-func New() *Service{
+func New() *Service {
 	return &Service{}
 }
 
 // Init initialises the service
 func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit, ver string) error {
-	log.Event(ctx, "initialising service with config", log.Data{"config": cfg}, log.INFO)
+	log.Info(ctx, "initialising service with config", log.Data{"config": cfg})
 
 	svc.config = cfg
 
 	var err error
-
-	svc.router = api.Init()
-
-	svc.server = GetHTTPServer(cfg.BindAddr, svc.router)
-	// TODO: Add other(s) to serviceList here
 
 	if svc.healthCheck, err = GetHealthCheck(cfg, buildT, commit, ver); err != nil {
 		return fmt.Errorf("could not get healtcheck: %w", err)
@@ -45,14 +39,15 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 		return fmt.Errorf("unable to register checkers: %w", err)
 	}
 
-	svc.router.HandleFunc("/health", svc.healthCheck.Handler)
+	svc.BuildRoutes()
+	svc.server = GetHTTPServer(cfg.BindAddr, svc.router)
 
 	return nil
 }
 
 // Start starts the service
-func (svc *Service) Start(ctx context.Context, svcErrors chan error){
-	log.Event(ctx, "starting service", log.Data{}, log.INFO)
+func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
+	log.Info(ctx, "starting service", log.Data{})
 
 	svc.healthCheck.Start(ctx)
 
@@ -67,7 +62,7 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error){
 // Close gracefully shuts the service down in the required order, with timeout
 func (svc *Service) Close(ctx context.Context) error {
 	timeout := svc.config.GracefulShutdownTimeout
-	log.Event(ctx, "commencing graceful shutdown", log.Data{"graceful_shutdown_timeout": timeout}, log.INFO)
+	log.Info(ctx, "commencing graceful shutdown", log.Data{"graceful_shutdown_timeout": timeout})
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 
 	// track shutown gracefully closes up
@@ -100,7 +95,7 @@ func (svc *Service) Close(ctx context.Context) error {
 		return fmt.Errorf("failed to shutdown gracefully: %w", shutDownErr)
 	}
 
-	log.Event(ctx, "graceful shutdown was successful", log.INFO)
+	log.Info(ctx, "graceful shutdown was successful")
 	return nil
 }
 

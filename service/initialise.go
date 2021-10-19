@@ -1,8 +1,8 @@
 package service
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 
@@ -11,7 +11,7 @@ import (
 )
 
 // GetHTTPServer creates an http server
-var GetHTTPServer = func (bindAddr string, router http.Handler) HTTPServer {
+var GetHTTPServer = func(bindAddr string, router http.Handler) HTTPServer {
 	s := dphttp.NewServer(bindAddr, router)
 	s.HandleOSSignals = false
 	return s

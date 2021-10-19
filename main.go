@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"os"
 	"fmt"
+	"os"
 	"os/signal"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service"
-	"github.com/ONSdigital/log.go/log"
-	"github.com/pkg/errors"
+	"github.com/ONSdigital/log.go/v2/log"
 )
 
 const serviceName = "dp-cantabular-metadata-exporter"
@@ -35,7 +34,7 @@ func main() {
 	ctx := context.Background()
 
 	if err := run(ctx); err != nil {
-		log.Event(nil, "fatal runtime error", log.Error(err), log.FATAL)
+		log.Fatal(context.TODO(), "fatal runtime error", err)
 		os.Exit(1)
 	}
 }
@@ -47,31 +46,31 @@ func run(ctx context.Context) error {
 	// Run the service, providing an error channel for fatal errors
 	svcErrors := make(chan error, 1)
 
-	log.Event(ctx, "dp-cantabular-metadata-exporter version", log.INFO, log.Data{"version": Version})
+	log.Info(ctx, "dp-cantabular-metadata-exporter version", log.Data{"version": Version})
 
 	// Read config
 	cfg, err := config.Get()
 	if err != nil {
-		return errors.Wrap(err, "error getting configuration")
+		return fmt.Errorf("failed to get config: %w", err)
 	}
 
 	// Create, initialise and start service
 	svc := service.New()
 
-	if err := svc.Init(ctx, cfg, BuildTime, GitCommit, Version); err != nil{
+	if err := svc.Init(ctx, cfg, BuildTime, GitCommit, Version); err != nil {
 		return fmt.Errorf("failed to initialise service: %w", err)
 	}
 
-	svc.Start(ctx, 	svcErrors)
+	svc.Start(ctx, svcErrors)
 
 	// blocks until an os interrupt or a fatal error occurs
 	select {
 	case err := <-svcErrors:
 		// TODO: call svc.Close(ctx) (or something specific)
 		//  if there are any service connections like Kafka that you need to shut down
-		return errors.Wrap(err, "service error received")
+		return fmt.Errorf("service error: %w", err)
 	case sig := <-signals:
-		log.Event(ctx, "os signal received", log.Data{"signal": sig}, log.INFO)
+		log.Info(ctx, "os signal received", log.Data{"signal": sig})
 	}
 	return svc.Close(ctx)
 }
