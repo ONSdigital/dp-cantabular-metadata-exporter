@@ -9,7 +9,7 @@ image_resource:
     tag: 1.15.7
 
 inputs:
-  - name: dp-dataset-api
+  - name: dp-cantabular-metadata-exporter
 
 run:
-  path: dp-dataset-api/ci/scripts/lint.sh
+  path: dp-cantabular-metadata-exporter/ci/scripts/lint.sh

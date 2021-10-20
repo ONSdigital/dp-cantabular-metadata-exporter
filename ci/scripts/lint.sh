@@ -2,6 +2,6 @@
 
 cwd=$(pwd)
 
-pushd $cwd/dp-dataset-api
+pushd $cwd/dp-cantabular-metadata-exporter
   make lint
 popd
