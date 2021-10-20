@@ -3,10 +3,15 @@ package service
 import (
 	"context"
 	"net/http"
+	"io"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+
+	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
+
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 //go:generate moq -out mock/server.go -pkg mock . HTTPServer
@@ -30,4 +35,18 @@ type HealthChecker interface {
 // Processor defines the required methods for the Processor object
 type Processor interface {
 	Consume(context.Context, kafka.IConsumerGroup, event.Handler)
+}
+
+type DatasetAPIClient interface {
+	GetInstance(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, instanceID, ifMatch string) (m dataset.Instance, eTag string, err error)
+	PutInstance(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, instanceID string, instanceUpdate dataset.UpdateInstance, ifMatch string) (eTag string, err error)
+	Checker(context.Context, *healthcheck.CheckState) error
+}
+
+type S3Uploader interface {
+	Get(key string) (io.ReadCloser, *int64, error)
+	Upload(input *s3manager.UploadInput, options ...func(*s3manager.Uploader)) (*s3manager.UploadOutput, error)
+	UploadWithPSK(input *s3manager.UploadInput, psk []byte) (*s3manager.UploadOutput, error)
+	BucketName() string
+	Checker(context.Context, *healthcheck.CheckState) error
 }

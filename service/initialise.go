@@ -7,10 +7,15 @@ import (
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
-
+	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	dps3 "github.com/ONSdigital/dp-s3"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	dphttp "github.com/ONSdigital/dp-net/http"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 // GetHTTPServer creates an http server
@@ -68,4 +73,35 @@ var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IPro
 // GetProcessor gets and initialises the event Processor
 var GetProcessor = func(cfg *config.Config) Processor {
 	return event.NewProcessor(*cfg)
+}
+
+// GetDatasetAPIClient gets and initialises the DatasetAPI Client
+var GetDatasetAPIClient = func(cfg *config.Config) DatasetAPIClient {
+	return dataset.NewAPIClient(cfg.DatasetAPIURL)
+}
+
+// GetS3Uploader creates an S3 Uploader
+var GetS3Uploader = func(cfg *config.Config) (S3Uploader, error) {
+	if cfg.LocalObjectStore != "" {
+		s3Config := &aws.Config{
+			Credentials:      credentials.NewStaticCredentials(cfg.MinioAccessKey, cfg.MinioSecretKey, ""),
+			Endpoint:         aws.String(cfg.LocalObjectStore),
+			Region:           aws.String(cfg.AWSRegion),
+			DisableSSL:       aws.Bool(true),
+			S3ForcePathStyle: aws.Bool(true),
+		}
+
+		s, err := session.NewSession(s3Config)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create aws session: %w", err)
+		}
+		return dps3.NewUploaderWithSession(cfg.UploadBucketName, s), nil
+	}
+
+	uploader, err := dps3.NewUploader(cfg.AWSRegion, cfg.UploadBucketName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create S3 Client: %w", err)
+	}
+
+	return uploader, nil
 }

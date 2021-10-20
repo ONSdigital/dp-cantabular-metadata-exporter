@@ -12,6 +12,12 @@ type Config struct {
 	GracefulShutdownTimeout       time.Duration `envconfig:"GRACEFUL_SHUTDOWN_TIMEOUT"`
 	HealthCheckInterval           time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
 	HealthCheckCriticalTimeout    time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
+	DatasetAPIURL                 string        `envconfig:"DATASET_API_URL"`
+	AWSRegion                     string        `envconfig:"AWS_REGION"`
+	UploadBucketName              string        `envconfig:"UPLOAD_BUCKET_NAME"`
+	LocalObjectStore              string        `envconfig:"LOCAL_OBJECT_STORE"`
+	MinioAccessKey                string        `envconfig:"MINIO_ACCESS_KEY"`
+	MinioSecretKey                string        `envconfig:"MINIO_SECRET_KEY"`
 	Kafka                         KafkaConfig
 }
 

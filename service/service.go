@@ -14,13 +14,15 @@ import (
 
 // Service contains all the configs, server and clients to run the dp-topic-api API
 type Service struct {
-	config      *config.Config
-	server      HTTPServer
-	router      chi.Router
-	consumer    kafka.IConsumerGroup
-	producer    kafka.IProducer
-	processor   Processor
-	healthCheck HealthChecker
+	config           *config.Config
+	server           HTTPServer
+	router           chi.Router
+	consumer         kafka.IConsumerGroup
+	producer         kafka.IProducer
+	processor        Processor
+	datasetAPIClient DatasetAPIClient
+	s3Uploader       S3Uploader
+	healthCheck      HealthChecker
 }
 
 // New returns a new Service
@@ -42,7 +44,11 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 	if svc.producer, err = GetKafkaProducer(ctx, cfg); err != nil {
 		return fmt.Errorf("failed to create kafka producer: %w", err)
 	}
+	if svc.s3Uploader, err = GetS3Uploader(cfg); err != nil {
+		return fmt.Errorf("failed to initialise s3 uploader: %w", err)
+	}
 
+	svc.datasetAPIClient = GetDatasetAPIClient(cfg)
 	svc.processor = GetProcessor(cfg)
 
 	if svc.healthCheck, err = GetHealthCheck(cfg, buildT, commit, ver); err != nil {
