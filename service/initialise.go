@@ -1,15 +1,15 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"net/http"
-	"context"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/generator"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
-	
+
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	dps3 "github.com/ONSdigital/dp-s3"
 	kafka "github.com/ONSdigital/dp-kafka/v2"

@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"io"
 
-	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
-
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"

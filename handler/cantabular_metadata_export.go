@@ -13,6 +13,7 @@ type CantabularMetadataExport struct {
 	cfg         config.Config
 	dataset     DatasetAPIClient
 	file        FileManager
+	cfg config.Config
 }
 
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler

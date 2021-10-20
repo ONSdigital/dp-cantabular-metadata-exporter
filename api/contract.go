@@ -8,4 +8,4 @@ type ErrorResponse struct {
 }
 
 // ExportMetadataRequest is the request for POST /metadata
-type ExportMetadataRequest struct {}
+type ExportMetadataRequest struct{}
