@@ -26,6 +26,10 @@ PHONY: debug-run
 debug-run:
 	HUMAN_LOG=1 DEBUG=1 go run -tags 'debug' $(LDFLAGS) main.go
 
+.PHONY: lint
+lint:
+	exit
+
 .PHONY: test
 test:
 	go test -race -cover ./...
