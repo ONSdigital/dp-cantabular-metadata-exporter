@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ONSdigital/dp-api-clients-go/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
@@ -105,7 +105,7 @@ func New(m *dataset.Metadata, csvURL string) *CSVW {
 }
 
 // Generate the CSVW structured metadata file to describe a CSV
-func Generate(ctx context.Context, metadata *dataset.Metadata, header, downloadURL, aboutURL, apiDomain string) ([]byte, error) {
+func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, aboutURL, apiDomain string) ([]byte, error) {
 	log.Info(ctx, "generating csvw file", log.Data{
 		"dataset_id": metadata.DatasetDetails.ID,
 		"csv_header": metadata.CSVHeader,
@@ -115,10 +115,12 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, header, downloadU
 		return nil, errMissingDimensions
 	}
 
-	h, offset, err := splitHeader(header)
+	/*h, offset, err := splitHeader(metadata.CSVHeader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to split header: %w", err)
-	}
+	}*/
+	h := metadata.CSVHeader
+	offset := 1
 
 	csvw := New(metadata, downloadURL)
 
@@ -143,7 +145,7 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, header, downloadU
 		list = append(list, c, l)
 	}
 
-	aboutURL, err = formatAboutURL(aboutURL, apiDomain)
+	aboutURL, err := formatAboutURL(aboutURL, apiDomain)
 	if err != nil {
 		return nil, fmt.Errorf("failed to format AboutURL: %w", err)
 	}
@@ -191,8 +193,8 @@ func (csvw *CSVW) AddNotes(metadata *dataset.Metadata, url string) {
 		}
 	}
 
-	if metadata.DatasetDetails.UsageNotes != nil {
-		for _, u := range *metadata.DatasetDetails.UsageNotes {
+	if metadata.UsageNotes != nil {
+		for _, u := range *metadata.UsageNotes {
 			csvw.Notes = append(csvw.Notes, Note{
 				Type: u.Title,
 				Body: u.Note,
@@ -203,9 +205,7 @@ func (csvw *CSVW) AddNotes(metadata *dataset.Metadata, url string) {
 	}
 }
 
-func splitHeader(header string) ([]string, int, error) {
-	h := strings.Split(header, ",")
-
+func splitHeader(h []string) ([]string, int, error) {
 	parts := strings.Split(h[0], "_")
 	if len(parts) != 2 {
 		return nil, 0, errInvalidHeader
