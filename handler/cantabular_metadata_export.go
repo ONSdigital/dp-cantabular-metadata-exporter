@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
@@ -25,5 +26,21 @@ func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, s3 S3Upl
 
 // Handle takes a single event.
 func (h *CantabularMetadataExport) Handle(ctx context.Context, e *event.CantabularMetadataExport) error {
+	if err := h.exportCSVW(e); err != nil{
+		return fmt.Errorf("failed to export csvw: %w", err)
+	}
+
+	if err := h.exportTXTFile(e); err != nil{
+		return fmt.Errorf("failed to export metadata text file: %w", err)
+	}
+
+	return nil
+}
+
+func (h *CantabularMetadataExport) exportCSVW(e *event.CantabularMetadataExport) error {
+	return nil
+}
+
+func (h *CantabularMetadataExport) exportTXTFile(e *event.CantabularMetadataExport) error {
 	return nil
 }
