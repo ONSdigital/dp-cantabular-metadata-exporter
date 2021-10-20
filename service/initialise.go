@@ -33,21 +33,21 @@ var GetHealthCheck = func(cfg *config.Config, buildT, commit, ver string) (Healt
 
 // GetKafkaConsumer creates a Kafka consumer
 var GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
-	cgChannels := kafka.CreateConsumerGroupChannels(1)
+	cgChannels := kafka.CreateConsumerGroupChannels(cfg.Kafka.NumWorkers)
 
 	kafkaOffset := kafka.OffsetNewest
-	if cfg.KafkaOffsetOldest {
+	if cfg.Kafka.OffsetOldest {
 		kafkaOffset = kafka.OffsetOldest
 	}
 
 	return kafka.NewConsumerGroup(
 		ctx,
-		cfg.KafkaAddr,
-		cfg.CantabularMetadataExportTopic,
-		cfg.CantabularMetadataExportGroup,
+		cfg.Kafka.Addr,
+		cfg.Kafka.CantabularMetadataExportTopic,
+		cfg.Kafka.CantabularMetadataExportGroup,
 		cgChannels,
 		&kafka.ConsumerGroupConfig{
-			KafkaVersion: &cfg.KafkaVersion,
+			KafkaVersion: &cfg.Kafka.Version,
 			Offset:       &kafkaOffset,
 		},
 	)
@@ -58,8 +58,8 @@ var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IPro
 	pChannels := kafka.CreateProducerChannels()
 	return kafka.NewProducer(
 		ctx,
-		cfg.KafkaAddr,
-		cfg.CantabularMetadataExportTopic,
+		cfg.Kafka.Addr,
+		cfg.Kafka.CantabularMetadataExportTopic,
 		pChannels,
 		&kafka.ProducerConfig{},
 	)
