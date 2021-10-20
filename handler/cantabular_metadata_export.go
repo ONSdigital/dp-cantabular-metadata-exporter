@@ -10,12 +10,16 @@ import (
 // CantabularMetadataExport is the event handler for the CantabularMetadataExport event
 type CantabularMetadataExport struct {
 	cfg         config.Config
+	dataset     DatasetAPIClient
+	s3          S3Uploader
 }
 
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler
-func NewCantabularMetadataExport(cfg config.Config) *CantabularMetadataExport {
+func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, s3 S3Uploader) *CantabularMetadataExport {
 	return &CantabularMetadataExport{
-		cfg:         cfg,
+		cfg:     cfg,
+		dataset: d,
+		s3:      s3,
 	}
 }
 

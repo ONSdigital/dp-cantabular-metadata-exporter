@@ -80,6 +80,8 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 		svc.consumer,
 		handler.NewCantabularMetadataExport(
 			*svc.config,
+			svc.datasetAPIClient,
+			svc.s3Uploader,
 		),
 	)
 
