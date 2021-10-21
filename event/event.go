@@ -2,5 +2,7 @@ package event
 
 // CantabularMetadataExport provides an avro structure for CantabularMetadataExport event
 type CantabularMetadataExport struct {
-	ID string `avro:"id"`
+	DatasetID string `avro:"dataset_id"`
+	Edition   string `avro:"edition"`
+	Version   int32  `avro:"version"`
 }

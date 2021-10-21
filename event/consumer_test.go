@@ -21,7 +21,7 @@ var testCtx = context.Background()
 var errHandler = errors.New("Handler Error")
 
 var testEvent = event.CantabularMetadataExport{
-	ID: "World",
+	DatasetID: "World",
 }
 
 // kafkaStubConsumer mock which exposes Channels function returning empty channels

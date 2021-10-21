@@ -8,7 +8,9 @@ var cantabularMetadataExport = `{
   "type": "record",
   "name": "cantabular-metadata-export",
   "fields": [
-    {"name": "id",     "type": "string", "default": ""}
+    {"name": "dataset_id", "type": "string", "default": ""},
+    {"name": "edition",    "type": "string", "default": ""},
+    {"name": "version",    "type": "int",    "default":  0}
   ]
 }`
 
