@@ -65,9 +65,18 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, userAccess
 		return fmt.Errorf("failed to get text bytes: %w", err)
 	}
 
-	log.Info(ctx, "got text", log.Data{"text": string(b)})
+	url, err := h.file.Upload(bytes.NewReader(b), h.cfg.UploadBucketName, GenerateTextFilename(e))
+	if err != nil {
+		return fmt.Errorf("failed to upload file: %w", err)
+	}
+
+	log.Info(ctx, "got text", log.Data{"text": url})
 
 	return nil
+}
+
+func GenerateTextFilename(e *event.CantabularMetadataExport) string {
+	return fmt.Sprintf("%s-%s-%d.txt", e.DatasetID, e.Edition, e.Version)
 }
 
 // getText gets a byte array containing the metadata content, based on options returned by dataset API.
