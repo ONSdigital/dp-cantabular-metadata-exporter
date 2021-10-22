@@ -1,16 +1,17 @@
 package handler_test
 
 import (
-	"context"
-	"net/http"
 	"bytes"
+	"context"
+	"io"
+	"net/http"
 	"net/http/httptest"
 	"testing"
-	"io"
+
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
 
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/go-chi/chi/v5"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 var ctx = context.Background()
@@ -32,7 +33,7 @@ func TestMetadata(t *testing.T) {
 			Convey("status code should equal 202 Status Accepted", func() {
 				So(resp.StatusCode, ShouldEqual, http.StatusAccepted)
 			})
-			
+
 		})
 
 	})
