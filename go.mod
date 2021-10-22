@@ -1,6 +1,6 @@
 module github.com/ONSdigital/dp-cantabular-metadata-exporter
 
-go 1.17
+go 1.16
 
 replace github.com/coreos/etcd => github.com/coreos/etcd v3.3.24+incompatible
 
