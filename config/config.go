@@ -18,6 +18,10 @@ type Config struct {
 	LocalObjectStore              string        `envconfig:"LOCAL_OBJECT_STORE"`
 	MinioAccessKey                string        `envconfig:"MINIO_ACCESS_KEY"`
 	MinioSecretKey                string        `envconfig:"MINIO_SECRET_KEY"`
+	VaultToken                    string        `envconfig:"VAULT_TOKEN"                   json:"-"`
+	VaultAddress                  string        `envconfig:"VAULT_ADDR"`
+	VaultPath                     string        `envconfig:"VAULT_PATH"`
+	EncryptionDisabled            bool          `envconfig:"ENCRYPTION_DISABLED"`
 	Kafka                         KafkaConfig
 }
 
@@ -51,6 +55,10 @@ func Get() (*Config, error) {
 		GracefulShutdownTimeout:       5 * time.Second,
 		HealthCheckInterval:           30 * time.Second,
 		HealthCheckCriticalTimeout:    90 * time.Second,
+		VaultPath:                    "secret/shared/psk",
+		VaultAddress:                 "http://localhost:8200",
+		VaultToken:                   "",
+		EncryptionDisabled:           false,
 		Kafka: KafkaConfig {
 			Addr:                         []string{"localhost:9092"},
 			Version:                      "1.0.2",

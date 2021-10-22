@@ -7,15 +7,23 @@ import (
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/generator"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
+	
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	dps3 "github.com/ONSdigital/dp-s3"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	dphttp "github.com/ONSdigital/dp-net/http"
+	vault "github.com/ONSdigital/dp-vault"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+)
+
+const (
+	VaultRetries = 3
 )
 
 // GetHTTPServer creates an http server
@@ -34,6 +42,24 @@ var GetHealthCheck = func(cfg *config.Config, buildT, commit, ver string) (Healt
 
 	hc := healthcheck.New(versionInfo, cfg.HealthCheckCriticalTimeout, cfg.HealthCheckInterval)
 	return &hc, nil
+}
+
+var GetFileManager = func(s3 S3Uploader, vault VaultClient, generator Generator) FileManager {
+	return filemanager.New(
+		filemanager.Config{
+			VaultKey: "key",
+		},
+		s3,
+		vault,
+		generator,
+	)
+}
+
+var GetGenerator = func() Generator{
+	return generator.New()
+}
+var GetVaultClient = func(cfg *config.Config) (VaultClient, error) {
+	return vault.CreateClient(cfg.VaultToken, cfg.VaultAddress, VaultRetries)
 }
 
 // GetKafkaConsumer creates a Kafka consumer

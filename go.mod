@@ -11,6 +11,7 @@ require (
 	github.com/ONSdigital/dp-kafka/v2 v2.4.2
 	github.com/ONSdigital/dp-net v1.2.0
 	github.com/ONSdigital/dp-s3 v1.7.0
+	github.com/ONSdigital/dp-vault v1.2.0
 	github.com/ONSdigital/log.go/v2 v2.0.6
 	github.com/aws/aws-sdk-go v1.41.6
 	github.com/cucumber/godog v0.12.1

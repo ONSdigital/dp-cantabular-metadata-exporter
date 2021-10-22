@@ -12,15 +12,15 @@ import (
 type CantabularMetadataExport struct {
 	cfg         config.Config
 	dataset     DatasetAPIClient
-	s3          S3Uploader
+	file        FileManager
 }
 
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler
-func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, s3 S3Uploader) *CantabularMetadataExport {
+func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, fm FileManager) *CantabularMetadataExport {
 	return &CantabularMetadataExport{
 		cfg:     cfg,
 		dataset: d,
-		s3:      s3,
+		file:    fm,
 	}
 }
 

@@ -23,6 +23,9 @@ type Service struct {
 	datasetAPIClient DatasetAPIClient
 	s3Uploader       S3Uploader
 	healthCheck      HealthChecker
+	vaultClient      VaultClient
+	generator        Generator
+	fileManager      FileManager
 }
 
 // New returns a new Service
@@ -47,7 +50,14 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 	if svc.s3Uploader, err = GetS3Uploader(cfg); err != nil {
 		return fmt.Errorf("failed to initialise s3 uploader: %w", err)
 	}
+	if !cfg.EncryptionDisabled {
+		if svc.vaultClient, err = GetVaultClient(cfg); err != nil {
+			return fmt.Errorf("failed to initialise vault client: %w", err)
+		}
+	}
 
+	svc.generator = GetGenerator()
+	svc.fileManager = GetFileManager(svc.s3Uploader, svc.vaultClient, svc.generator)
 	svc.datasetAPIClient = GetDatasetAPIClient(cfg)
 	svc.processor = GetProcessor(cfg)
 
@@ -81,7 +91,7 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 		handler.NewCantabularMetadataExport(
 			*svc.config,
 			svc.datasetAPIClient,
-			svc.s3Uploader,
+			svc.fileManager,
 		),
 	)
 
