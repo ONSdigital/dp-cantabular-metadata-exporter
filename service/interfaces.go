@@ -53,3 +53,19 @@ type S3Uploader interface {
 	BucketName() string
 	Checker(context.Context, *healthcheck.CheckState) error
 }
+
+type VaultClient interface {
+	WriteKey(path, key, value string) error
+	Checker(context.Context, *healthcheck.CheckState) error
+}
+
+type FileManager interface {
+	Upload(body io.Reader, bucket, filename string) (string, error)
+	UploadEncrypted(body io.Reader, bucket, filename, vaultPath string) (string, error)
+}
+
+// Generator contains methods for dynamically required strings and tokens
+// e.g. UUIDs, PSKs.
+type Generator interface {
+	NewPSK() ([]byte, error)
+}

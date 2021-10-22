@@ -2,9 +2,15 @@ package handler
 
 import (
 	"context"
+	"io"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 )
+
+type FileManager interface {
+	Upload(body io.Reader, bucket, filename string) (string, error)
+	UploadEncrypted(body io.Reader, bucket, filename, vaultPath string) (string, error)
+}
 
 type S3Uploader interface{}
 
