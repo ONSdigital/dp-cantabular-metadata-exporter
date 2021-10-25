@@ -1,0 +1,260 @@
+[33mcommit 9cd6df7958a14cc85adf2091c548714d4fd2759b[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/add-csvw-export-logic[m[33m)[m
+Merge: 9dfe7b3 5c92b36
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Mon Oct 25 21:08:12 2021 +0100
+
+    Merge branch 'feature/add-local-dockerfile' into feature/add-csvw-export-logic
+
+[33mcommit 5c92b36aec6117708cf4e91beebbe48f835a7b4f[m[33m ([m[1;32mfeature/add-local-dockerfile[m[33m)[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Fri Oct 22 15:17:12 2021 +0100
+
+    Add local dockerfile, reflex, gitignore
+
+[33mcommit 9dfe7b3948f477016fb9588e8f267da7249882d7[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Wed Oct 20 16:04:33 2021 +0100
+
+    Add exportCSVW logic (WIP)
+
+[33mcommit d3ef791179a30a5700aeefbb65d1a76c52154bfb[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Mon Oct 25 20:15:07 2021 +0100
+
+    add test producer
+
+[33mcommit 9b9dfbef2108c5e5b8e9d2a7ac811f213b4f028d[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Wed Oct 20 15:19:26 2021 +0100
+
+    Tidy comments, add error context, reduce logging and upgrade to v2
+
+[33mcommit f1f86bb2506e75217e8e813ee896ac5e3a3b8f8f[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Wed Oct 20 15:06:14 2021 +0100
+
+    gofmt
+
+[33mcommit 059b5c9accd1cac7e7911e80a6abc4128e0defa5[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Wed Oct 20 15:05:02 2021 +0100
+
+    add csvw package from dp-dataset-exporter
+
+[33mcommit 5cb1d1dc3274f21721122c99474929c0e8155281[m[33m ([m[1;31morigin/feature/add-file-manager[m[33m, [m[1;32mfeature/add-file-manager[m[33m)[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Fri Oct 22 12:57:57 2021 +0100
+
+    Add filemanager package
+
+[33mcommit 78355501c0688d861a18dd2bd90231bb4b218e81[m[33m ([m[1;31morigin/feature/add-event-schema[m[33m, [m[1;32mfeature/add-event-schema[m[33m)[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Thu Oct 21 14:51:36 2021 +0100
+
+    update event schema
+
+[33mcommit fcf9d70e413166ae543170959f1bef04f6a209b2[m[33m ([m[1;31morigin/feature/add-dependencies[m[33m, [m[1;32mfeature/add-dependencies[m[33m)[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Wed Oct 20 16:23:35 2021 +0100
+
+    add basic handler skeleton functions
+
+[33mcommit d4ff7206f96610f303dee5e3b311f92c56bedb0a[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Wed Oct 20 16:21:09 2021 +0100
+
+    add dependencies to handler
+
+[33mcommit 2cbe9cc3098893041bdb58b079da1d8c115a1231[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Wed Oct 20 16:15:28 2021 +0100
+
+    add datasetAPI client and s3uploader to service init
+
+[33mcommit 9b199396c652f2bfe40465da0ae8be59c3a16685[m[33m ([m[1;31morigin/feature/add-event-handling-logic[m[33m, [m[1;32mfeature/add-event-handling-logic[m[33m)[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Wed Oct 20 14:13:21 2021 +0100
+
+    Add TLS kafka config, address CR comments
+
+[33mcommit b18408ee7ce677b4f288f4641ab79f4ac0d3d6dd[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Tue Oct 19 09:05:19 2021 +0100
+
+    fix and update tests
+
+[33mcommit ce9fca17ba21462dad8bb9bf357d6708f02c5baa[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Mon Oct 18 16:55:04 2021 +0100
+
+    fix imports and config
+
+[33mcommit c7e2ecd669efbc2c9f9b5b7eaa7939505e98dfd2[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Mon Oct 18 16:38:46 2021 +0100
+
+    add basic event handler and initialisation
+
+[33mcommit 61e44108b5261357e03c6756a8ea1a16a87947c2[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Mon Oct 18 16:28:20 2021 +0100
+
+    add config for event handling
+
+[33mcommit 0c24c6045da36cbca1daca6e1558a33fa3e27f8d[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Mon Oct 18 16:22:22 2021 +0100
+
+    add event package
+
+[33mcommit 3b4d9fde8ae6840786481f4995145a42e42a0e88[m[33m ([m[1;33mtag: v0.2.0[m[33m, [m[1;31morigin/release/0.2.0[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/feature/lint-fix[m[33m)[m
+Author: Andre Urbani <dredizzle@live.co.uk>
+Date:   Wed Oct 20 12:38:56 2021 +0100
+
+    update version and lint script
+
+[33mcommit c573c7a169afca8858862765c102a69536f3d113[m
+Author: Andre Urbani <dredizzle@live.co.uk>
+Date:   Wed Oct 20 12:31:26 2021 +0100
+
+    update go version
+
+[33mcommit 2a8a0c5b0575b7fac9455da4168fdc6fab7cd7a0[m
+Author: Andre Urbani <dredizzle@live.co.uk>
+Date:   Wed Oct 20 12:24:24 2021 +0100
+
+    correct service name
+
+[33mcommit d40e2be2cc1e12bf5627151954d452eb66df40b9[m
+Author: Andre Urbani <dredizzle@live.co.uk>
+Date:   Wed Oct 20 12:02:38 2021 +0100
+
+    fix lint
+
+[33mcommit 48bb3c7d1bc7aa7dfecf666e93820aa4381acb6c[m
+Author: Andre Urbani <dredizzle@live.co.uk>
+Date:   Wed Oct 20 11:55:47 2021 +0100
+
+    fix lint
+
+[33mcommit e2ace76c05638fcb210547d6078711eb098c5042[m
+Author: Andre Urbani <dredizzle@live.co.uk>
+Date:   Wed Oct 20 11:46:51 2021 +0100
+
+    go mod tidy
+
+[33mcommit 81e14012581de9cce6d09694e946e24a9dc6e494[m
+Merge: 22ba43e 10e8814
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Tue Oct 19 16:00:18 2021 +0100
+
+    Merge branch 'feature/inital-service-api-structure' into develop
+
+[33mcommit 10e881490f5d402d4e69e529aa8df8dd99c02515[m[33m ([m[1;31morigin/feature/inital-service-api-structure[m[33m, [m[1;32mfeature/inital-service-api-structure[m[33m)[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Fri Oct 15 10:31:13 2021 +0100
+
+    add basic unit test for metadata handler
+
+[33mcommit bec261782deb107ae7fe56ee4c789fb8331cee8e[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Fri Oct 15 10:14:38 2021 +0100
+
+    change returned status code to 202 Accepted
+
+[33mcommit 06349778e8256a923caf02a15ba0a2cab80bd8c0[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Fri Oct 15 10:09:32 2021 +0100
+
+    remove old HelloResponse struct
+
+[33mcommit 8d0be5018d4fd3efd428884adca949c4826af20a[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Fri Oct 15 09:56:24 2021 +0100
+
+    remove broken component test code
+
+[33mcommit 5cf89785abc1be5ae27b773d3493e095188e8aeb[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Fri Oct 15 09:52:53 2021 +0100
+
+    replace hello with beginnings of metadata handler, remove respondJSON func
+
+[33mcommit 8d01a95560f447421e05abd4bb4560f09fb51661[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Thu Oct 14 13:00:43 2021 +0100
+
+    gofmt
+
+[33mcommit 1ab99a2e92d719b558f704db69379c64ec7af99b[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Thu Oct 14 12:56:49 2021 +0100
+
+    add unit test for hello handler
+
+[33mcommit 4824665c1a2cf5739167d53bf97f986114eeb644[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Thu Oct 14 12:33:29 2021 +0100
+
+    add unit tests for response functions
+
+[33mcommit b8a5e74f50da6b0b5c29ee01f1c1277c3138c364[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Wed Oct 13 12:57:24 2021 +0100
+
+    refactor basic handler and API packages, use log.go v2
+
+[33mcommit 22ba43e6fbca84f23c75271ee92ce5097e621c50[m[33m ([m[1;31morigin/release/0.1.0[m[33m)[m
+Merge: 51f994c 2067d55
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Wed Oct 13 15:16:31 2021 +0100
+
+    Merge commit '2067d5583ec5cd5441b5ef93c9995154d2d1e48b' into develop
+
+[33mcommit 51f994c9cbd591af8a844a991ec48d98ac1b0d13[m
+Author: Andre Urbani <dredizzle@live.co.uk>
+Date:   Wed Oct 13 13:40:00 2021 +0100
+
+    audit fix
+
+[33mcommit 2067d5583ec5cd5441b5ef93c9995154d2d1e48b[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Tue Oct 12 18:06:01 2021 +0100
+
+    switch to go-chi router
+
+[33mcommit ec321cd0247f3e9aa601143900d5932e15f8c0ca[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Tue Oct 12 17:46:44 2021 +0100
+
+    fix service tests for new initialisaion
+
+[33mcommit 3c4464ee64a9b3d3897c11799ae824bf1a74167b[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Tue Oct 12 16:49:55 2021 +0100
+
+    simplify service initialisation
+
+[33mcommit ccbc548c72cf8adbd47d00ee377c543f45d7cf0f[m
+Author: Joshua Medley <jmedleyx7@gmail.com>
+Date:   Tue Oct 12 16:02:32 2021 +0100
+
+    fix error returning pattern for pkg service
+
+[33mcommit 286271a177d37544c6b449f93b3ad0542a04b095[m
+Author: Andre Urbani <dredizzle@live.co.uk>
+Date:   Tue Oct 12 16:29:55 2021 +0100
+
+    initial boilerplate generation
+
+[33mcommit 49218199d0118c4e70d06714b31ea2f500f51b8f[m[33m ([m[1;31morigin/feature/boilerplate-generation[m[33m, [m[1;32mfeature/boilerplate-generation[m[33m)[m
+Author: Andre Urbani <dredizzle@live.co.uk>
+Date:   Mon Oct 11 15:57:26 2021 +0100
+
+    initial commit, created via dp project generation tool
+
+[33mcommit a211ffe5bd5cea3ed3a7c50cde571a208c10dcf6[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: andre-urbani <41396233+andre-urbani@users.noreply.github.com>
+Date:   Mon Oct 11 15:57:14 2021 +0100
+
+    Initial commit
