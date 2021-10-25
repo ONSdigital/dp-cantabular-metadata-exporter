@@ -59,6 +59,7 @@ func Get() (*Config, error) {
 		VaultAddress:                 "http://localhost:8200",
 		VaultToken:                   "",
 		EncryptionDisabled:           false,
+		DatasetAPIURL:                "http://localhost:22000",
 		Kafka: KafkaConfig {
 			Addr:                         []string{"localhost:9092"},
 			Version:                      "1.0.2",
