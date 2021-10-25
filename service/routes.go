@@ -10,7 +10,7 @@ import (
 func (svc *Service) BuildRoutes() {
 	r := chi.NewRouter()
 
-	metadata := handler.NewMetadata()
+	metadata := handler.NewMetadata(svc.producer)
 	r.Post("/metadata", metadata.Post)
 
 	// Healthcheck
