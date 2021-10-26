@@ -29,7 +29,7 @@ func NewMetadata(p kafka.IProducer) *Metadata {
 // Post handles HTTP requests for POST /metadata.
 func (h *Metadata) Post(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var logData log.Data
+	logData := log.Data{}
 	defer r.Body.Close()
 
 	b, err := ioutil.ReadAll(r.Body)

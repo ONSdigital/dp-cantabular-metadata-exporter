@@ -115,6 +115,10 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 		return nil, errMissingDimensions
 	}
 
+	if len(metadata.CSVHeader) == 0 {
+		return nil, errors.New("CSV header empty")
+	}
+
 	/*h, offset, err := splitHeader(metadata.CSVHeader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to split header: %w", err)

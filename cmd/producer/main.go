@@ -29,7 +29,7 @@ func main() {
 
 	// Create Kafka Producer
 	pChannels := kafka.CreateProducerChannels()
-	kafkaProducer, err := kafka.NewProducer(ctx, cfg.Kafka.Addr, cfg.Kafka.CantabularMetadataExportTopic, pChannels, &kafka.ProducerConfig{
+	kafkaProducer, err := kafka.NewProducer(ctx, []string{"http://localhost:9092"}, cfg.Kafka.CantabularMetadataExportTopic, pChannels, &kafka.ProducerConfig{
 		KafkaVersion: &cfg.Kafka.Version,
 	})
 	if err != nil {
