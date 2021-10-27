@@ -109,6 +109,7 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 	log.Info(ctx, "generating csvw file", log.Data{
 		"dataset_id": metadata.DatasetDetails.ID,
 		"csv_header": metadata.CSVHeader,
+		"m": metadata,
 	})
 
 	if len(metadata.Dimensions) == 0 {
@@ -119,10 +120,6 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 		return nil, errors.New("CSV header empty")
 	}
 
-	/*h, offset, err := splitHeader(metadata.CSVHeader)
-	if err != nil {
-		return nil, fmt.Errorf("failed to split header: %w", err)
-	}*/
 	h := metadata.CSVHeader
 	offset := 1
 

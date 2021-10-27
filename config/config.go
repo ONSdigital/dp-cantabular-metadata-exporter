@@ -16,7 +16,9 @@ type Config struct {
 	DatasetAPIURL                 string        `envconfig:"DATASET_API_URL"`
 	DownloadServiceURL            string        `envconfig:"DOWNLOAD_SERVICE_URL"`
 	AWSRegion                     string        `envconfig:"AWS_REGION"`
-	UploadBucketName              string        `envconfig:"UPLOAD_BUCKET_NAME"`
+	S3BucketURL                   string        `envconfig:"PUBLIC_URL"`
+	PublicBucket                  string        `envconfig:"PUBLIC_BUCKET"`
+	PrivateBucket                 string        `envconfig:"PRIVATE_BUCKET"`
 	LocalObjectStore              string        `envconfig:"LOCAL_OBJECT_STORE"`
 	MinioAccessKey                string        `envconfig:"MINIO_ACCESS_KEY"`
 	MinioSecretKey                string        `envconfig:"MINIO_SECRET_KEY"`
@@ -60,8 +62,11 @@ func Get() (*Config, error) {
 		VaultPath:                    "secret/shared/psk",
 		VaultAddress:                 "http://localhost:8200",
 		VaultToken:                   "",
+		PublicBucket:                 "dp-cantabular-metadata-exporter",
+		PrivateBucket:                "dp-cantabular-metadata-exporter",
 		EncryptionDisabled:           false,
 		DatasetAPIURL:                "http://localhost:22000",
+		AWSRegion:                    "eu-west-1",
 		Kafka: KafkaConfig {
 			Addr:                         []string{"localhost:9092"},
 			Version:                      "1.0.2",

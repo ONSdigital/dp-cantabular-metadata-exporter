@@ -39,6 +39,7 @@ type Processor interface {
 type DatasetAPIClient interface {
 	GetVersionMetadata(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version string) (dataset.Metadata, error)
 	GetMetadataURL(id, edition, version string) (url string)
+	GetVersion(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceAuthToken, collectionID, datasetID, edition, version string) (dataset.Version, error)
 	PutVersion(ctx context.Context, usrAuthToken, svcAuthToken, collectionID, datasetID, edition, ver string, v dataset.Version) error
 	Checker(context.Context, *healthcheck.CheckState) error
 }
@@ -57,8 +58,8 @@ type VaultClient interface {
 }
 
 type FileManager interface {
-	Upload(body io.Reader, bucket, filename string) (string, error)
-	UploadEncrypted(body io.Reader, bucket, filename, vaultPath string) (string, error)
+	Upload(body io.Reader, filename string) (string, error)
+	UploadPrivate(body io.Reader, filename, vaultPath string) (string, error)
 }
 
 // Generator contains methods for dynamically required strings and tokens

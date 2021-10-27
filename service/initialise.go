@@ -11,7 +11,6 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
-	dps3 "github.com/ONSdigital/dp-s3"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	dphttp "github.com/ONSdigital/dp-net/http"
@@ -42,17 +41,6 @@ var GetHealthCheck = func(cfg *config.Config, buildT, commit, ver string) (Healt
 
 	hc := healthcheck.New(versionInfo, cfg.HealthCheckCriticalTimeout, cfg.HealthCheckInterval)
 	return &hc, nil
-}
-
-var GetFileManager = func(s3 S3Uploader, vault VaultClient, generator Generator) FileManager {
-	return filemanager.New(
-		filemanager.Config{
-			VaultKey: "key",
-		},
-		s3,
-		vault,
-		generator,
-	)
 }
 
 var GetGenerator = func() Generator{
@@ -106,28 +94,37 @@ var GetDatasetAPIClient = func(cfg *config.Config) DatasetAPIClient {
 	return dataset.NewAPIClient(cfg.DatasetAPIURL)
 }
 
-// GetS3Uploader creates an S3 Uploader
-var GetS3Uploader = func(cfg *config.Config) (S3Uploader, error) {
+// GetFileManager instantiates teh service FileManager
+var GetFileManager = func(cfg *config.Config, vault VaultClient, generator Generator) (FileManager, error) {
+	awscfg := &aws.Config{
+		Region: aws.String(cfg.AWSRegion),
+	}
+
 	if cfg.LocalObjectStore != "" {
-		s3Config := &aws.Config{
+		awscfg = &aws.Config{
 			Credentials:      credentials.NewStaticCredentials(cfg.MinioAccessKey, cfg.MinioSecretKey, ""),
 			Endpoint:         aws.String(cfg.LocalObjectStore),
 			Region:           aws.String(cfg.AWSRegion),
 			DisableSSL:       aws.Bool(true),
 			S3ForcePathStyle: aws.Bool(true),
 		}
-
-		s, err := session.NewSession(s3Config)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create aws session: %w", err)
-		}
-		return dps3.NewUploaderWithSession(cfg.UploadBucketName, s), nil
 	}
 
-	uploader, err := dps3.NewUploader(cfg.AWSRegion, cfg.UploadBucketName)
+	sess, err := session.NewSession(awscfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create S3 Client: %w", err)
+		return nil, fmt.Errorf("failed to create aws session: %w", err)
 	}
 
-	return uploader, nil
+	return filemanager.New(
+		filemanager.Config{
+			VaultKey:      "key",
+			PublicBucket:  cfg.PublicBucket,
+			PrivateBucket: cfg.PrivateBucket,
+			PublicURL:     cfg.S3BucketURL,
+		},
+		sess,
+		vault,
+		generator,
+	), nil
 }
+

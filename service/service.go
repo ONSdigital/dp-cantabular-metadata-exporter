@@ -21,7 +21,6 @@ type Service struct {
 	producer         kafka.IProducer
 	processor        Processor
 	datasetAPIClient DatasetAPIClient
-	s3Uploader       S3Uploader
 	healthCheck      HealthChecker
 	vaultClient      VaultClient
 	generator        Generator
@@ -47,9 +46,6 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 	if svc.producer, err = GetKafkaProducer(ctx, cfg); err != nil {
 		return fmt.Errorf("failed to create kafka producer: %w", err)
 	}
-	if svc.s3Uploader, err = GetS3Uploader(cfg); err != nil {
-		return fmt.Errorf("failed to initialise s3 uploader: %w", err)
-	}
 	if !cfg.EncryptionDisabled {
 		if svc.vaultClient, err = GetVaultClient(cfg); err != nil {
 			return fmt.Errorf("failed to initialise vault client: %w", err)
@@ -57,7 +53,11 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 	}
 
 	svc.generator = GetGenerator()
-	svc.fileManager = GetFileManager(svc.s3Uploader, svc.vaultClient, svc.generator)
+
+	if svc.fileManager, err = GetFileManager(cfg, svc.vaultClient, svc.generator); err != nil {
+		return fmt.Errorf("failed to initialise file manager: %w", err)
+	}
+
 	svc.datasetAPIClient = GetDatasetAPIClient(cfg)
 	svc.processor = GetProcessor(cfg)
 

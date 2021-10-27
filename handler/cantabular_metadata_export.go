@@ -26,9 +26,9 @@ type CantabularMetadataExport struct {
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler
 func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, fm FileManager) *CantabularMetadataExport {
 	return &CantabularMetadataExport{
-		cfg:              cfg,
-		dataset:          d,
-		file:             fm,
+		cfg:     cfg,
+		dataset: d,
+		file:    fm,
 	}
 }
 
@@ -52,7 +52,7 @@ func (h *CantabularMetadataExport) exportTXTFile(e *event.CantabularMetadataExpo
 func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CantabularMetadataExport) error{
 	ver := fmt.Sprintf("%d", e.Version)
 	filename := fmt.Sprintf(
-		"%s%s-%s-v%d.csv",
+		"%s%s-%s-v%d.csvw",
 		h.csvwPrefix,
 		e.DatasetID,
 		e.Edition,
@@ -60,7 +60,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 	)
 
 	downloadURL := fmt.Sprintf(
-		"%s/downloads/datasets/%s/editions/%s/versions/%d.csv",
+		"%s/downloads/datasets/%s/editions/%s/versions/%d.csvw",
 		h.cfg.DownloadServiceURL,
 		e.DatasetID,
 		e.Edition,
@@ -79,23 +79,31 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 		return fmt.Errorf("failed to generate csvw: %w", err)
 	}
 
-	url, err := h.file.Upload(bytes.NewReader(f), h.cfg.UploadBucketName, filename)
+	isPublished, err := h.isVersionPublished(ctx, e)
+	if err != nil{
+		return fmt.Errorf("failed to determine published state: %w", err)
+	}
+
+	var url string
+	if isPublished{
+		url, err = h.file.Upload(bytes.NewReader(f), filename)
+	} else {
+		url, err = h.file.UploadPrivate(bytes.NewReader(f), filename, h.generateVaultPath(e.DatasetID))
+	}
 	if err != nil {
-		return fmt.Errorf("failed to upload csvw to S3: %w", err)
+		return fmt.Errorf("failed to upload file: %w", err)
 	}
 
 	download := &dataset.Download{
 		Size: fmt.Sprintf("%d", len(f)),
 	}
 
-	/* What's happening with public/private?
 	if isPublished {
 		download.Public = url
 	} else {
 		download.Private = url
-	}*/
-	download.Public = url
-	download.Private = url
+	}
+
 	download.URL = downloadURL + h.metadataExtension
 
 	log.Info(ctx, "updating dataset api with download link", log.Data{
@@ -113,7 +121,8 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 		ctx,
 		"", 
 		h.cfg.ServiceAuthToken,
-		"", e.DatasetID,
+		"", 
+		e.DatasetID,
 		e.Edition,
 		ver,
 		v,
@@ -126,4 +135,27 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 
 func generateCSVWFilename(e *event.CantabularMetadataExport) string {
 	return fmt.Sprintf("%s-%s-%d.csvw", e.DatasetID, e.Edition, e.Version)
+}
+
+// generateVaultPathForFile generates the vault path for the provided root and filename
+func (h *CantabularMetadataExport) generateVaultPath(instanceID string) string {
+	return fmt.Sprintf("%s/%s", h.cfg.VaultPath, instanceID)
+}
+
+func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *event.CantabularMetadataExport) (bool, error){
+	version, err := h.dataset.GetVersion(
+		ctx, 
+		"",
+		h.cfg.ServiceAuthToken,
+		"",
+		"",
+		e.DatasetID,
+		e.Edition,
+		fmt.Sprintf("%d", e.Version),
+	)
+	if err != nil {
+		return false, fmt.Errorf("failed to get version: %w", err)
+	}
+
+	return version.State == dataset.StatePublished.String(), nil
 }
