@@ -10,8 +10,7 @@ var cantabularMetadataExport = `{
   "fields": [
     {"name": "dataset_id",       "type": "string",    "default":  ""},
     {"name": "edition",          "type": "string",    "default":  ""},
-    {"name": "version",          "type": "int",       "default":   0},
-    {"name": "collection_id",    "type": "string",    "default":  ""}
+    {"name": "version",          "type": "int",       "default":   0}
 }`
 
 // CantabularMetadataExport is the Avro schema for Instance Complete messages.

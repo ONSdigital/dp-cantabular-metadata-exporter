@@ -50,12 +50,13 @@ func (h *CantabularMetadataExport) exportCSVW(e *event.CantabularMetadataExport)
 }
 
 func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, userAccessToken string, e *event.CantabularMetadataExport) error {
-	metadata, err := h.dataset.GetVersionMetadata(ctx, userAccessToken, "", e.CollectionID, e.DatasetID, e.Edition, e.Version)
+	ver := fmt.Sprintf("%d", e.Version)
+	metadata, err := h.dataset.GetVersionMetadata(ctx, userAccessToken, "", e.CollectionID, e.DatasetID, e.Edition, ver)
 	if err != nil {
 		return fmt.Errorf("failed to get version metadata: %w", err)
 	}
 
-	dimensions, err := h.dataset.GetVersionDimensions(ctx, userAccessToken, "", e.CollectionID, e.DatasetID, e.Edition, e.Version)
+	dimensions, err := h.dataset.GetVersionDimensions(ctx, userAccessToken, "", e.CollectionID, e.DatasetID, e.Edition, ver)
 	if err != nil {
 		return fmt.Errorf("failed to get version dimensions: %w", err)
 	}
@@ -83,13 +84,14 @@ func GenerateTextFilename(e *event.CantabularMetadataExport) string {
 // If a dimension has more than maxMetadataOptions, an error will be returned
 func (h *CantabularMetadataExport) getText(ctx context.Context, userAccessToken string, metadata dataset.Metadata, dimensions dataset.VersionDimensions, e *event.CantabularMetadataExport) ([]byte, error) {
 	var b bytes.Buffer
+	ver := fmt.Sprintf("%d", e.Version)
 
 	b.WriteString(metadata.ToString())
 	b.WriteString("Dimensions:\n")
 
 	for _, dimension := range dimensions.Items {
 		q := dataset.QueryParams{Offset: 0, Limit: maxMetadataOptions}
-		options, err := h.dataset.GetOptions(ctx, userAccessToken, "", e.CollectionID, e.DatasetID, e.Edition, e.Version, dimension.Name, &q)
+		options, err := h.dataset.GetOptions(ctx, userAccessToken, "", e.CollectionID, e.DatasetID, e.Edition, ver, dimension.Name, &q)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dimension options: %w", err)
 		}
