@@ -14,7 +14,9 @@ type Config struct {
 	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
 	DatasetAPIURL              string        `envconfig:"DATASET_API_URL"`
 	AWSRegion                  string        `envconfig:"AWS_REGION"`
-	UploadBucketName           string        `envconfig:"UPLOAD_BUCKET_NAME"`
+	PublicBucket               string        `envconfig:"PUBLIC_BUCKET"`
+	PrivateBucket              string        `envconfig:"PRIVATE_BUCKET"`
+	S3BucketURL                string        `envconfig:"PUBLIC_URL"`
 	LocalObjectStore           string        `envconfig:"LOCAL_OBJECT_STORE"`
 	MinioAccessKey             string        `envconfig:"MINIO_ACCESS_KEY"`
 	MinioSecretKey             string        `envconfig:"MINIO_SECRET_KEY"`
@@ -22,7 +24,7 @@ type Config struct {
 	VaultAddress               string        `envconfig:"VAULT_ADDR"`
 	VaultPath                  string        `envconfig:"VAULT_PATH"`
 	EncryptionDisabled         bool          `envconfig:"ENCRYPTION_DISABLED"`
-	ServiceAuthToken           string        `envconfig:"SERVICE_AUTH_TOKEN" json:"-"`
+	ServiceAuthToken           string        `envconfig:"SERVICE_AUTH_TOKEN"`
 	Kafka                      KafkaConfig
 }
 
@@ -59,8 +61,10 @@ func Get() (*Config, error) {
 		VaultPath:                  "secret/shared/psk",
 		VaultAddress:               "http://localhost:8200",
 		VaultToken:                 "",
+		PublicBucket:               "cantabular-metadata-export",
+		PrivateBucket:              "cantabular-metadata-export",
+		S3BucketURL:                "",
 		EncryptionDisabled:         false,
-		AWSRegion:                  "eu-west-1",
 		Kafka: KafkaConfig{
 			Addr:                          []string{"localhost:9092"},
 			Version:                       "1.0.2",

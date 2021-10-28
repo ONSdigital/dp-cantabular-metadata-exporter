@@ -31,6 +31,9 @@ func TestConfig(t *testing.T) {
 					VaultPath:                    "secret/shared/psk",
 					VaultAddress:                 "http://localhost:8200",
 					VaultToken:                   "",
+					PublicBucket:               "cantabular-metadata-export",
+					PrivateBucket:              "cantabular-metadata-export",
+					S3BucketURL:                "",
 					EncryptionDisabled:           false,
 					Kafka: KafkaConfig {
 						Addr:                         []string{"localhost:9092"},

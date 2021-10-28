@@ -60,8 +60,8 @@ type VaultClient interface {
 }
 
 type FileManager interface {
-	Upload(body io.Reader, bucket, filename string) (string, error)
-	UploadEncrypted(body io.Reader, bucket, filename, vaultPath string) (string, error)
+	Upload(body io.Reader, filename string) (string, error)
+	UploadPrivate(body io.Reader, filename, vaultPath string) (string, error)
 }
 
 // Generator contains methods for dynamically required strings and tokens
