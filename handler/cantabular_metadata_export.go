@@ -64,7 +64,12 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 		return fmt.Errorf("failed to get text bytes: %w", err)
 	}
 
-	url, err := h.file.Upload(bytes.NewReader(b), h.cfg.UploadBucketName, GenerateTextFilename(e))
+	var url string
+	if metadata.Version.State == dataset.StatePublished.String() {
+		url, err = h.file.Upload(bytes.NewReader(b), GenerateTextFilename(e))
+	} else {
+		url, err = h.file.UploadPrivate(bytes.NewReader(b), GenerateTextFilename(e), h.generateVaultPath(metadata.InstanceID))
+	}
 	if err != nil {
 		return fmt.Errorf("failed to upload file: %w", err)
 	}
@@ -76,6 +81,11 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 
 func GenerateTextFilename(e *event.CantabularMetadataExport) string {
 	return fmt.Sprintf("%s-%s-%d.txt", e.DatasetID, e.Edition, e.Version)
+}
+
+// generateVaultPathForFile generates the vault path for the provided root and filename
+func (h *CantabularMetadataExport) generateVaultPath(instanceID string) string {
+	return fmt.Sprintf("%s/%s.txt", h.cfg.VaultPath, instanceID)
 }
 
 // getText gets a byte array containing the metadata content, based on options returned by dataset API.
