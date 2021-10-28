@@ -20,7 +20,7 @@ type Config struct {
 	LocalObjectStore           string        `envconfig:"LOCAL_OBJECT_STORE"`
 	MinioAccessKey             string        `envconfig:"MINIO_ACCESS_KEY"`
 	MinioSecretKey             string        `envconfig:"MINIO_SECRET_KEY"`
-	VaultToken                 string        `envconfig:"VAULT_TOKEN"                   json:"-"`
+	VaultToken                 string        `envconfig:"VAULT_TOKEN"`
 	VaultAddress               string        `envconfig:"VAULT_ADDR"`
 	VaultPath                  string        `envconfig:"VAULT_PATH"`
 	EncryptionDisabled         bool          `envconfig:"ENCRYPTION_DISABLED"`
@@ -58,11 +58,12 @@ func Get() (*Config, error) {
 		GracefulShutdownTimeout:    5 * time.Second,
 		HealthCheckInterval:        30 * time.Second,
 		HealthCheckCriticalTimeout: 90 * time.Second,
+		AWSRegion:                  "eu-west-1",
 		VaultPath:                  "secret/shared/psk",
 		VaultAddress:               "http://localhost:8200",
 		VaultToken:                 "",
-		PublicBucket:               "cantabular-metadata-export",
-		PrivateBucket:              "cantabular-metadata-export",
+		PublicBucket:               "dp-cantabular-metadata-exporter",
+		PrivateBucket:              "dp-cantabular-metadata-exporter",
 		S3BucketURL:                "",
 		EncryptionDisabled:         false,
 		Kafka: KafkaConfig{

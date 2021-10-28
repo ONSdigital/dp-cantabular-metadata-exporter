@@ -6,8 +6,8 @@ import (
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
-	"github.com/ONSdigital/log.go/v2/log"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
+	"github.com/ONSdigital/log.go/v2/log"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -52,11 +52,12 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 		}
 	}
 
-	if svc.fileManager, err = GetFileManager(cfg, svc.vaultClient, svc.generator); err !=nil {
+	svc.generator = GetGenerator()
+
+	if svc.fileManager, err = GetFileManager(cfg, svc.vaultClient, svc.generator); err != nil {
 		return fmt.Errorf("failed to initialise file manager: %w", err)
 	}
 
-	svc.generator = GetGenerator()
 	svc.datasetAPIClient = GetDatasetAPIClient(cfg)
 	svc.processor = GetProcessor(cfg)
 

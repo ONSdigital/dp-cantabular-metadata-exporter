@@ -54,6 +54,10 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 		return fmt.Errorf("failed to get version metadata: %w", err)
 	}
 
+	log.Info(ctx, "metadata", log.Data{
+		"metadata": metadata,
+	})
+
 	dimensions, err := h.dataset.GetVersionDimensions(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, ver)
 	if err != nil {
 		return fmt.Errorf("failed to get version dimensions: %w", err)
@@ -64,17 +68,57 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 		return fmt.Errorf("failed to get text bytes: %w", err)
 	}
 
+	isPublished, err := h.isVersionPublished(ctx, e)
+	if err != nil{
+		return fmt.Errorf("failed to determin published state: %w", err)
+	}
+
 	var url string
-	if metadata.Version.State == dataset.StatePublished.String() {
+
+	if isPublished{
 		url, err = h.file.Upload(bytes.NewReader(b), GenerateTextFilename(e))
 	} else {
-		url, err = h.file.UploadPrivate(bytes.NewReader(b), GenerateTextFilename(e), h.generateVaultPath(metadata.InstanceID))
+		url, err = h.file.UploadPrivate(bytes.NewReader(b), GenerateTextFilename(e), h.generateVaultPath(e.DatasetID))
 	}
 	if err != nil {
 		return fmt.Errorf("failed to upload file: %w", err)
 	}
 
-	log.Info(ctx, "got text", log.Data{"text": url})
+	download := &dataset.Download{
+		Size: fmt.Sprintf("%d", len(b)),
+	}
+
+	if isPublished {
+		download.Public = url
+	} else {
+		download.Private = url
+	}
+
+	download.URL = url
+
+	log.Info(ctx, "updating dataset api with download link", log.Data{
+		"isPublished":      isPublished,
+		"metadataDownload": download,
+	})
+
+	v := dataset.Version{
+		Downloads: map[string]dataset.Download{
+			"TXT": *download,
+		},
+	}
+
+	if err := h.dataset.PutVersion(
+		ctx,
+		"",
+		h.cfg.ServiceAuthToken,
+		metadata.Version.CollectionID, 
+		e.DatasetID,
+		e.Edition,
+		ver,
+		v,
+	); err != nil {
+		return fmt.Errorf("failed to update version: %w", err)
+	}
 
 	return nil
 }
@@ -85,7 +129,7 @@ func GenerateTextFilename(e *event.CantabularMetadataExport) string {
 
 // generateVaultPathForFile generates the vault path for the provided root and filename
 func (h *CantabularMetadataExport) generateVaultPath(instanceID string) string {
-	return fmt.Sprintf("%s/%s.txt", h.cfg.VaultPath, instanceID)
+	return fmt.Sprintf("%s/%s", h.cfg.VaultPath, instanceID)
 }
 
 // getText gets a byte array containing the metadata content, based on options returned by dataset API.
@@ -111,4 +155,22 @@ func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset
 	}
 
 	return b.Bytes(), nil
+}
+
+func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *event.CantabularMetadataExport) (bool, error){
+	version, err := h.dataset.GetVersion(
+		ctx, 
+		"",
+		h.cfg.ServiceAuthToken,
+		"",
+		"",
+		e.DatasetID,
+		e.Edition,
+		fmt.Sprintf("%d", e.Version),
+	)
+	if err != nil {
+		return false, fmt.Errorf("failed to get version: %w", err)
+	}
+
+	return version.State == dataset.StatePublished.String(), nil
 }

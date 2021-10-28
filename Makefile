@@ -21,11 +21,12 @@ build:
 debug:
 	go build -tags 'debug' $(LDFLAGS) -o $(BINPATH)/dp-cantabular-metadata-exporter
 	HUMAN_LOG=1 DEBUG=1 $(BINPATH)/dp-cantabular-metadata-exporter
+	HUMAN_LOG=1 VAULT_TOKEN=$(APP_TOKEN) VAULT_ADDR=$(VAULT_ADDR) DEBUG=1 $(BINPATH)/dp-cantabular-metadata-exporter
 
 PHONY: debug-run
 debug-run:
-	HUMAN_LOG=1 DEBUG=1 go run -tags 'debug' $(LDFLAGS) main.go
-
+	HUMAN_LOG=1 DEBUG=1 go run -tags 'debug' $(LDFLAGS) main.go 
+	
 .PHONY: lint
 lint:
 	exit
@@ -41,3 +42,9 @@ convey:
 .PHONY: test-component
 test-component:
 	go test -cover -coverpkg=github.com/ONSdigital/dp-cantabular-metadata-exporter/... -component
+
+	.PHONY: vault
+vault:
+	@echo "$(VAULT_POLICY)"
+	@echo "$(TOKEN_INFO)"
+	@echo "$(APP_TOKEN)"
