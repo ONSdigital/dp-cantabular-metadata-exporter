@@ -5,5 +5,5 @@ type CantabularMetadataExport struct {
 	DatasetID    string `avro:"dataset_id"`
 	Edition      string `avro:"edition"`
 	Version      int32  `avro:"version"`
-	CollectionID string
+	CollectionID string `avro:"collection_id"`
 }

@@ -60,6 +60,8 @@ func (p *Processor) processMessage(ctx context.Context, msg kafka.Message, h Han
 	var event CantabularMetadataExport
 	s := schema.CantabularMetadataExport
 
+	log.Info(ctx, "info", log.Data{"msg_data": msg.GetData()})
+
 	if err := s.Unmarshal(msg.GetData(), &event); err != nil {
 		return &Error{
 			err: fmt.Errorf("failed to unmarshal event: %w", err),
