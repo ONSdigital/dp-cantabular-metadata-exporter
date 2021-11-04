@@ -45,9 +45,9 @@ func (f *FileManager) Upload(body io.Reader, filename string) (string, error) {
 	})
 	if err != nil {
 		return "", Error{
-			err:     fmt.Errorf("failed to upload to S3: %w", err),
+			err: fmt.Errorf("failed to upload to S3: %w", err),
 			logData: map[string]interface{}{
-				"filename": filename,
+				"filename":    filename,
 				"bucket_name": bucket,
 			},
 		}
@@ -64,11 +64,11 @@ func (f *FileManager) UploadPrivate(body io.Reader, filename, vaultPath string) 
 
 	if err := f.vault.WriteKey(vaultPath, f.vaultKey, hex.EncodeToString(psk)); err != nil {
 		return "", Error{
-			err:     fmt.Errorf("failed to write key to vault: %w", err),
+			err: fmt.Errorf("failed to write key to vault: %w", err),
 			logData: map[string]interface{}{
 				"vault_path": vaultPath,
-				"vault_key": f.vaultKey,
-				"psk": hex.EncodeToString(psk),
+				"vault_key":  f.vaultKey,
+				"psk":        hex.EncodeToString(psk),
 			},
 		}
 	}
@@ -81,9 +81,9 @@ func (f *FileManager) UploadPrivate(body io.Reader, filename, vaultPath string) 
 	}, psk)
 	if err != nil {
 		return "", Error{
-			err:     fmt.Errorf("failed to upload encrypted file to S3: %w", err),
+			err: fmt.Errorf("failed to upload encrypted file to S3: %w", err),
 			logData: map[string]interface{}{
-				"filename": filename,
+				"filename":    filename,
 				"bucket_name": bucket,
 			},
 		}

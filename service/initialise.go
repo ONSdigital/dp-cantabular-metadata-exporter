@@ -7,12 +7,12 @@ import (
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/generator"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/generator"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
-	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
+	kafka "github.com/ONSdigital/dp-kafka/v2"
 	dphttp "github.com/ONSdigital/dp-net/http"
 	vault "github.com/ONSdigital/dp-vault"
 
@@ -43,7 +43,7 @@ var GetHealthCheck = func(cfg *config.Config, buildT, commit, ver string) (Healt
 	return &hc, nil
 }
 
-var GetGenerator = func() Generator{
+var GetGenerator = func() Generator {
 	return generator.New()
 }
 var GetVaultClient = func(cfg *config.Config) (VaultClient, error) {
@@ -127,4 +127,3 @@ var GetFileManager = func(cfg *config.Config, vault VaultClient, generator Gener
 		generator,
 	), nil
 }
-

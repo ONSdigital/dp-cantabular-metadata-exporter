@@ -7,15 +7,15 @@ import (
 	"net/http"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/api"
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
 
-	"github.com/ONSdigital/log.go/v2/log"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
+	"github.com/ONSdigital/log.go/v2/log"
 )
 
 // Metadata is the handler struct which holds dependencies for requests to /metadata
-type Metadata struct{
+type Metadata struct {
 	producer kafka.IProducer
 }
 

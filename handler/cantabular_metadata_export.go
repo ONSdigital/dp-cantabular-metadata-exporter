@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"bytes"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/csvw"
@@ -34,11 +34,11 @@ func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, fm FileM
 
 // Handle takes a single event.
 func (h *CantabularMetadataExport) Handle(ctx context.Context, e *event.CantabularMetadataExport) error {
-	if err := h.exportCSVW(ctx, e); err != nil{
+	if err := h.exportCSVW(ctx, e); err != nil {
 		return fmt.Errorf("failed to export csvw: %w", err)
 	}
 
-	if err := h.exportTXTFile(e); err != nil{
+	if err := h.exportTXTFile(e); err != nil {
 		return fmt.Errorf("failed to export metadata text file: %w", err)
 	}
 
@@ -49,7 +49,7 @@ func (h *CantabularMetadataExport) exportTXTFile(e *event.CantabularMetadataExpo
 	return nil
 }
 
-func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CantabularMetadataExport) error{
+func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CantabularMetadataExport) error {
 	ver := fmt.Sprintf("%d", e.Version)
 	filename := fmt.Sprintf(
 		"%s%s-%s-v%d.csvw",
@@ -80,12 +80,12 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 	}
 
 	isPublished, err := h.isVersionPublished(ctx, e)
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("failed to determine published state: %w", err)
 	}
 
 	var url string
-	if isPublished{
+	if isPublished {
 		url, err = h.file.Upload(bytes.NewReader(f), filename)
 	} else {
 		url, err = h.file.UploadPrivate(bytes.NewReader(f), filename, h.generateVaultPath(e.DatasetID))
@@ -119,9 +119,9 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 
 	if err := h.dataset.PutVersion(
 		ctx,
-		"", 
+		"",
 		h.cfg.ServiceAuthToken,
-		"", 
+		"",
 		e.DatasetID,
 		e.Edition,
 		ver,
@@ -142,9 +142,9 @@ func (h *CantabularMetadataExport) generateVaultPath(instanceID string) string {
 	return fmt.Sprintf("%s/%s", h.cfg.VaultPath, instanceID)
 }
 
-func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *event.CantabularMetadataExport) (bool, error){
+func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *event.CantabularMetadataExport) (bool, error) {
 	version, err := h.dataset.GetVersion(
-		ctx, 
+		ctx,
 		"",
 		h.cfg.ServiceAuthToken,
 		"",

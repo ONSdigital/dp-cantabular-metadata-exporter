@@ -109,7 +109,7 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 	log.Info(ctx, "generating csvw file", log.Data{
 		"dataset_id": metadata.DatasetDetails.ID,
 		"csv_header": metadata.CSVHeader,
-		"m": metadata,
+		"m":          metadata,
 	})
 
 	if len(metadata.Dimensions) == 0 {

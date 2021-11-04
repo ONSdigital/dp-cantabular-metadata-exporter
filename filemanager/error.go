@@ -1,8 +1,9 @@
 package filemanager
 
 // Error is the packages error type
-type Error struct {	err        error
-	logData    map[string]interface{}
+type Error struct {
+	err     error
+	logData map[string]interface{}
 }
 
 // Error satisfies the standard library Go error interface

@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"io"
 	"context"
+	"io"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 )
@@ -12,7 +12,7 @@ type FileManager interface {
 	UploadPrivate(body io.Reader, filename, vaultPath string) (string, error)
 }
 
-type S3Uploader interface {}
+type S3Uploader interface{}
 
 type DatasetAPIClient interface {
 	GetVersion(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceAuthToken, collectionID, datasetID, edition, version string) (dataset.Version, error)
