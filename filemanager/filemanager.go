@@ -8,8 +8,8 @@ import (
 
 	dps3 "github.com/ONSdigital/dp-s3"
 
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 type FileManager struct {

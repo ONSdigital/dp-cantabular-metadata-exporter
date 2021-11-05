@@ -14,7 +14,7 @@ import (
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
-const serviceName = "dp-cantabular-csv-Export"
+const serviceName = "dp-cantabular-metadata-exporter"
 
 func main() {
 	log.Namespace = serviceName

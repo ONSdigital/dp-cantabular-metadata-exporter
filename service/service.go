@@ -52,12 +52,11 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 		}
 	}
 
-	svc.generator = GetGenerator()
-
-	if svc.fileManager, err = GetFileManager(cfg, svc.vaultClient, svc.generator); err != nil {
+	if svc.fileManager, err = GetFileManager(cfg, svc.vaultClient, svc.generator); err !=nil {
 		return fmt.Errorf("failed to initialise file manager: %w", err)
 	}
 
+	svc.generator = GetGenerator()
 	svc.datasetAPIClient = GetDatasetAPIClient(cfg)
 	svc.processor = GetProcessor(cfg)
 

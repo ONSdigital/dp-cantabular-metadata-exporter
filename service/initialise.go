@@ -91,7 +91,7 @@ var GetProcessor = func(cfg *config.Config) Processor {
 
 // GetDatasetAPIClient gets and initialises the DatasetAPI Client
 var GetDatasetAPIClient = func(cfg *config.Config) DatasetAPIClient {
-	return dataset.NewAPIClient(cfg.DatasetAPIURL)
+ 	return dataset.NewAPIClient(cfg.DatasetAPIURL)
 }
 
 // GetFileManager instantiates teh service FileManager
