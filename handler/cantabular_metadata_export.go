@@ -94,7 +94,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 	download.URL = downloadURL + h.metadataExtension
 
 	log.Info(ctx, "updating dataset api with download link", log.Data{
-		"isPublished":      true, //isPublished,
+		"isPublished":      isPublished,
 		"metadataDownload": download,
 	})
 
