@@ -51,21 +51,8 @@ func (h *CantabularMetadataExport) exportTXTFile(e *event.CantabularMetadataExpo
 
 func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CantabularMetadataExport) error {
 	ver := fmt.Sprintf("%d", e.Version)
-	filename := fmt.Sprintf(
-		"%s%s-%s-v%d.csvw",
-		h.csvwPrefix,
-		e.DatasetID,
-		e.Edition,
-		e.Version,
-	)
-
-	downloadURL := fmt.Sprintf(
-		"%s/downloads/datasets/%s/editions/%s/versions/%d.csvw",
-		h.cfg.DownloadServiceURL,
-		e.DatasetID,
-		e.Edition,
-		e.Version,
-	) // Get downloadURL from somewhere else?
+	filename := h.generateCSVWFilename(e)
+	downloadURL := h.generateDownloadURL(e) // Get downloadURL from somewhere else?
 
 	m, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, ver)
 	if err != nil {
@@ -133,8 +120,24 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 	return nil
 }
 
-func generateCSVWFilename(e *event.CantabularMetadataExport) string {
-	return fmt.Sprintf("%s-%s-%d.csvw", e.DatasetID, e.Edition, e.Version)
+func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CantabularMetadataExport) string {
+	return fmt.Sprintf(
+		"%s%s-%s-v%d.csvw",
+		h.csvwPrefix,
+		e.DatasetID,
+		e.Edition,
+		e.Version,
+	)
+}
+
+func (h *CantabularMetadataExport) generateDownloadURL(e *event.CantabularMetadataExport) string {
+	return fmt.Sprintf(
+		"%s/downloads/datasets/%s/editions/%s/versions/%d.csvw",
+		h.cfg.DownloadServiceURL,
+		e.DatasetID,
+		e.Edition,
+		e.Version,
+	)
 }
 
 // generateVaultPathForFile generates the vault path for the provided root and filename
