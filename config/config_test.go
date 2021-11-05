@@ -31,7 +31,11 @@ func TestConfig(t *testing.T) {
 					VaultPath:                  "secret/shared/psk",
 					VaultAddress:               "http://localhost:8200",
 					VaultToken:                 "",
+					PublicBucket:               "dp-cantabular-metadata-exporter",
+					PrivateBucket:              "dp-cantabular-metadata-exporter",
 					EncryptionDisabled:         false,
+					DatasetAPIURL:              "http://localhost:22000",
+					AWSRegion:                  "eu-west-1",
 					Kafka: KafkaConfig{
 						Addr:                          []string{"localhost:9092"},
 						Version:                       "1.0.2",

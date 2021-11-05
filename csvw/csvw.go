@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
@@ -121,7 +120,8 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 	}
 
 	h := metadata.CSVHeader
-	offset := 1
+	// Offset will always be 0 for Cantabular?
+	offset := 0
 
 	csvw := New(metadata, downloadURL)
 
@@ -204,20 +204,6 @@ func (csvw *CSVW) AddNotes(metadata *dataset.Metadata, url string) {
 			})
 		}
 	}
-}
-
-func splitHeader(h []string) ([]string, int, error) {
-	parts := strings.Split(h[0], "_")
-	if len(parts) != 2 {
-		return nil, 0, errInvalidHeader
-	}
-
-	offset, err := strconv.Atoi(parts[1])
-	if err != nil {
-		return nil, 0, errInvalidHeader
-	}
-
-	return h, offset, err
 }
 
 func newObservationColumn(ctx context.Context, title, name string) Column {
