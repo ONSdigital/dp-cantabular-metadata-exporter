@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"sync"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -33,14 +34,18 @@ func TestMetadata(t *testing.T) {
 		defer ts.Close()
 
 		Convey("when a request is made to /metadata", func(c C) {
-			go func(c C){
+			wg := &sync.WaitGroup{}
+			wg.Add(1)
+			go func(c C, wg *sync.WaitGroup){
+				defer wg.Done()
 				body := []byte(`{"dataset_id":"cantabular-example-1","edition":"2021","version":1}`)
 				resp := testDoRequest(t, ts, http.MethodPost, "/metadata", bytes.NewReader(body))
 
 				c.Convey("The the returned status code should equal 202 Status Accepted", func(c C) {
 					c.So(resp.StatusCode, ShouldEqual, http.StatusAccepted)
 				})
-			}(c)
+			}(c, wg)
+
 
 			expected := event.CantabularMetadataExport{
 				DatasetID: "cantabular-example-1",
@@ -49,6 +54,7 @@ func TestMetadata(t *testing.T) {
 			}
 			Convey("And the expected message is produced", func() {
 				b := <-producer.Channels().Output
+				wg.Wait()
 				var got event.CantabularMetadataExport
 				err := schema.CantabularMetadataExport.Unmarshal(b, &got)
 				So(err, ShouldBeNil)

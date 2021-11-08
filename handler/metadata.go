@@ -64,6 +64,7 @@ func (h *Metadata) Post(w http.ResponseWriter, r *http.Request) {
 			statusCode: http.StatusInternalServerError,
 			logData:    logData,
 		})
+		return
 	}
 
 	// Send bytes to kafka producer output channel
