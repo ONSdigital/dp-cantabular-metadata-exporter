@@ -1,8 +1,8 @@
 package generator
 
 import (
-	"crypto/rand"
 	"fmt"
+	"crypto/rand"
 )
 
 // Generator is responsible for randomly generating new strings and tokens
