@@ -6,9 +6,14 @@ package mock
 import (
 	"context"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"sync"
 )
+
+// Ensure, that ProcessorMock does implement service.Processor.
+// If this is not the case, regenerate this file with moq.
+var _ service.Processor = &ProcessorMock{}
 
 // ProcessorMock is a mock implementation of service.Processor.
 //

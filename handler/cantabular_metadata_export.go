@@ -67,9 +67,9 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 	var url string
 	// if metadata.Version.State == dataset.StatePublished.String() {
 	if true {
-		url, err = h.file.Upload(bytes.NewReader(b), GenerateTextFilename(e))
+		url, err = h.file.Upload(bytes.NewReader(b), h.generateTextFilename(e))
 	} else {
-		url, err = h.file.UploadPrivate(bytes.NewReader(b), GenerateTextFilename(e), h.generateVaultPath(e.DatasetID))
+		url, err = h.file.UploadPrivate(bytes.NewReader(b), h.generateTextFilename(e), h.generateVaultPath(e.DatasetID))
 	}
 	if err != nil {
 		return fmt.Errorf("failed to upload file: %w", err)
@@ -117,13 +117,12 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 	return nil
 }
 
-func GenerateTextFilename(e *event.CantabularMetadataExport) string {
+func (h *CantabularMetadataExport) generateTextFilename(e *event.CantabularMetadataExport) string {
 	return fmt.Sprintf("%s-%s-%d.txt", e.DatasetID, e.Edition, e.Version)
 }
 
 // generateVaultPathForFile generates the vault path for the provided root and filename
 func (h *CantabularMetadataExport) generateVaultPath(instanceID string) string {
-	log.Info(context.Background(), "vault path", log.Data{"vault": h.cfg.VaultPath, "instance_id": instanceID})
 	return fmt.Sprintf("%s/%s.txt", h.cfg.VaultPath, instanceID)
 }
 
@@ -148,6 +147,8 @@ func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset
 
 		b.WriteString(options.String())
 	}
+
+	log.Info(context.Background(), string(b.Bytes()), log.Data{})
 
 	return b.Bytes(), nil
 }
