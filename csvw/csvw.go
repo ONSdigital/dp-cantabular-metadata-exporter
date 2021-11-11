@@ -204,7 +204,7 @@ func newObservationColumn(ctx context.Context, title, name string) Column {
 	return c
 }
 
-func newCodeAndLabelColumns(i int, apiDomain string, header []string, dims []dataset.VersionDimension) (Column, error) {
+func newLabelColumn(i int, apiDomain string, header []string, dims []dataset.VersionDimension) (Column, error) {
 	dimHeader := header[i]
 	dimHeader = strings.ToLower(dimHeader)
 

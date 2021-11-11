@@ -40,4 +40,4 @@ convey:
 
 .PHONY: test-component
 test-component:
-	go test -cover -coverpkg=github.com/ONSdigital/dp-cantabular-metadata-exporter/... -component
+	cd features/compose; docker-compose up --abort-on-container-exit

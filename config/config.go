@@ -26,6 +26,7 @@ type Config struct {
 	VaultAddress               string        `envconfig:"VAULT_ADDR"`
 	VaultPath                  string        `envconfig:"VAULT_PATH"`
 	EncryptionDisabled         bool          `envconfig:"ENCRYPTION_DISABLED"`
+	ComponentTestUseLogFile    bool          `envconfig:"COMPONENT_TEST_USE_LOG_FILE"`
 	Kafka                      KafkaConfig
 }
 
@@ -67,6 +68,7 @@ func Get() (*Config, error) {
 		EncryptionDisabled:         false,
 		DatasetAPIURL:              "http://localhost:22000",
 		AWSRegion:                  "eu-west-1",
+		ComponentTestUseLogFile:    false,
 		Kafka: KafkaConfig{
 			Addr:                          []string{"localhost:9092"},
 			Version:                       "1.0.2",

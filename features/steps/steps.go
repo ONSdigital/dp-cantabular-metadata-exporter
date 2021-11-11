@@ -1,7 +1,21 @@
 package steps
 
 import (
+	"fmt"
+	"net/http"
+	"time"
+	"errors"
+	"context"
+	"encoding/json"
+
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+
+	"github.com/ONSdigital/log.go/v2/log"
+
 	"github.com/cucumber/godog"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 func (c *Component) RegisterSteps(ctx *godog.ScenarioContext) {
@@ -13,14 +27,14 @@ func (c *Component) RegisterSteps(ctx *godog.ScenarioContext) {
 		`^the following version document with dataset id "([^"]*)", edition "([^"]*)" and version "([^"]*)" is available from dp-dataset-api:$`,
 		c.theFollowingVersionDocumentIsAvailable,
 	)
-	ctx.Step(`^this cantabular-metadata-export event is consumed:$`, c.thisCantabularMetadataExporterEventIsConsumed)
-	ctx.Step(`^a file with filename "([^"]*)" can be seen in minio`, c.theFollowingFileCanBeSeenInMinio)
-	ctx.Step(`^the following version with id "([^"]*)" is updated to dp-dataset-api:$`, c.theFollowingVersionIsUpdated)
+	ctx.Step(`^this cantabular-metadata-export event is consumed:$`, c.thisCantabularMetadataExportEventIsConsumed)
+	ctx.Step(`^a file with filename "([^"]*)" can be seen in minio bucket "([^"]*)"`, c.theFollowingFileCanBeSeenInMinio)
+	ctx.Step(`^the following version with dataset id "([^"]*)", edition "([^"]*)" and version "([^"]*)" is updated to dp-dataset-api:$`, c.theFollowingVersionIsUpdated)
 }
 
 // theFollowingMetadataDocumentIsAvailable generate a mocked response for dataset API
 // GET /datasets/{dataset_id}/editions/{edition}/versions/{version}/metadata
-func (c *Component) theFollowingMetadaDocumentIsAvailable(datasetID, edition, version string, md *godog.DocString) error {
+func (c *Component) theFollowingMetadataDocumentIsAvailable(datasetID, edition, version string, md *godog.DocString) error {
 	url := fmt.Sprintf(
 		"/datasets/%s/editions/%s/versions/%s/metadata",
 		datasetID,
@@ -38,7 +52,7 @@ func (c *Component) theFollowingMetadaDocumentIsAvailable(datasetID, edition, ve
 
 // theFollowingVersionDocumentIsAvailable generate a mocked response for dataset API
 // GET /datasets/{dataset_id}/editions/{edition}/versions/{version}
-func (c *Component) theFollowingMetadaDocumentIsAvailable(DatasetID, edition, version string, v *godog.DocString) error {
+func (c *Component) theFollowingVersionDocumentIsAvailable(datasetID, edition, version string, v *godog.DocString) error {
 	url := fmt.Sprintf(
 		"/datasets/%s/editions/%s/versions/%s",
 		datasetID,
@@ -56,7 +70,7 @@ func (c *Component) theFollowingMetadaDocumentIsAvailable(DatasetID, edition, ve
 
 // theFollowingVersionIsUpdated generate a mocked response for dataset API
 // PUT /instances/{id} with the provided instance response
-func (c *Component) theFollowingVersionIsUpdated(datasetID, edition, version string) error {
+func (c *Component) theFollowingVersionIsUpdated(datasetID, edition, version string, v *godog.DocString) error {
 	url := fmt.Sprintf(
 		"/datasets/%s/editions/%s/versions/%s",
 		datasetID,
@@ -66,6 +80,7 @@ func (c *Component) theFollowingVersionIsUpdated(datasetID, edition, version str
 
 	c.DatasetAPI.NewHandler().
 		Put(url).
+		AssertBody([]byte(v.Content)).
 		Reply(http.StatusOK)
 
 	return nil
@@ -99,24 +114,23 @@ func (c *Component) thisCantabularMetadataExportEventIsConsumed(input *godog.Doc
 	return nil
 }
 
-func (c *Component) theFollowingFileCanBeSeenInMinio(fileName string) error {
+func (c *Component) theFollowingFileCanBeSeenInMinio(fileName string, bucket string) error {
 	ctx := context.Background()
 
 	var b []byte
 	f := aws.NewWriteAtBuffer(b)
 
 	// probe bucket with backoff to give time for event to be processed
-	retries := 3
+	retries := 4
 	timeout := 1
 	var numBytes int64
 	var err error
 
 	for {
-		numBytes, err = c.S3Downloader.Download(f, &s3.GetObjectInput{
-			Bucket: aws.String(c.cfg.UploadBucketName),
+		if numBytes, err = c.S3Downloader.Download(f, &s3.GetObjectInput{
+			Bucket: aws.String(bucket),
 			Key:    aws.String(fileName),
-		})
-		if err == nil || retries <= 0 {
+		}); err == nil || retries <= 0 {
 			break
 		}
 

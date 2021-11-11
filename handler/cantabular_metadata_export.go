@@ -71,6 +71,11 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 		return fmt.Errorf("failed to determine published state: %w", err)
 	}
 
+	log.Info(ctx, "uploading csvw file to s3", log.Data{
+		"filename": filename,
+		"private_bucket": !isPublished,
+	})
+
 	var url string
 	if isPublished {
 		url, err = h.file.Upload(bytes.NewReader(f), filename)

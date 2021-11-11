@@ -3,21 +3,30 @@ package steps
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"sync"
 	"time"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service"
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
 
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 	cmptest "github.com/ONSdigital/dp-component-test"
-	"github.com/ONSdigital/dp-healthcheck/healthcheck"
+	"github.com/ONSdigital/log.go/v2/log"
 
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/maxcnunes/httpfake"
+)
+
+var (
+	BuildTime string = "1625046891"
+	GitCommit string = "7434fe334d9f51b7239f978094ea29d10ac33b16"
+	Version   string = ""
 )
 
 type Component struct {
@@ -74,7 +83,7 @@ func (c *Component) initService(ctx context.Context) error {
 	if c.producer, err = kafka.NewProducer(
 		ctx,
 		cfg.Kafka.Addr,
-		cfg.Kafka.InstanceCompleteTopic,
+		cfg.Kafka.CantabularMetadataExportTopic,
 		kafka.CreateProducerChannels(),
 		&kafka.ProducerConfig{
 			KafkaVersion:    &cfg.Kafka.Version,
@@ -86,10 +95,6 @@ func (c *Component) initService(ctx context.Context) error {
 
 	// start kafka logging go-routines
 	c.producer.Channels().LogErrors(ctx, "component producer")
-
-	service.GetGenerator = func() service.Generator {
-		return &generator{}
-	}
 
 	// Create service and initialise it
 	c.svc = service.New()
@@ -127,11 +132,6 @@ func (c *Component) startService(ctx context.Context) {
 // Close kills the application under test, and then it shuts down the testing consumer and producer.
 func (c *Component) Close() {
 	ctx := context.Background()
-
-	// drain topic so that next test case starts from a known state
-	if err := c.drainTopic(ctx); err != nil {
-		log.Error(ctx, "error draining topic", err)
-	}
 
 	// close producer
 	if err := c.producer.Close(ctx); err != nil {
