@@ -115,13 +115,11 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 		return nil, errMissingDimensions
 	}
 
-	if len(metadata.CSVHeader) == 0 {
-		return nil, errors.New("CSV header empty")
+	if len(metadata.CSVHeader) < 2 {
+		return nil, errors.New("CSV header empty or missing dimensions")
 	}
 
 	h := metadata.CSVHeader
-	// Offset will always be 0 for Cantabular?
-	offset := 0
 
 	csvw := New(metadata, downloadURL)
 
@@ -129,21 +127,13 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 	obs := newObservationColumn(ctx, h[0], metadata.UnitOfMeasure)
 	list = append(list, obs)
 
-	//add data markings columns
-	if offset != 0 {
-		for i := 1; i <= offset; i++ {
-			c := newColumn(h[i], "")
-			list = append(list, c)
-		}
-	}
-
-	offset++
-	h = h[offset:]
-
 	//add dimension columns
-	for i := 0; i < len(h); i = i + 2 {
-		c, l := newCodeAndLabelColumns(i, apiDomain, h, metadata.Dimensions)
-		list = append(list, c, l)
+	for i := 1; i < len(h); i = i + 1 {
+		l, err := newLabelColumn(i, apiDomain, h, metadata.Dimensions)
+		if err != nil{
+			return nil, fmt.Errorf("failed to create label column: %w", err)
+		}
+		list = append(list, l)
 	}
 
 	aboutURL, err := formatAboutURL(aboutURL, apiDomain)
@@ -214,9 +204,8 @@ func newObservationColumn(ctx context.Context, title, name string) Column {
 	return c
 }
 
-func newCodeAndLabelColumns(i int, apiDomain string, header []string, dims []dataset.VersionDimension) (Column, Column) {
-	codeHeader := header[i]
-	dimHeader := header[i+1]
+func newCodeAndLabelColumns(i int, apiDomain string, header []string, dims []dataset.VersionDimension) (Column, error) {
+	dimHeader := header[i]
 	dimHeader = strings.ToLower(dimHeader)
 
 	var dim dataset.VersionDimension
@@ -228,27 +217,23 @@ func newCodeAndLabelColumns(i int, apiDomain string, header []string, dims []dat
 		}
 	}
 
-	codeCol := newColumn("", codeHeader)
-
 	dimURL := dim.URL
 	if len(apiDomain) > 0 {
 		uri, err := url.Parse(dim.URL)
 		if err != nil {
-			return nil, nil
+			return nil, fmt.Errorf("failed to parse dimension url: %w", err)
 		}
 
 		dimURL = fmt.Sprintf("%s%s", apiDomain, uri.Path)
 	}
 
-	codeCol["valueURL"] = dimURL + "/codes/{" + codeHeader + "}"
-	codeCol["required"] = true
-	// TODO: determine what could go in c["datatype"]
-
 	labelCol := newColumn(dim.Name, dim.Label)
 	labelCol["description"] = dim.Description
-	// TODO: determine what could go in c["datatype"] and c["required"]
+	labelCol["valueURL"] = dimURL + "/codes/{" + dimHeader + "}"
+	labelCol["required"] = true
+	// TODO: determine what could go in c["datatype"] and c["required"]d
 
-	return codeCol, labelCol
+	return labelCol, nil
 }
 
 func newColumn(title, name string) Column {
