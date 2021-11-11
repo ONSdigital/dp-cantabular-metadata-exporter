@@ -12,7 +12,7 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	"github.com/ONSdigital/dp-kafka/v2"
+	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/dp-kafka/v2/kafkatest"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -53,7 +53,7 @@ func TestInit(t *testing.T) {
 			return hcMock, nil
 		}
 
-		GetProcessor = func(cfg *config.Config) Processor{
+		GetProcessor = func(cfg *config.Config) Processor {
 			return &mock.ProcessorMock{
 				ConsumeFunc: func(context.Context, kafka.IConsumerGroup, event.Handler) {},
 			}
@@ -65,7 +65,7 @@ func TestInit(t *testing.T) {
 
 		GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
 			return &kafkatest.IConsumerGroupMock{
-				ChannelsFunc: func() *kafka.ConsumerGroupChannels { 
+				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
 					return &kafka.ConsumerGroupChannels{}
 				},
 			}, nil
@@ -165,12 +165,11 @@ func TestClose(t *testing.T) {
 
 		GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
 			return &kafkatest.IConsumerGroupMock{
-				ChannelsFunc: func() *kafka.ConsumerGroupChannels { 
+				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
 					return &kafka.ConsumerGroupChannels{}
 				},
 			}, nil
 		}
-
 
 		Convey("Closing the service results in all the dependencies being closed in the expected order", func() {
 
