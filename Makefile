@@ -6,9 +6,6 @@ VERSION ?= $(shell git tag --points-at HEAD | grep ^v | head -n 1)
 
 LDFLAGS = -ldflags "-X main.BuildTime=$(BUILD_TIME) -X main.GitCommit=$(GIT_COMMIT) -X main.Version=$(VERSION)"
 
-VAULT_ADDR?='http://127.0.0.1:8200'
-DATABASE_ADDRESS?=bolt://localhost:7687
-
 .PHONY: all
 all: audit test build
 
@@ -28,7 +25,7 @@ debug:
 PHONY: debug-run
 debug-run:
 	HUMAN_LOG=1 DEBUG=1 go run -tags 'debug' $(LDFLAGS) main.go
-	
+
 .PHONY: lint
 lint:
 	exit

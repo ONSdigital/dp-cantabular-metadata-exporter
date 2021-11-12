@@ -44,7 +44,13 @@ func (f *FileManager) Upload(body io.Reader, filename string) (string, error) {
 		Key:    &filename,
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to upload to S3: %w", err)
+		return "", Error{
+			err:     fmt.Errorf("failed to upload to S3: %w", err),
+			logData: map[string]interface{}{
+				"filename": filename,
+				"bucket_name": bucket,
+			},
+		}
 	}
 
 	return url.PathUnescape(result.Location)
@@ -56,11 +62,15 @@ func (f *FileManager) UploadPrivate(body io.Reader, filename, vaultPath string) 
 		return "", fmt.Errorf("failed to generate PSK: %w", err)
 	}
 
-	// vaultPath := fmt.Sprintf("%s/%s.csv", vaultPathRoot, instanceID, h.vaultPath, instanceID)
-	// ^^ leaving comment here as reminder of how to implement in handler ^^
-
 	if err := f.vault.WriteKey(vaultPath, f.vaultKey, hex.EncodeToString(psk)); err != nil {
-		return "", fmt.Errorf("failed to write key to vault: %w", err)
+		return "", Error{
+			err: fmt.Errorf("failed to write key to vault: %w", err),
+			logData: map[string]interface{}{
+				"vault_path": vaultPath,
+				"vault_key":  f.vaultKey,
+				"psk":        hex.EncodeToString(psk),
+			},
+		}
 	}
 
 	bucket := f.s3private.BucketName()
@@ -70,7 +80,13 @@ func (f *FileManager) UploadPrivate(body io.Reader, filename, vaultPath string) 
 		Key:    &filename,
 	}, psk)
 	if err != nil {
-		return "", fmt.Errorf("failed to upload encrypted file to S3: %w", err)
+		return "", Error{
+			err: fmt.Errorf("failed to upload encrypted file to S3: %w", err),
+			logData: map[string]interface{}{
+				"filename":    filename,
+				"bucket_name": bucket,
+			},
+		}
 	}
 
 	return url.PathUnescape(result.Location)

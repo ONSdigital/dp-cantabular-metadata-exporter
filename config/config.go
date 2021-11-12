@@ -25,6 +25,7 @@ type Config struct {
 	VaultPath                  string        `envconfig:"VAULT_PATH"`
 	EncryptionDisabled         bool          `envconfig:"ENCRYPTION_DISABLED"`
 	ServiceAuthToken           string        `envconfig:"SERVICE_AUTH_TOKEN"`
+	DownloadServiceURL         string        `envconfig:"DOWNLOAD_SERVICE_URL"`
 	Kafka                      KafkaConfig
 }
 
@@ -62,10 +63,11 @@ func Get() (*Config, error) {
 		VaultPath:                  "secret/shared/psk",
 		VaultAddress:               "http://localhost:8200",
 		VaultToken:                 "",
-		PublicBucket:               "cantabular-metadata-exporter",
-		PrivateBucket:              "cantabular-metadata-exporter",
+		PublicBucket:               "dp-cantabular-metadata-exporter",
+		PrivateBucket:              "dp-cantabular-metadata-exporter",
 		S3BucketURL:                "",
 		EncryptionDisabled:         false,
+		DatasetAPIURL:              "http://localhost:22000",
 		Kafka: KafkaConfig{
 			Addr:                          []string{"localhost:9092"},
 			Version:                       "1.0.2",
