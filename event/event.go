@@ -4,6 +4,6 @@ package event
 type CantabularMetadataExport struct {
 	DatasetID    string `avro:"dataset_id"`
 	Edition      string `avro:"edition"`
-	Version      int32  `avro:"version"`
+	Version      string `avro:"version"`
 	CollectionID string `avro:"collection_id"`
 }

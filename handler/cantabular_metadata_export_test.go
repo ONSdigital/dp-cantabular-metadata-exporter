@@ -14,7 +14,7 @@ var ctx = context.Background()
 var eventTest = event.CantabularMetadataExport{
 	DatasetID: "test_id",
 	Edition:   "test-edition",
-	Version:   1,
+	Version:   "1",
 }
 
 func TestGenerateTextFilename(t *testing.T) {

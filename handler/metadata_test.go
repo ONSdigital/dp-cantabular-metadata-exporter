@@ -3,6 +3,7 @@ package handler_test
 import (
 	"bytes"
 	"context"
+	"time"
 	"io"
 	"sync"
 	"net/http"
@@ -38,7 +39,7 @@ func TestMetadata(t *testing.T) {
 			wg.Add(1)
 			go func(c C, wg *sync.WaitGroup){
 				defer wg.Done()
-				body := []byte(`{"dataset_id":"cantabular-example-1","edition":"2021","version":1}`)
+				body := []byte(`{"dataset_id":"cantabular-example-1","edition":"2021","version":"1"}`)
 				resp := testDoRequest(t, ts, http.MethodPost, "/metadata", bytes.NewReader(body))
 
 				c.Convey("The the returned status code should equal 202 Status Accepted", func(c C) {
@@ -50,15 +51,20 @@ func TestMetadata(t *testing.T) {
 			expected := event.CantabularMetadataExport{
 				DatasetID: "cantabular-example-1",
 				Edition:   "2021",
-				Version:   1,
+				Version:   "1",
 			}
 			Convey("And the expected message is produced", func() {
-				b := <-producer.Channels().Output
+				select{
+				case b := <-producer.Channels().Output:
+					var got event.CantabularMetadataExport
+					err := schema.CantabularMetadataExport.Unmarshal(b, &got)
+					So(err, ShouldBeNil)
+					So(got, ShouldResemble, expected)
+				case <- time.After(time.Second * 5):
+					t.Fatalf("timeout waiting for event")
+				}
+
 				wg.Wait()
-				var got event.CantabularMetadataExport
-				err := schema.CantabularMetadataExport.Unmarshal(b, &got)
-				So(err, ShouldBeNil)
-				So(got, ShouldResemble, expected)
 			})
 		})
 	})

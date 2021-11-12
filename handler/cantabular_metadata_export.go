@@ -49,8 +49,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, e *event.Cantabul
 }
 
 func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CantabularMetadataExport) error {
-	ver := fmt.Sprintf("%d", e.Version)
-	metadata, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, ver)
+	metadata, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, e.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get version metadata: %w", err)
 	}
@@ -59,7 +58,7 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 		"metadata": metadata,
 	})
 
-	dimensions, err := h.dataset.GetVersionDimensions(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, ver)
+	dimensions, err := h.dataset.GetVersionDimensions(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, e.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get version dimensions: %w", err)
 	}
@@ -115,7 +114,7 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 		metadata.Version.CollectionID, 
 		e.DatasetID,
 		e.Edition,
-		ver,
+		e.Version,
 		v,
 	); err != nil {
 		return fmt.Errorf("failed to update version: %w", err)
@@ -125,16 +124,15 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 }
 
 func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CantabularMetadataExport) error {
-	ver := fmt.Sprintf("%d", e.Version)
 	filename := h.generateCSVWFilename(e)
 	downloadURL := h.generateDownloadURL(e) // Get downloadURL from somewhere else?
 
-	m, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, ver)
+	m, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, e.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get version metadata: %w", err)
 	}
 
-	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, ver)
+	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, e.Version)
 
 	f, err := csvw.Generate(ctx, &m, downloadURL, aboutURL, h.apiDomainURL)
 	if err != nil {
@@ -186,7 +184,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 		"",
 		e.DatasetID,
 		e.Edition,
-		ver,
+		e.Version,
 		v,
 	); err != nil {
 		return fmt.Errorf("failed to update version: %w", err)
@@ -196,12 +194,12 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 }
 
 func (h *CantabularMetadataExport) generateTextFilename(e *event.CantabularMetadataExport) string {
-	return fmt.Sprintf("%s-%s-%d.txt", e.DatasetID, e.Edition, e.Version)
+	return fmt.Sprintf("%s-%s-%s.txt", e.DatasetID, e.Edition, e.Version)
 }
 
 func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CantabularMetadataExport) string {
 	return fmt.Sprintf(
-		"%s%s-%s-v%d.csvw",
+		"%s%s-%s-v%s.csvw",
 		h.csvwPrefix,
 		e.DatasetID,
 		e.Edition,
@@ -211,7 +209,7 @@ func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CantabularMetad
 
 func (h *CantabularMetadataExport) generateDownloadURL(e *event.CantabularMetadataExport) string {
 	return fmt.Sprintf(
-		"%s/downloads/datasets/%s/editions/%s/versions/%d.csvw",
+		"%s/downloads/datasets/%s/editions/%s/versions/%s.csvw",
 		h.cfg.DownloadServiceURL,
 		e.DatasetID,
 		e.Edition,
@@ -228,14 +226,16 @@ func (h *CantabularMetadataExport) generateVaultPath(instanceID string) string {
 // If a dimension has more than maxMetadataOptions, an error will be returned
 func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset.Metadata, dimensions dataset.VersionDimensions, e *event.CantabularMetadataExport) ([]byte, error) {
 	var b bytes.Buffer
-	ver := fmt.Sprintf("%d", e.Version)
 
 	b.WriteString(metadata.ToString())
 	b.WriteString("Dimensions:\n")
 
 	for _, dimension := range dimensions.Items {
-		q := dataset.QueryParams{Offset: 0, Limit: maxMetadataOptions}
-		options, err := h.dataset.GetOptions(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, ver, dimension.Name, &q)
+		q := dataset.QueryParams{
+			Offset: 0,
+			Limit: maxMetadataOptions,
+		}
+		options, err := h.dataset.GetOptions(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, e.Version, dimension.Name, &q)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dimension options: %w", err)
 		}
@@ -245,8 +245,6 @@ func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset
 
 		b.WriteString(options.String())
 	}
-
-	log.Info(context.Background(), string(b.Bytes()), log.Data{})
 
 	return b.Bytes(), nil
 }
@@ -260,7 +258,7 @@ func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *ev
 		"",
 		e.DatasetID,
 		e.Edition,
-		fmt.Sprintf("%d", e.Version),
+		e.Version,
 	)
 	if err != nil {
 		return false, fmt.Errorf("failed to get version: %w", err)

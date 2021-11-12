@@ -9,6 +9,6 @@ type ErrorResponse struct {
 type ExportMetadataRequest struct {
 	DatasetID    string `json:"dataset_id"`
 	Edition      string `json:"edition"`
-	Version      int32  `json:"version"`
+	Version      string `json:"version"`
 	CollectionID string `json:"collection_id"`
 }

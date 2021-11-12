@@ -72,6 +72,6 @@ func scanEvent(scanner *bufio.Scanner) *event.CantabularMetadataExport {
 	return &event.CantabularMetadataExport{
 		DatasetID: datasetID,
 		Edition:   "2021",
-		Version:   1,
+		Version:   "1",
 	}
 }
