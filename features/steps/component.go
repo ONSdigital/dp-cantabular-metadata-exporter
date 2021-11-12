@@ -3,6 +3,7 @@ package steps
 import (
 	"context"
 	"fmt"
+	"testing"
 	"sync"
 	"time"
 	"os"
@@ -43,10 +44,10 @@ type Component struct {
 	waitEventTimeout time.Duration
 }
 
-func NewComponent() *Component {
+func NewComponent(t *testing.T) *Component {
 	return &Component{
 		errorChan:        make(chan error),
-		DatasetAPI:       httpfake.New(),
+		DatasetAPI:       httpfake.New(httpfake.WithTesting(t)),
 		wg:               &sync.WaitGroup{},
 		waitEventTimeout: time.Second * 5,
 	}
@@ -137,6 +138,8 @@ func (c *Component) Close() {
 	if err := c.producer.Close(ctx); err != nil {
 		log.Error(ctx, "error closing kafka producer", err)
 	}
+
+	c.DatasetAPI.Close()
 
 	// kill application
 	c.signals <- os.Interrupt

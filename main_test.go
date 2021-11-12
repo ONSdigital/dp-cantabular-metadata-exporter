@@ -21,6 +21,7 @@ const componentLogFile = "component-output.txt"
 var componentFlag = flag.Bool("component", false, "perform component tests")
 
 type ComponentTest struct {
+	t *testing.T
 	MongoFeature *componenttest.MongoFeature
 }
 
@@ -29,7 +30,7 @@ func init() {
 }
 
 func (f *ComponentTest) InitializeScenario(ctx *godog.ScenarioContext) {
-	component := steps.NewComponent()
+	component := steps.NewComponent(f.t)
 
 	ctx.BeforeScenario(func(*godog.Scenario) {
 		if err := component.Reset(); err != nil {
@@ -75,7 +76,9 @@ func TestComponent(t *testing.T) {
 			Paths:  flag.Args(),
 		}
 
-		f := &ComponentTest{}
+		f := &ComponentTest{
+			t: t,
+		}
 
 		status = godog.TestSuite{
 			Name:                 "feature_tests",

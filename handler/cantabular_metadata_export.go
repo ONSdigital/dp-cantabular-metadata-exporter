@@ -59,6 +59,10 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 		return fmt.Errorf("failed to get version metadata: %w", err)
 	}
 
+	log.Info(ctx, "got metadata", log.Data{
+		"metadata": m,
+	})
+
 	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, ver)
 
 	f, err := csvw.Generate(ctx, &m, downloadURL, aboutURL, h.apiDomainURL)
