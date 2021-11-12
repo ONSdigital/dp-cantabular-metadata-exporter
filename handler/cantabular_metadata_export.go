@@ -37,40 +37,85 @@ func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, fm FileM
 
 // Handle takes a single event.
 func (h *CantabularMetadataExport) Handle(ctx context.Context, e *event.CantabularMetadataExport) error {
-	if err := h.exportCSVW(ctx, e); err != nil {
-		return fmt.Errorf("failed to export csvw: %w", err)
+	logData := log.Data{
+		"event": e,
 	}
 
-	if err := h.exportTXTFile(ctx, e); err != nil {
-		return fmt.Errorf("failed to export metadata text file: %w", err)
+	m, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, e.Version)
+	if err != nil {
+		return Error{
+			err:     fmt.Errorf("failed to get version metadata: %w", err),
+			logData: logData,
+		}
+	}
+
+	isPublished, err := h.isVersionPublished(ctx, e)
+	if err != nil{
+		return Error{
+			err:     fmt.Errorf("failed to determin published state: %w", err),
+			logData: logData,
+		}
+	}
+
+	logData["isPublished"] = isPublished
+
+	csvwDownload, err := h.exportCSVW(ctx, e, m, isPublished)
+	if err != nil {
+		return Error{
+			err:     fmt.Errorf("failed to export csvw: %w", err),
+			logData: logData,
+		}
+	}
+
+	txtDownload, err := h.exportTXTFile(ctx, e, m, isPublished)
+	if err != nil {
+		return Error{
+			err:     fmt.Errorf("failed to export metadata text file: %w", err),
+			logData: logData,
+		}
+	}
+
+	downloads := map[string]dataset.Download{
+		"CSVW": *csvwDownload,
+		"TXT":  *txtDownload,
+	}
+
+	logData["downloads"] = downloads
+
+	log.Info(ctx, "updating dataset api with download link", logData)
+
+	v := dataset.Version{
+		Downloads: downloads,
+	}
+
+	if err := h.dataset.PutVersion(
+		ctx,
+		"",
+		h.cfg.ServiceAuthToken,
+		m.Version.CollectionID, 
+		e.DatasetID,
+		e.Edition,
+		e.Version,
+		v,
+	); err != nil {
+		return Error{
+			err:     fmt.Errorf("failed to update version: %w", err),
+			logData: logData,
+		}
 	}
 
 	return nil
 }
 
-func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CantabularMetadataExport) error {
-	metadata, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, e.Version)
-	if err != nil {
-		return fmt.Errorf("failed to get version metadata: %w", err)
-	}
-
-	log.Info(ctx, "metadata", log.Data{
-		"metadata": metadata,
-	})
-
+func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CantabularMetadataExport, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
 	dimensions, err := h.dataset.GetVersionDimensions(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, e.Version)
 	if err != nil {
-		return fmt.Errorf("failed to get version dimensions: %w", err)
+		return nil, fmt.Errorf("failed to get version dimensions: %w", err)
 	}
 
-	b, err := h.getText(ctx, metadata, dimensions, e)
+	b, err := h.getText(ctx, m, dimensions, e)
 	if err != nil {
-		return fmt.Errorf("failed to get text bytes: %w", err)
-	}
-
-	isPublished, err := h.isVersionPublished(ctx, e)
-	if err != nil{
-		return fmt.Errorf("failed to determin published state: %w", err)
+		return nil, fmt.Errorf("failed to get text bytes: %w", err)
 	}
 
 	var url string
@@ -81,7 +126,7 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 		url, err = h.file.UploadPrivate(bytes.NewReader(b), h.generateTextFilename(e), h.generateVaultPath(e.DatasetID))
 	}
 	if err != nil {
-		return fmt.Errorf("failed to upload file: %w", err)
+		return nil, fmt.Errorf("failed to upload file: %w", err)
 	}
 
 	download := &dataset.Download{
@@ -96,52 +141,17 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 
 	download.URL = url
 
-	log.Info(ctx, "updating dataset api with download link", log.Data{
-		"isPublished":      isPublished,
-		"metadataDownload": download,
-	})
-
-	v := dataset.Version{
-		Downloads: map[string]dataset.Download{
-			"TXT": *download,
-		},
-	}
-
-	if err := h.dataset.PutVersion(
-		ctx,
-		"",
-		h.cfg.ServiceAuthToken,
-		metadata.Version.CollectionID, 
-		e.DatasetID,
-		e.Edition,
-		e.Version,
-		v,
-	); err != nil {
-		return fmt.Errorf("failed to update version: %w", err)
-	}
-
-	return nil
+	return download, nil
 }
 
-func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CantabularMetadataExport) error {
+func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CantabularMetadataExport, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
 	filename := h.generateCSVWFilename(e)
 	downloadURL := h.generateDownloadURL(e) // Get downloadURL from somewhere else?
-
-	m, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, e.Version)
-	if err != nil {
-		return fmt.Errorf("failed to get version metadata: %w", err)
-	}
-
 	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, e.Version)
 
 	f, err := csvw.Generate(ctx, &m, downloadURL, aboutURL, h.apiDomainURL)
 	if err != nil {
-		return fmt.Errorf("failed to generate csvw: %w", err)
-	}
-
-	isPublished, err := h.isVersionPublished(ctx, e)
-	if err != nil {
-		return fmt.Errorf("failed to determine published state: %w", err)
+		return nil, fmt.Errorf("failed to generate csvw: %w", err)
 	}
 
 	var url string
@@ -151,7 +161,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 		url, err = h.file.UploadPrivate(bytes.NewReader(f), filename, h.generateVaultPath(e.DatasetID))
 	}
 	if err != nil {
-		return fmt.Errorf("failed to upload file: %w", err)
+		return nil, fmt.Errorf("failed to upload file: %w", err)
 	}
 
 	download := &dataset.Download{
@@ -166,31 +176,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 
 	download.URL = downloadURL + h.metadataExtension
 
-	log.Info(ctx, "updating dataset api with download link", log.Data{
-		"isPublished":      isPublished,
-		"metadataDownload": download,
-	})
-
-	v := dataset.Version{
-		Downloads: map[string]dataset.Download{
-			"CSVW": *download,
-		},
-	}
-
-	if err := h.dataset.PutVersion(
-		ctx,
-		"",
-		h.cfg.ServiceAuthToken,
-		"",
-		e.DatasetID,
-		e.Edition,
-		e.Version,
-		v,
-	); err != nil {
-		return fmt.Errorf("failed to update version: %w", err)
-	}
-
-	return nil
+	return download, nil
 }
 
 func (h *CantabularMetadataExport) generateTextFilename(e *event.CantabularMetadataExport) string {
@@ -235,10 +221,12 @@ func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset
 			Offset: 0,
 			Limit: maxMetadataOptions,
 		}
+
 		options, err := h.dataset.GetOptions(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, e.Version, dimension.Name, &q)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dimension options: %w", err)
 		}
+
 		if options.TotalCount > maxMetadataOptions {
 			return nil, errors.New("too many options in dimension")
 		}
