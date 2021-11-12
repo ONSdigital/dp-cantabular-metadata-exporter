@@ -3,6 +3,7 @@ package csvw
 import (
 	"context"
 	"testing"
+	"errors"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	. "github.com/smartystreets/goconvey/convey"
@@ -100,7 +101,7 @@ func TestGenerate(t *testing.T) {
 
 			Convey("Then results should be returned with no errors", func() {
 				So(data, ShouldHaveLength, 0)
-				So(err, ShouldEqual, errMissingDimensions)
+				So(errors.Is(err, errMissingDimensions), ShouldBeTrue)
 			})
 		})
 	})
