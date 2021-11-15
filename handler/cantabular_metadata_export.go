@@ -180,12 +180,12 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 }
 
 func (h *CantabularMetadataExport) generateTextFilename(e *event.CantabularMetadataExport) string {
-	return fmt.Sprintf("%s-%s-%s.txt", e.DatasetID, e.Edition, e.Version)
+	return fmt.Sprintf("datasets/%s-%s-%s.txt", e.DatasetID, e.Edition, e.Version)
 }
 
 func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CantabularMetadataExport) string {
 	return fmt.Sprintf(
-		"%s%s-%s-v%s.csvw",
+		"datasets/%s%s-%s-%s.csvw",
 		h.csvwPrefix,
 		e.DatasetID,
 		e.Edition,

@@ -24,7 +24,7 @@ func TestGenerateTextFilename(t *testing.T) {
 		So(err, ShouldBeNil)
 		h := NewCantabularMetadataExport(*cfg, nil, nil)
 		filename := h.generateTextFilename(&eventTest)
-		expectedFilename := "test_id-test-edition-1.txt"
+		expectedFilename := "datasets/test_id-test-edition-1.txt"
 		So(filename, ShouldResemble, expectedFilename)
 
 	})
