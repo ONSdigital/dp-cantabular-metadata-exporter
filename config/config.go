@@ -41,8 +41,8 @@ type KafkaConfig struct {
 	SecClientKey                  string   `envconfig:"KAFKA_SEC_CLIENT_KEY"                  json:"-"`
 	SecClientCert                 string   `envconfig:"KAFKA_SEC_CLIENT_CERT"`
 	SecSkipVerify                 bool     `envconfig:"KAFKA_SEC_SKIP_VERIFY"`
-	CantabularMetadataExportTopic string   `envconfig:"CANTABULAR_METADATA_EXPORT_TOPIC"`
-	CantabularMetadataCompleteTopic string   `envconfig:"CANTABULAR_METADATA_COMPLETE_TOPIC"`
+	CantabularCSVCreatedTopic     string   `envconfig:"CANTABULAR_CSV_CREATED_TOPIC"`
+	CantabularCSVWCreatedTopic    string   `envconfig:"CANTABULAR_CSVW_CREATED_TOPIC"`
 	CantabularMetadataExportGroup string   `envconfig:"CANTABULAR_METADATA_EXPORT_GROUP"`
 }
 
@@ -81,8 +81,8 @@ func Get() (*Config, error) {
 			SecClientCert:                 "",
 			SecSkipVerify:                 false,
 			CantabularMetadataExportGroup: "cantabular-metadata-export",
-			CantabularMetadataExportTopic: "cantabular-metadata-export",
-			CantabularMetadataCompleteTopic: "cantabular-metadata-complete",
+			CantabularCSVCreatedTopic:     "cantabular-csv-created",
+			CantabularCSVWCreatedTopic:    "cantabular-csvw-created",
 		},
 	}
 
