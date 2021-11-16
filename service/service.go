@@ -92,6 +92,7 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 			*svc.config,
 			svc.datasetAPIClient,
 			svc.fileManager,
+			svc.producer,
 		),
 	)
 

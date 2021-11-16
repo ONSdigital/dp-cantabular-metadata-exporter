@@ -10,8 +10,10 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/csvw"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
 
 	"github.com/ONSdigital/log.go/v2/log"
+	kafka "github.com/ONSdigital/dp-kafka/v2"
 )
 
 const maxMetadataOptions = 1000
@@ -21,13 +23,14 @@ type CantabularMetadataExport struct {
 	cfg               config.Config
 	dataset           DatasetAPIClient
 	file              FileManager
+	producer          kafka.IProducer
 	csvwPrefix        string
 	metadataExtension string
 	apiDomainURL      string
 }
 
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler
-func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, fm FileManager) *CantabularMetadataExport {
+func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, fm FileManager, p kafka.IProducer) *CantabularMetadataExport {
 	return &CantabularMetadataExport{
 		cfg:     cfg,
 		dataset: d,
@@ -104,6 +107,13 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, e *event.Cantabul
 		}
 	}
 
+	if err := h.produceOutputMessage(e); err != nil{
+		return Error{
+			err:     fmt.Errorf("failed to producer output kafka message: %w", err),
+			logData: logData,
+		}
+	}
+
 	return nil
 }
 
@@ -146,7 +156,7 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 
 func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CantabularMetadataExport, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
 	filename := h.generateCSVWFilename(e)
-	downloadURL := h.generateDownloadURL(e) // Get downloadURL from somewhere else?
+	downloadURL := h.generateDownloadURL(e)
 	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, e.Version)
 
 	f, err := csvw.Generate(ctx, &m, downloadURL, aboutURL, h.apiDomainURL)
@@ -253,4 +263,24 @@ func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *ev
 	}
 
 	return version.State == dataset.StatePublished.String(), nil
+}
+
+func (h *CantabularMetadataExport) produceOutputMessage(e *event.CantabularMetadataExport) error {
+	s := schema.CantabularMetadataComplete
+
+	b, err := s.Marshal(&event.CantabularMetadataComplete{
+		CollectionID: e.CollectionID,
+		DatasetID:    e.DatasetID,
+		Edition:      e.Edition,
+		Version:      e.Version,
+		RowCount:     e.RowCount,
+	})
+	if err != nil {
+		return fmt.Errorf("error marshalling instance complete event: %w", err)
+	}
+
+	// Send bytes to kafka producer output channel
+	h.producer.Channels().Output <- b
+
+	return nil
 }

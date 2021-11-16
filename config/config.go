@@ -42,6 +42,7 @@ type KafkaConfig struct {
 	SecClientCert                 string   `envconfig:"KAFKA_SEC_CLIENT_CERT"`
 	SecSkipVerify                 bool     `envconfig:"KAFKA_SEC_SKIP_VERIFY"`
 	CantabularMetadataExportTopic string   `envconfig:"CANTABULAR_METADATA_EXPORT_TOPIC"`
+	CantabularMetadataCompleteTopic string   `envconfig:"CANTABULAR_METADATA_COMPLETE_TOPIC"`
 	CantabularMetadataExportGroup string   `envconfig:"CANTABULAR_METADATA_EXPORT_GROUP"`
 }
 
@@ -81,6 +82,7 @@ func Get() (*Config, error) {
 			SecSkipVerify:                 false,
 			CantabularMetadataExportGroup: "cantabular-metadata-export",
 			CantabularMetadataExportTopic: "cantabular-metadata-export",
+			CantabularMetadataCompleteTopic: "cantabular-metadata-complete",
 		},
 	}
 

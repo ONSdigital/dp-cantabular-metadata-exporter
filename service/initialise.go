@@ -78,7 +78,7 @@ var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IPro
 	return kafka.NewProducer(
 		ctx,
 		cfg.Kafka.Addr,
-		cfg.Kafka.CantabularMetadataExportTopic,
+		cfg.Kafka.CantabularMetadataCompleteTopic,
 		pChannels,
 		&kafka.ProducerConfig{},
 	)
