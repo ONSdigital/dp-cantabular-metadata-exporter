@@ -53,7 +53,7 @@ func (h *Metadata) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err = schema.CantabularMetadataExport.Marshal(&event.CantabularMetadataExport{
+	b, err = schema.CSVCreated.Marshal(&event.CSVCreated{
 		DatasetID: req.DatasetID,
 		Edition:   req.Edition,
 		Version:   req.Version,

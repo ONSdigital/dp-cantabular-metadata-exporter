@@ -11,7 +11,7 @@ import (
 
 var ctx = context.Background()
 
-var eventTest = event.CantabularMetadataExport{
+var eventTest = event.CSVCreated{
 	DatasetID: "test_id",
 	Edition:   "test-edition",
 	Version:   "1",

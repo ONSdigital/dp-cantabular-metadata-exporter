@@ -7,7 +7,7 @@ import (
 //go:generate moq -out mock/handler.go -pkg mock . Handler
 
 type Handler interface {
-	Handle(ctx context.Context, event *CantabularMetadataExport) error
+	Handle(ctx context.Context, event *CSVCreated) error
 }
 
 type dataLogger interface {

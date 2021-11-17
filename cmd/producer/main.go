@@ -61,7 +61,7 @@ func main() {
 }
 
 // scanEvent creates a HelloCalled event according to the user input
-func scanEvent(scanner *bufio.Scanner) *event.CantabularMetadataExport {
+func scanEvent(scanner *bufio.Scanner) *event.CSVCreated {
 	fmt.Println("--- [Send Kafka CantabularMetadataExport] ---")
 
 	fmt.Println("Please type the dataset_id")
@@ -69,7 +69,7 @@ func scanEvent(scanner *bufio.Scanner) *event.CantabularMetadataExport {
 	scanner.Scan()
 	datasetID := scanner.Text()
 
-	return &event.CantabularMetadataExport{
+	return &event.CSVCreated{
 		DatasetID: datasetID,
 		Edition:   "2021",
 		Version:   "1",

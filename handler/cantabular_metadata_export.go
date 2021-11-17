@@ -32,19 +32,20 @@ type CantabularMetadataExport struct {
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler
 func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, fm FileManager, p kafka.IProducer) *CantabularMetadataExport {
 	return &CantabularMetadataExport{
-		cfg:     cfg,
-		dataset: d,
-		file:    fm,
+		cfg:      cfg,
+		dataset:  d,
+		file:     fm,
+		producer: p,
 	}
 }
 
 // Handle takes a single event.
-func (h *CantabularMetadataExport) Handle(ctx context.Context, e *event.CantabularMetadataExport) error {
+func (h *CantabularMetadataExport) Handle(ctx context.Context, e *event.CSVCreated) error {
 	logData := log.Data{
 		"event": e,
 	}
 
-	m, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, e.Version)
+	m, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, e.Version)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to get version metadata: %w", err),
@@ -117,8 +118,8 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, e *event.Cantabul
 	return nil
 }
 
-func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CantabularMetadataExport, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
-	dimensions, err := h.dataset.GetVersionDimensions(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, e.Version)
+func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
+	dimensions, err := h.dataset.GetVersionDimensions(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, e.Version)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get version dimensions: %w", err)
 	}
@@ -154,7 +155,7 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 	return download, nil
 }
 
-func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CantabularMetadataExport, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
+func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
 	filename := h.generateCSVWFilename(e)
 	downloadURL := h.generateDownloadURL(e)
 	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, e.Version)
@@ -189,11 +190,11 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.Cant
 	return download, nil
 }
 
-func (h *CantabularMetadataExport) generateTextFilename(e *event.CantabularMetadataExport) string {
+func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated) string {
 	return fmt.Sprintf("datasets/%s-%s-%s.txt", e.DatasetID, e.Edition, e.Version)
 }
 
-func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CantabularMetadataExport) string {
+func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated) string {
 	return fmt.Sprintf(
 		"datasets/%s%s-%s-%s.csvw",
 		h.csvwPrefix,
@@ -203,7 +204,7 @@ func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CantabularMetad
 	)
 }
 
-func (h *CantabularMetadataExport) generateDownloadURL(e *event.CantabularMetadataExport) string {
+func (h *CantabularMetadataExport) generateDownloadURL(e *event.CSVCreated) string {
 	return fmt.Sprintf(
 		"%s/downloads/datasets/%s/editions/%s/versions/%s.csvw",
 		h.cfg.DownloadServiceURL,
@@ -214,13 +215,13 @@ func (h *CantabularMetadataExport) generateDownloadURL(e *event.CantabularMetada
 }
 
 // generateVaultPathForFile generates the vault path for the provided root and filename
-func (h *CantabularMetadataExport) generateVaultPath(instanceID string) string {
-	return fmt.Sprintf("%s/%s.txt", h.cfg.VaultPath, instanceID)
+func (h *CantabularMetadataExport) generateVaultPath(datasetID string) string {
+	return fmt.Sprintf("%s/%s.txt", h.cfg.VaultPath, datasetID)
 }
 
 // getText gets a byte array containing the metadata content, based on options returned by dataset API.
 // If a dimension has more than maxMetadataOptions, an error will be returned
-func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset.Metadata, dimensions dataset.VersionDimensions, e *event.CantabularMetadataExport) ([]byte, error) {
+func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset.Metadata, dimensions dataset.VersionDimensions, e *event.CSVCreated) ([]byte, error) {
 	var b bytes.Buffer
 
 	b.WriteString(metadata.ToString())
@@ -232,7 +233,7 @@ func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset
 			Limit: maxMetadataOptions,
 		}
 
-		options, err := h.dataset.GetOptions(ctx, "", h.cfg.ServiceAuthToken, e.CollectionID, e.DatasetID, e.Edition, e.Version, dimension.Name, &q)
+		options, err := h.dataset.GetOptions(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, e.Version, dimension.Name, &q)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dimension options: %w", err)
 		}
@@ -247,7 +248,7 @@ func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset
 	return b.Bytes(), nil
 }
 
-func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *event.CantabularMetadataExport) (bool, error) {
+func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *event.CSVCreated) (bool, error) {
 	version, err := h.dataset.GetVersion(
 		ctx,
 		"",
@@ -265,18 +266,18 @@ func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *ev
 	return version.State == dataset.StatePublished.String(), nil
 }
 
-func (h *CantabularMetadataExport) produceOutputMessage(e *event.CantabularMetadataExport) error {
-	s := schema.CantabularMetadataComplete
+func (h *CantabularMetadataExport) produceOutputMessage(e *event.CSVCreated) error {
+	s := schema.CSVWCreated
 
-	b, err := s.Marshal(&event.CantabularMetadataComplete{
-		CollectionID: e.CollectionID,
+	b, err := s.Marshal(&event.CSVWCreated{
+		InstanceID:   e.InstanceID,
 		DatasetID:    e.DatasetID,
 		Edition:      e.Edition,
 		Version:      e.Version,
 		RowCount:     e.RowCount,
 	})
 	if err != nil {
-		return fmt.Errorf("error marshalling instance complete event: %w", err)
+		return fmt.Errorf("error marshalling csvw created event: %w", err)
 	}
 
 	// Send bytes to kafka producer output channel
