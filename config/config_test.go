@@ -48,7 +48,8 @@ func TestConfig(t *testing.T) {
 						SecClientCert:                 "",
 						SecSkipVerify:                 false,
 						CantabularMetadataExportGroup: "cantabular-metadata-export",
-						CantabularMetadataExportTopic: "cantabular-metadata-export",
+						CantabularCSVCreatedTopic:     "cantabular-csv-created",
+						CantabularCSVWCreatedTopic:     "cantabular-csvw-created",
 					},
 				})
 			})

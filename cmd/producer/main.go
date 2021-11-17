@@ -29,11 +29,11 @@ func main() {
 
 	// Create Kafka Producer
 	pChannels := kafka.CreateProducerChannels()
-	kafkaProducer, err := kafka.NewProducer(ctx, []string{"http://localhost:9092"}, cfg.Kafka.CantabularMetadataExportTopic, pChannels, &kafka.ProducerConfig{
+	kafkaProducer, err := kafka.NewProducer(ctx, []string{"http://localhost:9092"}, cfg.Kafka.CantabularCSVCreatedTopic, pChannels, &kafka.ProducerConfig{
 		KafkaVersion: &cfg.Kafka.Version,
 	})
 	if err != nil {
-		log.Fatal(ctx, "fatal error trying to create kafka producer", err, log.Data{"topic": cfg.Kafka.CantabularMetadataExportTopic})
+		log.Fatal(ctx, "fatal error trying to create kafka producer", err, log.Data{"topic": cfg.Kafka.CantabularCSVCreatedTopic})
 		os.Exit(1)
 	}
 
@@ -46,7 +46,7 @@ func main() {
 		e := scanEvent(scanner)
 		log.Info(ctx, "sending event", log.Data{"Event": e})
 
-		bytes, err := schema.CantabularMetadataExport.Marshal(e)
+		bytes, err := schema.CSVCreated.Marshal(e)
 		if err != nil {
 			log.Fatal(ctx, "hello-called event error", err)
 			os.Exit(1)
