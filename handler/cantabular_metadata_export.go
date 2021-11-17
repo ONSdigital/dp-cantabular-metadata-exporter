@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
@@ -16,7 +15,10 @@ import (
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 )
 
-const maxMetadataOptions = 1000
+const (
+	batchSize = 1000
+	maxWorkers = 10
+)
 
 // CantabularMetadataExport is the event handler for the CantabularMetadataExport event
 type CantabularMetadataExport struct {
@@ -228,18 +230,20 @@ func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset
 	b.WriteString("Dimensions:\n")
 
 	for _, dimension := range dimensions.Items {
-		q := dataset.QueryParams{
-			Offset: 0,
-			Limit: maxMetadataOptions,
-		}
-
-		options, err := h.dataset.GetOptions(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, e.Version, dimension.Name, &q)
+		options, err := h.dataset.GetOptionsInBatches(
+			ctx,
+			"",
+			h.cfg.ServiceAuthToken,
+			"", 
+			e.DatasetID,
+			e.Edition,
+			e.Version,
+			dimension.Name,
+			batchSize,
+			maxWorkers,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dimension options: %w", err)
-		}
-
-		if options.TotalCount > maxMetadataOptions {
-			return nil, errors.New("too many options in dimension")
 		}
 
 		b.WriteString(options.String())
