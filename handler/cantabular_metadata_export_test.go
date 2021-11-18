@@ -36,10 +36,9 @@ func TestGenerateVaultPath(t *testing.T) {
 	Convey("Succesfully return a string representing the vault path", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
-		var instanceID = "instance_id_test"
 		h := NewCantabularMetadataExport(*cfg, nil, nil, nil)
-		vaultPath := h.generateVaultPath(instanceID)
-		expectedVaultPath := "secret/shared/psk/instance_id_test.txt"
+		vaultPath := h.generateVaultPath(&eventTest)
+		expectedVaultPath := "secret/shared/psk/test_id-test-edition-1.txt"
 		So(vaultPath, ShouldResemble, expectedVaultPath)
 
 	})

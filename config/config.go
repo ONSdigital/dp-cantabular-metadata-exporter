@@ -41,9 +41,9 @@ type KafkaConfig struct {
 	SecClientKey                  string   `envconfig:"KAFKA_SEC_CLIENT_KEY"                  json:"-"`
 	SecClientCert                 string   `envconfig:"KAFKA_SEC_CLIENT_CERT"`
 	SecSkipVerify                 bool     `envconfig:"KAFKA_SEC_SKIP_VERIFY"`
-	CantabularCSVCreatedTopic     string   `envconfig:"CANTABULAR_CSV_CREATED_TOPIC"`
-	CantabularCSVWCreatedTopic    string   `envconfig:"CANTABULAR_CSVW_CREATED_TOPIC"`
-	CantabularMetadataExportGroup string   `envconfig:"CANTABULAR_METADATA_EXPORT_GROUP"`
+	CantabularCSVCreatedTopic     string   `envconfig:"KAFKA_TOPIC_CANTABULAR_CSV_CREATED"`
+	CantabularCSVWCreatedTopic    string   `envconfig:"KAFKA_TOPIC_CANTABULAR_CSVW_CREATED"`
+	CantabularMetadataExportGroup string   `envconfig:"KAFKA_GROUP_CANTABULAR_METADATA_EXPORT"`
 }
 
 var cfg *Config
