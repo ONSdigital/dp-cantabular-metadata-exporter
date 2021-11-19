@@ -12,7 +12,7 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
 
 	"github.com/ONSdigital/log.go/v2/log"
-	kafka "github.com/ONSdigital/dp-kafka/v2"
+	kafka "github.com/ONSdigital/dp-kafka/v3"
 )
 
 const (

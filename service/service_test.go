@@ -12,8 +12,8 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	kafka "github.com/ONSdigital/dp-kafka/v2"
-	"github.com/ONSdigital/dp-kafka/v2/kafkatest"
+	kafka "github.com/ONSdigital/dp-kafka/v3"
+	"github.com/ONSdigital/dp-kafka/v3/kafkatest"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -168,6 +168,8 @@ func TestClose(t *testing.T) {
 				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
 					return &kafka.ConsumerGroupChannels{}
 				},
+				LogErrorsFunc: func(ctx context.Context) {},
+				StartFunc: func() error { return nil },
 			}, nil
 		}
 

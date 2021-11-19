@@ -6,7 +6,7 @@ import (
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
-	kafka "github.com/ONSdigital/dp-kafka/v2"
+	kafka "github.com/ONSdigital/dp-kafka/v3"
 	"github.com/ONSdigital/log.go/v2/log"
 
 	"github.com/go-chi/chi/v5"
@@ -81,7 +81,8 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 	svc.healthCheck.Start(ctx)
 
 	// Kafka error logging go-routine
-	svc.consumer.Channels().LogErrors(ctx, "kafka consumer")
+	svc.consumer.LogErrors(ctx)
+	svc.consumer.Start()
 
 	// Event Handler for Kafka Consumer
 	svc.processor.Consume(

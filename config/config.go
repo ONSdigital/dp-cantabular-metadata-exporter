@@ -6,6 +6,8 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+const KafkaTLSProtocolFlag = "TLS"
+
 // Config represents service configuration for dp-cantabular-metadata-exporter
 type Config struct {
 	BindAddr                   string        `envconfig:"BIND_ADDR"`
