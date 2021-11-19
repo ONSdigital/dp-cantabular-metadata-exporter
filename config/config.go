@@ -23,7 +23,6 @@ type Config struct {
 	VaultToken                 string        `envconfig:"VAULT_TOKEN"`
 	VaultAddress               string        `envconfig:"VAULT_ADDR"`
 	VaultPath                  string        `envconfig:"VAULT_PATH"`
-	EncryptionDisabled         bool          `envconfig:"ENCRYPTION_DISABLED"`
 	ServiceAuthToken           string        `envconfig:"SERVICE_AUTH_TOKEN"`
 	DownloadServiceURL         string        `envconfig:"DOWNLOAD_SERVICE_URL"`
 	Kafka                      KafkaConfig
@@ -67,7 +66,6 @@ func Get() (*Config, error) {
 		PublicBucket:               "dp-cantabular-metadata-exporter",
 		PrivateBucket:              "dp-cantabular-metadata-exporter",
 		S3BucketURL:                "",
-		EncryptionDisabled:         false,
 		DatasetAPIURL:              "http://localhost:22000",
 		Kafka: KafkaConfig{
 			Addr:                          []string{"localhost:9092"},

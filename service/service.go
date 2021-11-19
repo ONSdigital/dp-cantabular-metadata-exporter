@@ -46,10 +46,9 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 	if svc.producer, err = GetKafkaProducer(ctx, cfg); err != nil {
 		return fmt.Errorf("failed to create kafka producer: %w", err)
 	}
-	if !cfg.EncryptionDisabled {
-		if svc.vaultClient, err = GetVaultClient(cfg); err != nil {
-			return fmt.Errorf("failed to initialise vault client: %w", err)
-		}
+
+	if svc.vaultClient, err = GetVaultClient(cfg); err != nil {
+		return fmt.Errorf("failed to initialise vault client: %w", err)
 	}
 
 	svc.generator = GetGenerator()
@@ -145,6 +144,25 @@ func (svc *Service) Close(ctx context.Context) error {
 }
 
 func (svc *Service) registerCheckers() error {
-	// TODO: add other health checks here, as per dp-upload-service
+	if _, err := svc.healthCheck.AddAndGetCheck("Kafka consumer", svc.consumer.Checker); err != nil {
+		return fmt.Errorf("error adding Kafka consumer health check: %w", err)
+	}
+
+	if _, err := svc.healthCheck.AddAndGetCheck("Kafka producer", svc.producer.Checker); err != nil {
+		return fmt.Errorf("error adding Kafka producer health check: %w", err)
+	}
+
+	if _, err := svc.healthCheck.AddAndGetCheck("Vault", svc.vaultClient.Checker); err != nil {
+		return fmt.Errorf("error adding vault health check: %w", err)
+	}
+
+	if _, err := svc.healthCheck.AddAndGetCheck("S3 private uploader", svc.fileManager.PublicUploader().Checker); err != nil {
+		return fmt.Errorf("error adding s3 private uploader health check: %w", err)
+	}
+
+	if _, err := svc.healthCheck.AddAndGetCheck("S3 public uploader", svc.fileManager.PublicUploader().Checker); err != nil {
+		return fmt.Errorf("error adding s3 public uploader health check: %w", err)
+	}
+
 	return nil
 }

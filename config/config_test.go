@@ -33,7 +33,6 @@ func TestConfig(t *testing.T) {
 					VaultToken:                 "",
 					PublicBucket:               "dp-cantabular-metadata-exporter",
 					PrivateBucket:              "dp-cantabular-metadata-exporter",
-					EncryptionDisabled:         false,
 					DatasetAPIURL:              "http://localhost:22000",
 					AWSRegion:                  "eu-west-1",
 					Kafka: KafkaConfig{

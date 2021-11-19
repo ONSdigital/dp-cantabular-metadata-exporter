@@ -5,8 +5,10 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
+
+	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	kafka "github.com/ONSdigital/dp-kafka/v2"
 
@@ -28,7 +30,7 @@ type HealthChecker interface {
 	Handler(w http.ResponseWriter, req *http.Request)
 	Start(ctx context.Context)
 	Stop()
-	AddCheck(name string, checker healthcheck.Checker) error
+	AddAndGetCheck(name string, checker healthcheck.Checker) (*healthcheck.Check, error)
 }
 
 // Processor defines the required methods for the Processor object
@@ -64,6 +66,8 @@ type VaultClient interface {
 type FileManager interface {
 	Upload(body io.Reader, filename string) (string, error)
 	UploadPrivate(body io.Reader, filename, vaultPath string) (string, error)
+	PrivateUploader() filemanager.S3Uploader
+	PublicUploader() filemanager.S3Uploader
 }
 
 // Generator contains methods for dynamically required strings and tokens
