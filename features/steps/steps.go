@@ -27,9 +27,26 @@ func (c *Component) RegisterSteps(ctx *godog.ScenarioContext) {
 		`^the following version document with dataset id "([^"]*)", edition "([^"]*)" and version "([^"]*)" is available from dp-dataset-api:$`,
 		c.theFollowingVersionDocumentIsAvailable,
 	)
-	ctx.Step(`^this cantabular-metadata-export event is consumed:$`, c.thisCantabularMetadataExportEventIsConsumed)
-	ctx.Step(`^a file with filename "([^"]*)" can be seen in minio bucket "([^"]*)"`, c.theFollowingFileCanBeSeenInMinio)
-	ctx.Step(`^the following version with dataset id "([^"]*)", edition "([^"]*)" and version "([^"]*)" is updated to dp-dataset-api:$`, c.theFollowingVersionIsUpdated)
+	ctx.Step(
+		`^this cantabular-metadata-export event is consumed:$`,
+		c.thisCantabularMetadataExportEventIsConsumed,
+	)
+	ctx.Step(
+		`^a file with filename "([^"]*)" can be seen in minio bucket "([^"]*)"`,
+		c.theFollowingFileCanBeSeenInMinio,
+	)
+	ctx.Step(
+		`^the following version with dataset id "([^"]*)", edition "([^"]*)" and version "([^"]*)" is updated to dp-dataset-api:$`,
+		 c.theFollowingVersionIsUpdated,
+	)
+	ctx.Step(
+		`^the following dimensions are available from dataset "([^"]*)" edition "([^"]*)" version "([^"]*)":$`,
+		c.theFollowingDimensionsAreAvailable,
+	)
+	ctx.Step(
+		`^the following options response is available for dimension "([^"]*)" for dataset "([^"]*)" edition "([^"]*)" version "([^"]*)" with query params "([^"]*)":$`,
+		c.theFollowingOptionsResponseIsAvailable,
+	)
 }
 
 // theFollowingMetadataDocumentIsAvailable generate a mocked response for dataset API
@@ -50,7 +67,42 @@ func (c *Component) theFollowingMetadataDocumentIsAvailable(datasetID, edition, 
 	return nil
 }
 
-// theFollowingVersionDocumentIsAvailable generate a mocked response for dataset API
+func (c *Component) theFollowingOptionsResponseIsAvailable(dimension, datasetID, edition, version, params string, o *godog.DocString) error {
+	url := fmt.Sprintf(
+		"/datasets/%s/editions/%s/versions/%s/dimensions/%s/options?%s",
+		datasetID,
+		edition,
+		version,
+		dimension,
+		params,
+	)
+
+	c.DatasetAPI.NewHandler().
+		Get(url).
+		Reply(http.StatusOK).
+		BodyString(o.Content)
+
+	return nil
+}
+// theFollowingDimensionsAreAvailable generates a mocked response for dataset API
+// GET /datasets/{dataset_id}/editions/{edition}/versions/{version}/dimensions
+func (c *Component) theFollowingDimensionsAreAvailable(datasetID, edition, version string, d *godog.DocString) error {
+	url := fmt.Sprintf(
+		"/datasets/%s/editions/%s/versions/%s/dimensions",
+		datasetID,
+		edition,
+		version,
+	)
+
+	c.DatasetAPI.NewHandler().
+		Get(url).
+		Reply(http.StatusOK).
+		BodyString(d.Content)
+
+	return nil
+}
+
+// theFollowingVersionDocumentIsAvailable generates a mocked response for dataset API
 // GET /datasets/{dataset_id}/editions/{edition}/versions/{version}
 func (c *Component) theFollowingVersionDocumentIsAvailable(datasetID, edition, version string, v *godog.DocString) error {
 	url := fmt.Sprintf(
@@ -68,7 +120,7 @@ func (c *Component) theFollowingVersionDocumentIsAvailable(datasetID, edition, v
 	return nil
 }
 
-// theFollowingVersionIsUpdated generate a mocked response for dataset API
+// theFollowingVersionIsUpdated generates a mocked response for dataset API
 // PUT /instances/{id} with the provided instance response
 func (c *Component) theFollowingVersionIsUpdated(datasetID, edition, version string, v *godog.DocString) error {
 	url := fmt.Sprintf(
@@ -80,7 +132,7 @@ func (c *Component) theFollowingVersionIsUpdated(datasetID, edition, version str
 
 	c.DatasetAPI.NewHandler().
 		Put(url).
-		AssertBody([]byte(v.Content)).
+		AssertCustom(newPutVersionAssertor([]byte(v.Content))).
 		Reply(http.StatusOK)
 
 	return nil
@@ -90,7 +142,7 @@ func (c *Component) thisCantabularMetadataExportEventIsConsumed(input *godog.Doc
 	ctx := context.Background()
 
 	// testing kafka message that will be produced
-	var testEvent event.CantabularMetadataExport
+	var testEvent event.CSVCreated
 	if err := json.Unmarshal([]byte(input.Content), &testEvent); err != nil {
 		return fmt.Errorf("error unmarshaling input to event: %w body: %s", err, input.Content)
 	}
@@ -100,7 +152,7 @@ func (c *Component) thisCantabularMetadataExportEventIsConsumed(input *godog.Doc
 	})
 
 	// marshal and send message
-	b, err := schema.CantabularMetadataExport.Marshal(testEvent)
+	b, err := schema.CSVCreated.Marshal(testEvent)
 	if err != nil {
 		return fmt.Errorf("failed to marshal event from schema: %w", err)
 	}
@@ -142,7 +194,7 @@ func (c *Component) theFollowingFileCanBeSeenInMinio(fileName string, bucket str
 		})
 
 		time.Sleep(time.Second * time.Duration(timeout))
-		timeout *= 2
+			timeout *= 2
 	}
 	if err != nil {
 		return fmt.Errorf(

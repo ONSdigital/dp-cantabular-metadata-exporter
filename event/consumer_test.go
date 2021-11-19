@@ -20,7 +20,7 @@ var testCtx = context.Background()
 
 var errHandler = errors.New("Handler Error")
 
-var testEvent = event.CantabularMetadataExport{
+var testEvent = event.CSVCreated{
 	DatasetID: "World",
 }
 
@@ -48,7 +48,7 @@ func TestConsume(t *testing.T) {
 
 		handlerWg := &sync.WaitGroup{}
 		mockEventHandler := &mock.HandlerMock{
-			HandleFunc: func(ctx context.Context, event *event.CantabularMetadataExport) error {
+			HandleFunc: func(ctx context.Context, event *event.CSVCreated) error {
 				defer handlerWg.Done()
 				return nil
 			},
@@ -106,7 +106,7 @@ func TestConsume(t *testing.T) {
 		})
 
 		Convey("With a failing handler and a kafka message with the valid schema being sent to the Upstream channel", func() {
-			mockEventHandler.HandleFunc = func(ctx context.Context, event *event.CantabularMetadataExport) error {
+			mockEventHandler.HandleFunc = func(ctx context.Context, event *event.CSVCreated) error {
 				defer handlerWg.Done()
 				return errHandler
 			}
@@ -135,8 +135,8 @@ func TestConsume(t *testing.T) {
 }
 
 // marshal helper method to marshal a event into a []byte
-func marshal(event event.CantabularMetadataExport) []byte {
-	bytes, err := schema.CantabularMetadataExport.Marshal(event)
+func marshal(event event.CSVCreated) []byte {
+	bytes, err := schema.CSVCreated.Marshal(event)
 	So(err, ShouldBeNil)
 	return bytes
 }

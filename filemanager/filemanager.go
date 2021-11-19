@@ -8,8 +8,8 @@ import (
 
 	dps3 "github.com/ONSdigital/dp-s3"
 
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 type FileManager struct {
@@ -45,9 +45,9 @@ func (f *FileManager) Upload(body io.Reader, filename string) (string, error) {
 	})
 	if err != nil {
 		return "", Error{
-			err: fmt.Errorf("failed to upload to S3: %w", err),
+			err:     fmt.Errorf("failed to upload to S3: %w", err),
 			logData: map[string]interface{}{
-				"filename":    filename,
+				"filename": filename,
 				"bucket_name": bucket,
 			},
 		}

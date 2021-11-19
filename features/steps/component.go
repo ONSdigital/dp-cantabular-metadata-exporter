@@ -84,7 +84,7 @@ func (c *Component) initService(ctx context.Context) error {
 	if c.producer, err = kafka.NewProducer(
 		ctx,
 		cfg.Kafka.Addr,
-		cfg.Kafka.CantabularMetadataExportTopic,
+		cfg.Kafka.CantabularCSVCreatedTopic,
 		kafka.CreateProducerChannels(),
 		&kafka.ProducerConfig{
 			KafkaVersion:    &cfg.Kafka.Version,
@@ -99,8 +99,8 @@ func (c *Component) initService(ctx context.Context) error {
 
 	// Create service and initialise it
 	c.svc = service.New()
-	if err = c.svc.Init(context.Background(), cfg, BuildTime, GitCommit, Version); err != nil {
-		return fmt.Errorf("unexpected service Init error in NewComponent: %w", err)
+	if err = c.svc.Init(ctx, cfg, BuildTime, GitCommit, Version); err != nil {
+		return fmt.Errorf("failed to init service: %w", err)
 	}
 
 	c.cfg = cfg
@@ -138,8 +138,6 @@ func (c *Component) Close() {
 	if err := c.producer.Close(ctx); err != nil {
 		log.Error(ctx, "error closing kafka producer", err)
 	}
-
-	c.DatasetAPI.Close()
 
 	// kill application
 	c.signals <- os.Interrupt

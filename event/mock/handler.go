@@ -19,7 +19,7 @@ var _ event.Handler = &HandlerMock{}
 //
 // 		// make and configure a mocked event.Handler
 // 		mockedHandler := &HandlerMock{
-// 			HandleFunc: func(ctx context.Context, eventMoqParam *event.CantabularMetadataExport) error {
+// 			HandleFunc: func(ctx context.Context, eventMoqParam *event.CSVCreated) error {
 // 				panic("mock out the Handle method")
 // 			},
 // 		}
@@ -30,7 +30,7 @@ var _ event.Handler = &HandlerMock{}
 // 	}
 type HandlerMock struct {
 	// HandleFunc mocks the Handle method.
-	HandleFunc func(ctx context.Context, eventMoqParam *event.CantabularMetadataExport) error
+	HandleFunc func(ctx context.Context, eventMoqParam *event.CSVCreated) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -39,20 +39,20 @@ type HandlerMock struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// EventMoqParam is the eventMoqParam argument value.
-			EventMoqParam *event.CantabularMetadataExport
+			EventMoqParam *event.CSVCreated
 		}
 	}
 	lockHandle sync.RWMutex
 }
 
 // Handle calls HandleFunc.
-func (mock *HandlerMock) Handle(ctx context.Context, eventMoqParam *event.CantabularMetadataExport) error {
+func (mock *HandlerMock) Handle(ctx context.Context, eventMoqParam *event.CSVCreated) error {
 	if mock.HandleFunc == nil {
 		panic("HandlerMock.HandleFunc: method is nil but Handler.Handle was just called")
 	}
 	callInfo := struct {
 		Ctx           context.Context
-		EventMoqParam *event.CantabularMetadataExport
+		EventMoqParam *event.CSVCreated
 	}{
 		Ctx:           ctx,
 		EventMoqParam: eventMoqParam,
@@ -68,11 +68,11 @@ func (mock *HandlerMock) Handle(ctx context.Context, eventMoqParam *event.Cantab
 //     len(mockedHandler.HandleCalls())
 func (mock *HandlerMock) HandleCalls() []struct {
 	Ctx           context.Context
-	EventMoqParam *event.CantabularMetadataExport
+	EventMoqParam *event.CSVCreated
 } {
 	var calls []struct {
 		Ctx           context.Context
-		EventMoqParam *event.CantabularMetadataExport
+		EventMoqParam *event.CSVCreated
 	}
 	mock.lockHandle.RLock()
 	calls = mock.calls.Handle

@@ -4,17 +4,38 @@ import (
 	"github.com/ONSdigital/dp-kafka/v2/avro"
 )
 
-var cantabularMetadataExport = `{
-  "type": "record",
-  "name": "cantabular-metadata-export",
-  "fields": [
-    {"name": "dataset_id", "type": "string", "default": ""},
-    {"name": "edition",    "type": "string", "default": ""},
-    {"name": "version",    "type": "int",    "default":  0}
-  ]
-}`
+var (
+  csvCreated = `{
+    "type": "record",
+    "name": "cantabular-metadata-export",
+    "fields": [
+      {"name": "instance_id", "type": "string", "default": ""},
+      {"name": "dataset_id",  "type": "string", "default": ""},
+      {"name": "edition",     "type": "string", "default": ""},
+      {"name": "version",     "type": "string", "default": ""},
+      {"name": "row_count",   "type": "int", "default": 0}
+    ]
+  }`
 
-// CantabularMetadataExport is the Avro schema for Instance Complete messages.
-var CantabularMetadataExport = &avro.Schema{
-	Definition: cantabularMetadataExport,
-}
+  csvwCreated = `{
+    "type": "record",
+    "name": "cantabular-metadata-complete",
+    "fields": [
+      {"name": "instance_id", "type": "string", "default": ""},
+      {"name": "dataset_id",  "type": "string", "default": ""},
+      {"name": "edition",     "type": "string", "default": ""},
+      {"name": "version",     "type": "string", "default": ""},
+      {"name": "row_count",   "type": "int", "default": 0}
+    ]
+  }`
+
+  // CSVCreated is the Avro schema for Metadata Export messages.
+  CSVCreated = &avro.Schema{
+    Definition: csvCreated,
+  }
+
+  // CSVWCreated is the Avro schema for Metadata Complete messages.
+  CSVWCreated = &avro.Schema{
+    Definition: csvwCreated,
+  }
+)

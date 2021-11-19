@@ -1,4 +1,4 @@
-version: '3.3'
+version: '2.4'
 services:
     dp-cantabular-metadata-exporter:
         build:
@@ -13,9 +13,12 @@ services:
         volumes:
             - ../../:/dp-cantabular-metadata-exporter
         depends_on:
-            - kafka
-            - minio
-            - vault
+            kafka:
+                condition: service_started
+            minio:
+                condition: service_healthy
+            vault:
+                condition: service_started
         ports:
             - 26700:26700
         environment:

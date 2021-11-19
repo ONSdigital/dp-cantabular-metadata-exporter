@@ -12,21 +12,21 @@ type Config struct {
 	GracefulShutdownTimeout    time.Duration `envconfig:"GRACEFUL_SHUTDOWN_TIMEOUT"`
 	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
 	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
-	ServiceAuthToken           string        `envconfig:"SERVICE_AUTH_TOKEN"               json:"-"`
 	DatasetAPIURL              string        `envconfig:"DATASET_API_URL"`
-	DownloadServiceURL         string        `envconfig:"DOWNLOAD_SERVICE_URL"`
 	AWSRegion                  string        `envconfig:"AWS_REGION"`
-	S3BucketURL                string        `envconfig:"PUBLIC_URL"`
 	PublicBucket               string        `envconfig:"PUBLIC_BUCKET"`
 	PrivateBucket              string        `envconfig:"PRIVATE_BUCKET"`
+	S3BucketURL                string        `envconfig:"PUBLIC_URL"`
 	LocalObjectStore           string        `envconfig:"LOCAL_OBJECT_STORE"`
 	MinioAccessKey             string        `envconfig:"MINIO_ACCESS_KEY"`
 	MinioSecretKey             string        `envconfig:"MINIO_SECRET_KEY"`
-	VaultToken                 string        `envconfig:"VAULT_TOKEN"                      json:"-"`
+	VaultToken                 string        `envconfig:"VAULT_TOKEN"`
 	VaultAddress               string        `envconfig:"VAULT_ADDR"`
 	VaultPath                  string        `envconfig:"VAULT_PATH"`
 	EncryptionDisabled         bool          `envconfig:"ENCRYPTION_DISABLED"`
 	ComponentTestUseLogFile    bool          `envconfig:"COMPONENT_TEST_USE_LOG_FILE"`
+	ServiceAuthToken           string        `envconfig:"SERVICE_AUTH_TOKEN"`
+	DownloadServiceURL         string        `envconfig:"DOWNLOAD_SERVICE_URL"`
 	Kafka                      KafkaConfig
 }
 
@@ -42,8 +42,9 @@ type KafkaConfig struct {
 	SecClientKey                  string   `envconfig:"KAFKA_SEC_CLIENT_KEY"                  json:"-"`
 	SecClientCert                 string   `envconfig:"KAFKA_SEC_CLIENT_CERT"`
 	SecSkipVerify                 bool     `envconfig:"KAFKA_SEC_SKIP_VERIFY"`
-	CantabularMetadataExportTopic string   `envconfig:"CANTABULAR_METADATA_EXPORT_TOPIC"`
-	CantabularMetadataExportGroup string   `envconfig:"CANTABULAR_METADATA_EXPORT_GROUP"`
+	CantabularCSVCreatedTopic     string   `envconfig:"KAFKA_TOPIC_CANTABULAR_CSV_CREATED"`
+	CantabularCSVWCreatedTopic    string   `envconfig:"KAFKA_TOPIC_CANTABULAR_CSVW_CREATED"`
+	CantabularMetadataExportGroup string   `envconfig:"KAFKA_GROUP_CANTABULAR_METADATA_EXPORT"`
 }
 
 var cfg *Config
@@ -60,14 +61,15 @@ func Get() (*Config, error) {
 		GracefulShutdownTimeout:    5 * time.Second,
 		HealthCheckInterval:        30 * time.Second,
 		HealthCheckCriticalTimeout: 90 * time.Second,
+		AWSRegion:                  "eu-west-1",
 		VaultPath:                  "secret/shared/psk",
 		VaultAddress:               "http://localhost:8200",
 		VaultToken:                 "",
 		PublicBucket:               "dp-cantabular-metadata-exporter",
 		PrivateBucket:              "dp-cantabular-metadata-exporter",
+		S3BucketURL:                "",
 		EncryptionDisabled:         false,
 		DatasetAPIURL:              "http://localhost:22000",
-		AWSRegion:                  "eu-west-1",
 		ComponentTestUseLogFile:    false,
 		Kafka: KafkaConfig{
 			Addr:                          []string{"localhost:9092"},
@@ -81,7 +83,8 @@ func Get() (*Config, error) {
 			SecClientCert:                 "",
 			SecSkipVerify:                 false,
 			CantabularMetadataExportGroup: "cantabular-metadata-export",
-			CantabularMetadataExportTopic: "cantabular-metadata-export",
+			CantabularCSVCreatedTopic:     "cantabular-csv-created",
+			CantabularCSVWCreatedTopic:    "cantabular-csvw-created",
 		},
 	}
 

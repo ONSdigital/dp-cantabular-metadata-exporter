@@ -21,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 )
 
+
 const (
 	VaultRetries = 3
 )
@@ -62,7 +63,7 @@ var GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.ICon
 	return kafka.NewConsumerGroup(
 		ctx,
 		cfg.Kafka.Addr,
-		cfg.Kafka.CantabularMetadataExportTopic,
+		cfg.Kafka.CantabularCSVCreatedTopic,
 		cfg.Kafka.CantabularMetadataExportGroup,
 		cgChannels,
 		&kafka.ConsumerGroupConfig{
@@ -78,7 +79,7 @@ var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IPro
 	return kafka.NewProducer(
 		ctx,
 		cfg.Kafka.Addr,
-		cfg.Kafka.CantabularMetadataExportTopic,
+		cfg.Kafka.CantabularCSVWCreatedTopic,
 		pChannels,
 		&kafka.ProducerConfig{},
 	)

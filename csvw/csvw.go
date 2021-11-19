@@ -105,18 +105,25 @@ func New(m *dataset.Metadata, csvURL string) *CSVW {
 
 // Generate the CSVW structured metadata file to describe a CSV
 func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, aboutURL, apiDomain string) ([]byte, error) {
-	log.Info(ctx, "generating csvw file", log.Data{
+	logData := log.Data{
 		"dataset_id": metadata.DatasetDetails.ID,
 		"csv_header": metadata.CSVHeader,
-		"m":          metadata,
-	})
+	}
+
+	log.Info(ctx, "generating csvw file", logData)
 
 	if len(metadata.Dimensions) == 0 {
-		return nil, errMissingDimensions
+		return nil, Error{
+			err:     errMissingDimensions,
+			logData: logData,
+		}
 	}
 
 	if len(metadata.CSVHeader) < 2 {
-		return nil, errors.New("CSV header empty or missing dimensions")
+		return nil, Error{
+			err:     errors.New("CSV header empty or missing dimensions"),
+			logData: logData,
+		}
 	}
 
 	h := metadata.CSVHeader
@@ -131,14 +138,20 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 	for i := 1; i < len(h); i = i + 1 {
 		l, err := newLabelColumn(i, apiDomain, h, metadata.Dimensions)
 		if err != nil{
-			return nil, fmt.Errorf("failed to create label column: %w", err)
+			return nil, Error{
+				err:     fmt.Errorf("failed to create label column: %w", err),
+				logData: logData,
+			}
 		}
 		list = append(list, l)
 	}
 
 	aboutURL, err := formatAboutURL(aboutURL, apiDomain)
 	if err != nil {
-		return nil, fmt.Errorf("failed to format AboutURL: %w", err)
+		return nil, Error{
+			err:     fmt.Errorf("failed to format AboutURL: %w", err),
+			logData: logData,
+		}
 	}
 
 	csvw.TableSchema = Columns{
@@ -150,7 +163,10 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 
 	b, err := json.Marshal(csvw)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal csvw: %w", err)
+		return nil, Error{
+			err:     fmt.Errorf("failed to marshal csvw: %w", err),
+			logData: logData,
+		}
 	}
 
 	return b, nil
@@ -159,12 +175,22 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 func formatAboutURL(aboutURL, domain string) (string, error) {
 	about, err := url.Parse(aboutURL)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse URL: %w", err)
+		return "", Error{
+			err:     fmt.Errorf("failed to parse aboutURL: %w", err),
+			logData: log.Data{
+				"about_url": aboutURL,
+			},
+		}
 	}
 
 	d, err := url.Parse(domain)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse domain: %w", err)
+		return "", Error{
+			err:     fmt.Errorf("failed to parse domain: %w", err),
+			logData: log.Data{
+				"domain": domain,
+			},
+		}
 	}
 
 	d.Path = d.Path + about.Path
@@ -204,6 +230,9 @@ func newObservationColumn(ctx context.Context, title, name string) Column {
 	return c
 }
 
+// TBC what the final content of these columns should be. For now is a rough port and amalgamation
+// of the code and label columns from the CMD implementation. Will be updated when we have full
+// metadata spec.
 func newLabelColumn(i int, apiDomain string, header []string, dims []dataset.VersionDimension) (Column, error) {
 	dimHeader := header[i]
 	dimHeader = strings.ToLower(dimHeader)
@@ -221,7 +250,12 @@ func newLabelColumn(i int, apiDomain string, header []string, dims []dataset.Ver
 	if len(apiDomain) > 0 {
 		uri, err := url.Parse(dim.URL)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse dimension url: %w", err)
+			return nil, Error{
+				err:     fmt.Errorf("failed to parse dimension url: %w", err),
+				logData: log.Data{
+					"dimension_url": dim.URL,
+				},
+			}
 		}
 
 		dimURL = fmt.Sprintf("%s%s", apiDomain, uri.Path)
@@ -231,7 +265,7 @@ func newLabelColumn(i int, apiDomain string, header []string, dims []dataset.Ver
 	labelCol["description"] = dim.Description
 	labelCol["valueURL"] = dimURL + "/codes/{" + dimHeader + "}"
 	labelCol["required"] = true
-	// TODO: determine what could go in c["datatype"] and c["required"]d
+	// TODO: determine what could go in c["datatype"] and c["required"]
 
 	return labelCol, nil
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	"github.com/ONSdigital/dp-kafka/v2"
+	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/dp-kafka/v2/kafkatest"
 
 	. "github.com/smartystreets/goconvey/convey"
