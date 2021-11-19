@@ -36,10 +36,12 @@ func New(cfg Config, s *session.Session, v VaultClient, g Generator) *FileManage
 	}
 }
 
+// PublicUploader returns the public S3 uploader
 func (f *FileManager) PublicUploader() S3Uploader {
 	return f.s3public
 }
 
+// PublicUploader returns the private S3 uploader
 func (f *FileManager) PrivateUploader() S3Uploader {
 	return f.s3private
 }
