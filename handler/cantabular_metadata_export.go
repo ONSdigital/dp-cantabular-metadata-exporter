@@ -152,14 +152,14 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 		download.Private = url
 	}
 
-	download.URL = url
+	download.URL = h.generateDownloadURL(e, "txt")
 
 	return download, nil
 }
 
 func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
 	filename := h.generateCSVWFilename(e)
-	downloadURL := h.generateDownloadURL(e)
+	downloadURL := h.generateDownloadURL(e, "csv-metadata.json")
 	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, e.Version)
 
 	f, err := csvw.Generate(ctx, &m, downloadURL, aboutURL, h.apiDomainURL)
@@ -187,7 +187,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 		download.Private = url
 	}
 
-	download.URL = downloadURL + h.metadataExtension
+	download.URL = downloadURL
 
 	return download, nil
 }
@@ -206,13 +206,14 @@ func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated) str
 	)
 }
 
-func (h *CantabularMetadataExport) generateDownloadURL(e *event.CSVCreated) string {
+func (h *CantabularMetadataExport) generateDownloadURL(e *event.CSVCreated, extension string) string {
 	return fmt.Sprintf(
-		"%s/downloads/datasets/%s/editions/%s/versions/%s.csvw",
+		"%s/downloads/datasets/%s/editions/%s/versions/%s.%s",
 		h.cfg.DownloadServiceURL,
 		e.DatasetID,
 		e.Edition,
 		e.Version,
+		extension,
 	)
 }
 

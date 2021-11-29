@@ -34,6 +34,7 @@ func TestConfig(t *testing.T) {
 					PublicBucket:               "dp-cantabular-metadata-exporter",
 					PrivateBucket:              "dp-cantabular-metadata-exporter",
 					DatasetAPIURL:              "http://localhost:22000",
+					DownloadServiceURL:         "http://localhost:23600",
 					AWSRegion:                  "eu-west-1",
 					Kafka: KafkaConfig{
 						Addr:                          []string{"localhost:9092"},

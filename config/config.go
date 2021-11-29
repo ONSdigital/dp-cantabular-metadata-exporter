@@ -69,6 +69,7 @@ func Get() (*Config, error) {
 		PrivateBucket:              "dp-cantabular-metadata-exporter",
 		S3BucketURL:                "",
 		DatasetAPIURL:              "http://localhost:22000",
+		DownloadServiceURL:         "http://localhost:23600",
 		Kafka: KafkaConfig{
 			Addr:                          []string{"localhost:9092"},
 			Version:                       "1.0.2",
