@@ -38,14 +38,17 @@ func TestGenerateVaultPath(t *testing.T) {
 		So(err, ShouldBeNil)
 		h := NewCantabularMetadataExport(*cfg, nil, nil, nil)
 
-		vaultPath := h.generateVaultPath(&eventTest, "foo")
-		expectedVaultPath := "secret/shared/psk/test_id-test-edition-1.foo"
-		So(vaultPath, ShouldResemble, expectedVaultPath)
+		Convey("Vault path ends in 'foo'", func() {
+			vaultPath := h.generateVaultPath(&eventTest, "foo")
+			expectedVaultPath := "secret/shared/psk/test_id-test-edition-1.foo"
+			So(vaultPath, ShouldResemble, expectedVaultPath)
+		})
 
-		vaultPath = h.generateVaultPath(&eventTest, "bar")
-		expectedVaultPath = "secret/shared/psk/test_id-test-edition-1.bar"
-		So(vaultPath, ShouldResemble, expectedVaultPath)
-
+		Convey("Vault path ends in 'bar'", func() {
+			vaultPath := h.generateVaultPath(&eventTest, "bar")
+			expectedVaultPath := "secret/shared/psk/test_id-test-edition-1.bar"
+			So(vaultPath, ShouldResemble, expectedVaultPath)
+		})
 	})
 
 }
