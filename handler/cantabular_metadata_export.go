@@ -136,7 +136,7 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 	if isPublished{
 		url, err = h.file.Upload(bytes.NewReader(b), h.generateTextFilename(e))
 	} else {
-		url, err = h.file.UploadPrivate(bytes.NewReader(b), h.generateTextFilename(e), h.generateVaultPath(e))
+		url, err = h.file.UploadPrivate(bytes.NewReader(b), h.generateTextFilename(e), h.generateVaultPath(e, "txt"))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %w", err)
@@ -171,7 +171,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 	if isPublished {
 		url, err = h.file.Upload(bytes.NewReader(f), filename)
 	} else {
-		url, err = h.file.UploadPrivate(bytes.NewReader(f), filename, h.generateVaultPath(e))
+		url, err = h.file.UploadPrivate(bytes.NewReader(f), filename, h.generateVaultPath(e, "csvw"))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %w", err)
@@ -217,8 +217,8 @@ func (h *CantabularMetadataExport) generateDownloadURL(e *event.CSVCreated) stri
 }
 
 // generateVaultPathForFile generates the vault path for the provided root and filename
-func (h *CantabularMetadataExport) generateVaultPath(e *event.CSVCreated) string {
-	return fmt.Sprintf("%s/%s-%s-%s.txt", h.cfg.VaultPath, e.DatasetID, e.Edition, e.Version)
+func (h *CantabularMetadataExport) generateVaultPath(e *event.CSVCreated, filetype string) string {
+	return fmt.Sprintf("%s/%s-%s-%s.%s", h.cfg.VaultPath, e.DatasetID, e.Edition, e.Version, filetype)
 }
 
 // getText gets a byte array containing the metadata content, based on options returned by dataset API.
