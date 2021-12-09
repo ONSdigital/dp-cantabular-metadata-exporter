@@ -12,8 +12,8 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	kafka "github.com/ONSdigital/dp-kafka/v2"
-	"github.com/ONSdigital/dp-kafka/v2/kafkatest"
+	kafka "github.com/ONSdigital/dp-kafka/v3"
+	"github.com/ONSdigital/dp-kafka/v3/kafkatest"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -44,7 +44,7 @@ func TestInit(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		hcMock := &mock.HealthCheckerMock{
-			AddCheckFunc: func(name string, checker healthcheck.Checker) error { return nil },
+			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error){return &healthcheck.Check{}, nil},
 			StartFunc:    func(ctx context.Context) {},
 			StopFunc:     func() {},
 		}
@@ -130,7 +130,7 @@ func TestClose(t *testing.T) {
 
 		// healthcheck Stop does not depend on any other service being closed/stopped
 		hcMock := &mock.HealthCheckerMock{
-			AddCheckFunc: func(name string, checker healthcheck.Checker) error { return nil },
+			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error){return &healthcheck.Check{}, nil},
 			StartFunc:    func(ctx context.Context) {},
 			StopFunc:     func() { hcStopped = true },
 		}
@@ -168,6 +168,8 @@ func TestClose(t *testing.T) {
 				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
 					return &kafka.ConsumerGroupChannels{}
 				},
+				LogErrorsFunc: func(ctx context.Context) {},
+				StartFunc: func() error { return nil },
 			}, nil
 		}
 

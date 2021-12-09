@@ -12,7 +12,7 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
 
 	"github.com/ONSdigital/log.go/v2/log"
-	kafka "github.com/ONSdigital/dp-kafka/v2"
+	kafka "github.com/ONSdigital/dp-kafka/v3"
 )
 
 const (
@@ -136,7 +136,7 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 	if isPublished{
 		url, err = h.file.Upload(bytes.NewReader(b), h.generateTextFilename(e))
 	} else {
-		url, err = h.file.UploadPrivate(bytes.NewReader(b), h.generateTextFilename(e), h.generateVaultPath(e))
+		url, err = h.file.UploadPrivate(bytes.NewReader(b), h.generateTextFilename(e), h.generateVaultPath(e, "txt"))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %w", err)
@@ -152,14 +152,14 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 		download.Private = url
 	}
 
-	download.URL = url
+	download.URL = h.generateDownloadURL(e, "txt")
 
 	return download, nil
 }
 
 func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
 	filename := h.generateCSVWFilename(e)
-	downloadURL := h.generateDownloadURL(e)
+	downloadURL := h.generateDownloadURL(e, "csv-metadata.json")
 	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, e.Version)
 
 	f, err := csvw.Generate(ctx, &m, downloadURL, aboutURL, h.apiDomainURL)
@@ -176,7 +176,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 	if isPublished {
 		url, err = h.file.Upload(bytes.NewReader(f), filename)
 	} else {
-		url, err = h.file.UploadPrivate(bytes.NewReader(f), filename, h.generateVaultPath(e))
+		url, err = h.file.UploadPrivate(bytes.NewReader(f), filename, h.generateVaultPath(e, "csvw"))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %w", err)
@@ -192,7 +192,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 		download.Private = url
 	}
 
-	download.URL = downloadURL + h.metadataExtension
+	download.URL = downloadURL
 
 	return download, nil
 }
@@ -211,19 +211,20 @@ func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated) str
 	)
 }
 
-func (h *CantabularMetadataExport) generateDownloadURL(e *event.CSVCreated) string {
+func (h *CantabularMetadataExport) generateDownloadURL(e *event.CSVCreated, extension string) string {
 	return fmt.Sprintf(
-		"%s/downloads/datasets/%s/editions/%s/versions/%s.csvw",
+		"%s/downloads/datasets/%s/editions/%s/versions/%s.%s",
 		h.cfg.DownloadServiceURL,
 		e.DatasetID,
 		e.Edition,
 		e.Version,
+		extension,
 	)
 }
 
 // generateVaultPathForFile generates the vault path for the provided root and filename
-func (h *CantabularMetadataExport) generateVaultPath(e *event.CSVCreated) string {
-	return fmt.Sprintf("%s/%s-%s-%s.txt", h.cfg.VaultPath, e.DatasetID, e.Edition, e.Version)
+func (h *CantabularMetadataExport) generateVaultPath(e *event.CSVCreated, filetype string) string {
+	return fmt.Sprintf("%s/%s-%s-%s.%s", h.cfg.VaultPath, e.DatasetID, e.Edition, e.Version, filetype)
 }
 
 // getText gets a byte array containing the metadata content, based on options returned by dataset API.

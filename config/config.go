@@ -6,6 +6,8 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+const KafkaTLSProtocolFlag = "TLS"
+
 // Config represents service configuration for dp-cantabular-metadata-exporter
 type Config struct {
 	BindAddr                   string        `envconfig:"BIND_ADDR"`
@@ -68,9 +70,9 @@ func Get() (*Config, error) {
 		PublicBucket:               "dp-cantabular-metadata-exporter",
 		PrivateBucket:              "dp-cantabular-metadata-exporter",
 		S3BucketURL:                "",
-		EncryptionDisabled:         false,
 		DatasetAPIURL:              "http://localhost:22000",
 		ComponentTestUseLogFile:    false,
+		DownloadServiceURL:         "http://localhost:23600",
 		Kafka: KafkaConfig{
 			Addr:                          []string{"localhost:9092"},
 			Version:                       "1.0.2",

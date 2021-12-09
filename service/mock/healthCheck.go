@@ -16,8 +16,8 @@ import (
 //
 // 		// make and configure a mocked service.HealthChecker
 // 		mockedHealthChecker := &HealthCheckerMock{
-// 			AddCheckFunc: func(name string, checker healthcheck.Checker) error {
-// 				panic("mock out the AddCheck method")
+// 			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error) {
+// 				panic("mock out the AddAndGetCheck method")
 // 			},
 // 			HandlerFunc: func(w http.ResponseWriter, req *http.Request)  {
 // 				panic("mock out the Handler method")
@@ -35,8 +35,8 @@ import (
 //
 // 	}
 type HealthCheckerMock struct {
-	// AddCheckFunc mocks the AddCheck method.
-	AddCheckFunc func(name string, checker healthcheck.Checker) error
+	// AddAndGetCheckFunc mocks the AddAndGetCheck method.
+	AddAndGetCheckFunc func(name string, checker healthcheck.Checker) (*healthcheck.Check, error)
 
 	// HandlerFunc mocks the Handler method.
 	HandlerFunc func(w http.ResponseWriter, req *http.Request)
@@ -49,8 +49,8 @@ type HealthCheckerMock struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// AddCheck holds details about calls to the AddCheck method.
-		AddCheck []struct {
+		// AddAndGetCheck holds details about calls to the AddAndGetCheck method.
+		AddAndGetCheck []struct {
 			// Name is the name argument value.
 			Name string
 			// Checker is the checker argument value.
@@ -72,16 +72,16 @@ type HealthCheckerMock struct {
 		Stop []struct {
 		}
 	}
-	lockAddCheck sync.RWMutex
-	lockHandler  sync.RWMutex
-	lockStart    sync.RWMutex
-	lockStop     sync.RWMutex
+	lockAddAndGetCheck sync.RWMutex
+	lockHandler        sync.RWMutex
+	lockStart          sync.RWMutex
+	lockStop           sync.RWMutex
 }
 
-// AddCheck calls AddCheckFunc.
-func (mock *HealthCheckerMock) AddCheck(name string, checker healthcheck.Checker) error {
-	if mock.AddCheckFunc == nil {
-		panic("HealthCheckerMock.AddCheckFunc: method is nil but HealthChecker.AddCheck was just called")
+// AddAndGetCheck calls AddAndGetCheckFunc.
+func (mock *HealthCheckerMock) AddAndGetCheck(name string, checker healthcheck.Checker) (*healthcheck.Check, error) {
+	if mock.AddAndGetCheckFunc == nil {
+		panic("HealthCheckerMock.AddAndGetCheckFunc: method is nil but HealthChecker.AddAndGetCheck was just called")
 	}
 	callInfo := struct {
 		Name    string
@@ -90,16 +90,16 @@ func (mock *HealthCheckerMock) AddCheck(name string, checker healthcheck.Checker
 		Name:    name,
 		Checker: checker,
 	}
-	mock.lockAddCheck.Lock()
-	mock.calls.AddCheck = append(mock.calls.AddCheck, callInfo)
-	mock.lockAddCheck.Unlock()
-	return mock.AddCheckFunc(name, checker)
+	mock.lockAddAndGetCheck.Lock()
+	mock.calls.AddAndGetCheck = append(mock.calls.AddAndGetCheck, callInfo)
+	mock.lockAddAndGetCheck.Unlock()
+	return mock.AddAndGetCheckFunc(name, checker)
 }
 
-// AddCheckCalls gets all the calls that were made to AddCheck.
+// AddAndGetCheckCalls gets all the calls that were made to AddAndGetCheck.
 // Check the length with:
-//     len(mockedHealthChecker.AddCheckCalls())
-func (mock *HealthCheckerMock) AddCheckCalls() []struct {
+//     len(mockedHealthChecker.AddAndGetCheckCalls())
+func (mock *HealthCheckerMock) AddAndGetCheckCalls() []struct {
 	Name    string
 	Checker healthcheck.Checker
 } {
@@ -107,9 +107,9 @@ func (mock *HealthCheckerMock) AddCheckCalls() []struct {
 		Name    string
 		Checker healthcheck.Checker
 	}
-	mock.lockAddCheck.RLock()
-	calls = mock.calls.AddCheck
-	mock.lockAddCheck.RUnlock()
+	mock.lockAddAndGetCheck.RLock()
+	calls = mock.calls.AddAndGetCheck
+	mock.lockAddAndGetCheck.RUnlock()
 	return calls
 }
 

@@ -12,7 +12,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	kafka "github.com/ONSdigital/dp-kafka/v2"
+	kafka "github.com/ONSdigital/dp-kafka/v3"
 	dphttp "github.com/ONSdigital/dp-net/http"
 	vault "github.com/ONSdigital/dp-vault"
 
@@ -53,36 +53,50 @@ var GetVaultClient = func(cfg *config.Config) (VaultClient, error) {
 
 // GetKafkaConsumer creates a Kafka consumer
 var GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
-	cgChannels := kafka.CreateConsumerGroupChannels(cfg.Kafka.NumWorkers)
-
 	kafkaOffset := kafka.OffsetNewest
 	if cfg.Kafka.OffsetOldest {
 		kafkaOffset = kafka.OffsetOldest
 	}
 
-	return kafka.NewConsumerGroup(
-		ctx,
-		cfg.Kafka.Addr,
-		cfg.Kafka.CantabularCSVCreatedTopic,
-		cfg.Kafka.CantabularMetadataExportGroup,
-		cgChannels,
-		&kafka.ConsumerGroupConfig{
-			KafkaVersion: &cfg.Kafka.Version,
-			Offset:       &kafkaOffset,
-		},
-	)
+	cgConfig := &kafka.ConsumerGroupConfig{
+		BrokerAddrs:  cfg.Kafka.Addr,
+		Topic:        cfg.Kafka.CantabularCSVCreatedTopic,
+		GroupName:    cfg.Kafka.CantabularMetadataExportGroup,
+		KafkaVersion: &cfg.Kafka.Version,
+		Offset:       &kafkaOffset,
+	}
+
+	if cfg.Kafka.SecProtocol == config.KafkaTLSProtocolFlag {
+		cgConfig.SecurityConfig = kafka.GetSecurityConfig(
+			cfg.Kafka.SecCACerts,
+			cfg.Kafka.SecClientCert,
+			cfg.Kafka.SecClientKey,
+			cfg.Kafka.SecSkipVerify,
+		)
+	}
+
+	return kafka.NewConsumerGroup(ctx, cgConfig)
 }
 
 // GetKafkaProducer creates a Kafka producer
 var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
-	pChannels := kafka.CreateProducerChannels()
-	return kafka.NewProducer(
-		ctx,
-		cfg.Kafka.Addr,
-		cfg.Kafka.CantabularCSVWCreatedTopic,
-		pChannels,
-		&kafka.ProducerConfig{},
-	)
+	pConfig := &kafka.ProducerConfig{
+		BrokerAddrs:     cfg.Kafka.Addr,
+		Topic:           cfg.Kafka.CantabularCSVWCreatedTopic,
+		KafkaVersion:    &cfg.Kafka.Version,
+		MaxMessageBytes: &cfg.Kafka.MaxBytes,
+	}
+
+	if cfg.Kafka.SecProtocol == config.KafkaTLSProtocolFlag {
+		pConfig.SecurityConfig = kafka.GetSecurityConfig(
+			cfg.Kafka.SecCACerts,
+			cfg.Kafka.SecClientCert,
+			cfg.Kafka.SecClientKey,
+			cfg.Kafka.SecSkipVerify,
+		)
+	}
+
+	return kafka.NewProducer(ctx, pConfig)
 }
 
 // GetProcessor gets and initialises the event Processor

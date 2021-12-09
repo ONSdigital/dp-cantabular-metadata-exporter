@@ -6,7 +6,7 @@ package mock
 import (
 	"context"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
-	kafka "github.com/ONSdigital/dp-kafka/v2"
+	kafka "github.com/ONSdigital/dp-kafka/v3"
 	"sync"
 )
 

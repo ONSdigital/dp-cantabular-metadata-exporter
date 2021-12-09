@@ -36,6 +36,16 @@ func New(cfg Config, s *session.Session, v VaultClient, g Generator) *FileManage
 	}
 }
 
+// PublicUploader returns the public S3 uploader
+func (f *FileManager) PublicUploader() S3Uploader {
+	return f.s3public
+}
+
+// PublicUploader returns the private S3 uploader
+func (f *FileManager) PrivateUploader() S3Uploader {
+	return f.s3private
+}
+
 func (f *FileManager) Upload(body io.Reader, filename string) (string, error) {
 	bucket := f.s3public.BucketName()
 	result, err := f.s3public.Upload(&s3manager.UploadInput{
