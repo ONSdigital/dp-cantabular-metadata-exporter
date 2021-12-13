@@ -36,8 +36,8 @@ func (c *Component) RegisterSteps(ctx *godog.ScenarioContext) {
 		c.theFollowingFileCanBeSeenInMinio,
 	)
 	ctx.Step(
-		`^the following version with dataset id "([^"]*)", edition "([^"]*)" and version "([^"]*)" is updated to dp-dataset-api:$`,
-		 c.theFollowingVersionIsUpdated,
+		`^the following version with dataset id "([^"]*)", edition "([^"]*)" and version "([^"]*)" will be updated to dp-dataset-api:$`,
+		 c.theFollowingVersionWillBeUpdated,
 	)
 	ctx.Step(
 		`^the following dimensions are available from dataset "([^"]*)" edition "([^"]*)" version "([^"]*)":$`,
@@ -122,7 +122,7 @@ func (c *Component) theFollowingVersionDocumentIsAvailable(datasetID, edition, v
 
 // theFollowingVersionIsUpdated generates a mocked response for dataset API
 // PUT /instances/{id} with the provided instance response
-func (c *Component) theFollowingVersionIsUpdated(datasetID, edition, version string, v *godog.DocString) error {
+func (c *Component) theFollowingVersionWillBeUpdated(datasetID, edition, version string, v *godog.DocString) error {
 	url := fmt.Sprintf(
 		"/datasets/%s/editions/%s/versions/%s",
 		datasetID,
@@ -162,7 +162,6 @@ func (c *Component) thisCantabularMetadataExportEventIsConsumed(input *godog.Doc
 	})
 
 	c.producer.Channels().Output <- b
-
 	return nil
 }
 
@@ -173,7 +172,7 @@ func (c *Component) theFollowingFileCanBeSeenInMinio(fileName string, bucket str
 	f := aws.NewWriteAtBuffer(b)
 
 	// probe bucket with backoff to give time for event to be processed
-	retries := 4
+	retries := 5
 	timeout := 1
 	var numBytes int64
 	var err error
@@ -194,7 +193,7 @@ func (c *Component) theFollowingFileCanBeSeenInMinio(fileName string, bucket str
 		})
 
 		time.Sleep(time.Second * time.Duration(timeout))
-			timeout *= 2
+		timeout *= 2
 	}
 	if err != nil {
 		return fmt.Errorf(

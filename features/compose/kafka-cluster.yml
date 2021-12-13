@@ -20,6 +20,11 @@ services:
       - zookeeper
     logging:
       driver: none
+    healthcheck:
+      test: ["CMD", "kafka-topics.sh", "--list", "--zookeeper", "zookeeper:2181"]
+      interval: 15s
+      timeout: 5s
+      retries: 24
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ADVERTISED_HOST_NAME: kafka

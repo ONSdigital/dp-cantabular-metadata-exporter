@@ -475,7 +475,7 @@ Feature: Cantabular-Metadata-Exporter
         "limit": 1000,
         "total_count": 2
       }
-      """#
+      """
     And the following options response is available for dimension "siblings_3" for dataset "cantabular-example-1" edition "2021" version "1" with query params "offset=0&limit=1000":
     """
     {
@@ -543,7 +543,7 @@ Feature: Cantabular-Metadata-Exporter
       "limit": 1000,
       "total_count": 3
     }
-    """#
+    """
     And the following options response is available for dimension "city" for dataset "cantabular-example-2" edition "2021" version "1" with query params "offset=0&limit=1000":
       """
       {
@@ -611,7 +611,7 @@ Feature: Cantabular-Metadata-Exporter
         "limit": 1000,
         "total_count": 3
       }
-      """#
+      """
     And the following options response is available for dimension "sex" for dataset "cantabular-example-2" edition "2021" version "1" with query params "offset=0&limit=1000":
       """
       {
@@ -731,92 +731,19 @@ Feature: Cantabular-Metadata-Exporter
       }
       """
 
-      And the following version with dataset id "cantabular-example-1", edition "2021" and version "1" is updated to dp-dataset-api:
+    Given the following version with dataset id "cantabular-example-2", edition "2021" and version "1" will be updated to dp-dataset-api:
       """
       {
         "alerts": null,
         "collection_id": "",
         "downloads": {
           "CSVW": {
-            "href": "/downloads/datasets/cantabular-example-1/editions/2021/versions/1.csvw",
-            "size": "606",
-            "public": "http://minio:9000/dp-cantabular-metadata-exporter-pub/datasets/cantabular-example-1-2021-1.csvw"
-          },
-          "TXT": {
-            "href": "http://minio:9000/dp-cantabular-metadata-exporter-pub/datasets/cantabular-example-1-2021-1.txt",
-            "size": "499",
-            "public": "http://minio:9000/dp-cantabular-metadata-exporter-pub/datasets/cantabular-example-1-2021-1.txt"
-          }
-        },
-        "edition": "",
-        "dimensions": null,
-        "id": "",
-        "instance_id": "",
-        "latest_changes": null,
-        "links": {
-          "access_rights": {
-            "href": ""
-          },
-          "dataset": {
-            "href": ""
-          },
-          "dimensions": {
-            "href": ""
-          },
-          "edition": {
-            "href": ""
-          },
-          "editions": {
-            "href": ""
-          },
-          "latest_version": {
-            "href": ""
-          },
-          "versions": {
-            "href": ""
-          },
-          "self": {
-            "href": ""
-          },
-          "code_list": {
-            "href": ""
-          },
-          "options": {
-            "href": ""
-          },
-          "version": {
-            "href": ""
-          },
-          "code": {
-            "href": ""
-          },
-          "taxonomy": {
-            "href": ""
-          },
-          "job": {
-            "href": ""
-          }
-        },
-        "release_date": "",
-        "state": "",
-        "temporal": null,
-        "version": 0
-      }
-      """
-
-      Then the following version with dataset id "cantabular-example-2", edition "2021" and version "1" is updated to dp-dataset-api:
-      """
-      {
-        "alerts": null,
-        "collection_id": "",
-        "downloads": {
-          "CSVW": {
-            "href": "/downloads/datasets/cantabular-example-2/editions/2021/versions/1.csvw",
-            "size": "608",
+            "href": "http://localhost:23600/downloads/datasets/cantabular-example-2/editions/2021/versions/1.csv-metadata.json",
+            "size": "643",
             "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/cantabular-example-2-2021-1.csvw"
           },
           "TXT": {
-            "href": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/cantabular-example-2-2021-1.txt",
+            "href": "http://localhost:23600/downloads/datasets/cantabular-example-2/editions/2021/versions/1.txt",
             "size": "503",
             "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/cantabular-example-2-2021-1.txt"
           }
@@ -877,7 +804,81 @@ Feature: Cantabular-Metadata-Exporter
       }
       """
 
+    And the following version with dataset id "cantabular-example-1", edition "2021" and version "1" will be updated to dp-dataset-api:
+      """
+      {
+        "alerts": null,
+        "collection_id": "",
+        "downloads": {
+          "CSVW": {
+            "href": "http://localhost:23600/downloads/datasets/cantabular-example-1/editions/2021/versions/1.csv-metadata.json",
+            "size": "641",
+            "public": "http://minio:9000/dp-cantabular-metadata-exporter-pub/datasets/cantabular-example-1-2021-1.csvw"
+          },
+          "TXT": {
+            "href": "http://localhost:23600/downloads/datasets/cantabular-example-1/editions/2021/versions/1.txt",
+            "size": "499",
+            "public": "http://minio:9000/dp-cantabular-metadata-exporter-pub/datasets/cantabular-example-1-2021-1.txt"
+          }
+        },
+        "edition": "",
+        "dimensions": null,
+        "id": "",
+        "instance_id": "",
+        "latest_changes": null,
+        "links": {
+          "access_rights": {
+            "href": ""
+          },
+          "dataset": {
+            "href": ""
+          },
+          "dimensions": {
+            "href": ""
+          },
+          "edition": {
+            "href": ""
+          },
+          "editions": {
+            "href": ""
+          },
+          "latest_version": {
+            "href": ""
+          },
+          "versions": {
+            "href": ""
+          },
+          "self": {
+            "href": ""
+          },
+          "code_list": {
+            "href": ""
+          },
+          "options": {
+            "href": ""
+          },
+          "version": {
+            "href": ""
+          },
+          "code": {
+            "href": ""
+          },
+          "taxonomy": {
+            "href": ""
+          },
+          "job": {
+            "href": ""
+          }
+        },
+        "release_date": "",
+        "state": "",
+        "temporal": null,
+        "version": 0
+      }
+      """
+
   Scenario: Consuming a cantabular-metadata-export event with the correct fields and the collection is published
+
     When this cantabular-metadata-export event is consumed:
       """
       {
@@ -891,6 +892,7 @@ Feature: Cantabular-Metadata-Exporter
 
 
   Scenario: Consuming a cantabular-metadata-export event with the correct fields and the collection is not published
+
     When this cantabular-metadata-export event is consumed:
       """
       {

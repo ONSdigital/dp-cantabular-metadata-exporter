@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"errors"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
@@ -102,6 +103,12 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 			svcErrors <- fmt.Errorf("failed to start main http server: %w", err)
 		}
 	}()
+
+	// wait for producer to be initialised and consumer to be in consuming state
+	<-svc.producer.Channels().Initialised
+	log.Info(ctx, "component-test kafka producer initialised")
+	<-svc.consumer.Channels().State.Consuming
+	log.Info(ctx, "component-test kafka consumer is in consuming state")
 }
 
 // Close gracefully shuts the service down in the required order, with timeout
@@ -111,7 +118,7 @@ func (svc *Service) Close(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 
 	// track shutown gracefully closes up
-	var shutDownErr error
+	var hasShutDownErr bool
 
 	go func() {
 		defer cancel()
@@ -121,10 +128,32 @@ func (svc *Service) Close(ctx context.Context) error {
 			svc.healthCheck.Stop()
 		}
 
-		// stop any incoming requests before closing any outbound connections
-		shutDownErr = svc.server.Shutdown(ctx)
+		// If kafka consumer exists, close it.
+		if svc.consumer != nil {
+			if err := svc.consumer.Close(ctx); err != nil {
+				log.Error(ctx, "error closing kafka consumer", err)
+				hasShutDownErr = true
+			}
+			log.Info(ctx, "closed kafka consumer")
+		}
 
-		// TODO: Close other dependencies, in the expected order
+		// If kafka producer exists, close it.
+		if svc.producer != nil {
+			if err := svc.producer.Close(ctx); err != nil {
+				log.Error(ctx, "error closing kafka producer", err)
+				hasShutDownErr = true
+			}
+			log.Info(ctx, "closed kafka producer")
+		}
+
+		// stop any incoming requests before closing any outbound connections
+		if svc.server != nil {
+			if err := svc.server.Shutdown(ctx); err != nil {
+				log.Error(ctx, "failed to shutdown http server", err)
+				hasShutDownErr = true
+			}
+			log.Info(ctx, "stopped http server")
+		}
 	}()
 
 	// wait for shutdown success (via cancel) or failure (timeout)
@@ -136,8 +165,8 @@ func (svc *Service) Close(ctx context.Context) error {
 	}
 
 	// other error
-	if shutDownErr != nil {
-		return fmt.Errorf("failed to shutdown gracefully: %w", shutDownErr)
+	if hasShutDownErr {
+		return errors.New("failed to shutdown gracefully")
 	}
 
 	log.Info(ctx, "graceful shutdown was successful")

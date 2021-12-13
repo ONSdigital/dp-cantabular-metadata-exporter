@@ -37,6 +37,7 @@ type Component struct {
 	S3Downloader     *s3manager.Downloader
 	producer         kafka.IProducer
 	errorChan        chan error
+	svcStarted       chan bool
 	svc              *service.Service
 	cfg              *config.Config
 	wg               *sync.WaitGroup
@@ -47,6 +48,7 @@ type Component struct {
 func NewComponent(t *testing.T) *Component {
 	return &Component{
 		errorChan:        make(chan error),
+		svcStarted:       make(chan bool, 1),
 		DatasetAPI:       httpfake.New(httpfake.WithTesting(t)),
 		wg:               &sync.WaitGroup{},
 		waitEventTimeout: time.Second * 5,
@@ -59,7 +61,6 @@ func (c *Component) initService(ctx context.Context) error {
 	c.signals = make(chan os.Signal, 1)
 	signal.Notify(c.signals, os.Interrupt, syscall.SIGTERM)
 
-	// Read config
 	cfg, err := config.Get()
 	if err != nil {
 		return fmt.Errorf("failed to get config: %w", err)
@@ -94,8 +95,10 @@ func (c *Component) initService(ctx context.Context) error {
 		return fmt.Errorf("error creating kafka producer: %w", err)
 	}
 
-	// start kafka logging go-routines
+	// start kafka logging go-routines and wait for producer to be ready
 	c.producer.Channels().LogErrors(ctx, "component producer")
+	<-c.producer.Channels().Ready
+	log.Info(ctx, "component-test kafka producer ready")
 
 	// Create service and initialise it
 	c.svc = service.New()
@@ -105,16 +108,14 @@ func (c *Component) initService(ctx context.Context) error {
 
 	c.cfg = cfg
 
-	// wait for producer and consumer to be ready
-	<-c.producer.Channels().Ready
-	log.Info(ctx, "component-test kafka producer ready")
-
 	return nil
 }
 
 func (c *Component) startService(ctx context.Context) {
 	defer c.wg.Done()
+
 	c.svc.Start(context.Background(), c.errorChan)
+	c.svcStarted <- true
 
 	// blocks until an os interrupt or a fatal error occurs
 	select {
@@ -159,6 +160,9 @@ func (c *Component) Reset() error {
 	// run application in separate goroutine
 	c.wg.Add(1)
 	go c.startService(ctx)
+
+	// don't allow scenario to start until svc fully initialised
+	<- c.svcStarted
 
 	return nil
 }
