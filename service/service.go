@@ -106,9 +106,9 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 
 	// wait for producer to be initialised and consumer to be in consuming state
 	<-svc.producer.Channels().Initialised
-	log.Info(ctx, "component-test kafka producer initialised")
+	log.Info(ctx, "kafka producer initialised")
 	<-svc.consumer.Channels().State.Consuming
-	log.Info(ctx, "component-test kafka consumer is in consuming state")
+	log.Info(ctx, "kafka consumer is in consuming state")
 }
 
 // Close gracefully shuts the service down in the required order, with timeout

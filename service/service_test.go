@@ -11,6 +11,7 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
 
+	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	kafka "github.com/ONSdigital/dp-kafka/v3"
 	"github.com/ONSdigital/dp-kafka/v3/kafkatest"
@@ -60,13 +61,17 @@ func TestInit(t *testing.T) {
 		}
 
 		GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
-			return &kafkatest.IProducerMock{}, nil
+			return &kafkatest.IProducerMock{
+				ChannelsFunc: func() *kafka.ProducerChannels{
+					return kafka.CreateProducerChannels()
+				},
+			}, nil
 		}
 
 		GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
 			return &kafkatest.IConsumerGroupMock{
 				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
-					return &kafka.ConsumerGroupChannels{}
+					return kafka.CreateConsumerGroupChannels(1)
 				},
 			}, nil
 		}
@@ -159,17 +164,32 @@ func TestClose(t *testing.T) {
 			}
 		}
 
+		pc := kafka.CreateProducerChannels()
 		GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
-			return &kafkatest.IProducerMock{}, nil
+			return &kafkatest.IProducerMock{
+				ChannelsFunc: func() *kafka.ProducerChannels{
+					return pc
+				},
+				CloseFunc: func(context.Context) error{
+					return nil
+				},
+			}, nil
 		}
 
+		cgc := kafka.CreateConsumerGroupChannels(1)
+		cgc.State = &kafka.ConsumerStateChannels{
+			Consuming: make(chan struct{}, 1),
+		}
 		GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
 			return &kafkatest.IConsumerGroupMock{
 				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
-					return &kafka.ConsumerGroupChannels{}
+					return cgc
 				},
 				LogErrorsFunc: func(ctx context.Context) {},
 				StartFunc: func() error { return nil },
+				CloseFunc: func(context.Context) error{
+					return nil
+				},
 			}, nil
 		}
 
@@ -180,6 +200,12 @@ func TestClose(t *testing.T) {
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 			So(err, ShouldBeNil)
 
+			// report kafka channels ready to prevent blocking on service start
+			go func(){
+				svc.producer.Channels().Initialised <- struct{}{}
+				svc.consumer.Channels().State.Consuming <- struct{}{}
+			}()
+			
 			svc.Start(context.Background(), svcErrors)
 
 			err = svc.Close(context.Background())
@@ -206,6 +232,11 @@ func TestClose(t *testing.T) {
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 			So(err, ShouldBeNil)
 
+			// report kafka channels ready to prevent blocking on service start
+			go func(){
+				svc.producer.Channels().Initialised <- struct{}{}
+				svc.consumer.Channels().State.Consuming <- struct{}{}
+			}()
 			svc.Start(context.Background(), svcErrors)
 
 			err = svc.Close(context.Background())
