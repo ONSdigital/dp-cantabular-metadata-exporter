@@ -11,7 +11,6 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
 
-	"github.com/ONSdigital/log.go/v2/log"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	kafka "github.com/ONSdigital/dp-kafka/v3"
 	"github.com/ONSdigital/dp-kafka/v3/kafkatest"
