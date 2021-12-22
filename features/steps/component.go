@@ -2,26 +2,26 @@ package steps
 
 import (
 	"context"
-	"fmt"
 	"errors"
-	"testing"
-	"sync"
-	"time"
+	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"testing"
+	"time"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service"
 
-	kafka "github.com/ONSdigital/dp-kafka/v2"
 	cmptest "github.com/ONSdigital/dp-component-test"
+	kafka "github.com/ONSdigital/dp-kafka/v2"
 	"github.com/ONSdigital/log.go/v2/log"
 
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/maxcnunes/httpfake"
 )
 
@@ -39,7 +39,6 @@ type Component struct {
 	producer         kafka.IProducer
 	consumer         kafka.IConsumerGroup
 	errorChan        chan error
-	svcStarted       chan bool
 	svc              *service.Service
 	cfg              *config.Config
 	wg               *sync.WaitGroup
@@ -51,7 +50,6 @@ type Component struct {
 func NewComponent(t *testing.T) *Component {
 	return &Component{
 		errorChan:        make(chan error),
-		svcStarted:       make(chan bool, 1),
 		DatasetAPI:       httpfake.New(httpfake.WithTesting(t)),
 		wg:               &sync.WaitGroup{},
 		waitEventTimeout: time.Second * 2,
@@ -146,7 +144,6 @@ func (c *Component) startService(ctx context.Context) {
 	defer c.wg.Done()
 
 	c.svc.Start(context.Background(), c.errorChan)
-	c.svcStarted <- true
 
 	// blocks until an os interrupt or a fatal error occurs
 	select {
@@ -231,7 +228,7 @@ func (c *Component) Reset() error {
 	go c.startService(ctx)
 
 	// don't allow scenario to start until svc fully initialised
-	<- c.svcStarted
+	<-c.svc.KafkaReady
 
 	return nil
 }

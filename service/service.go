@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"errors"
+	"fmt"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
@@ -20,6 +20,7 @@ type Service struct {
 	router           chi.Router
 	consumer         kafka.IConsumerGroup
 	producer         kafka.IProducer
+	KafkaReady       chan struct{}
 	processor        Processor
 	datasetAPIClient DatasetAPIClient
 	healthCheck      HealthChecker
@@ -30,7 +31,9 @@ type Service struct {
 
 // New returns a new Service
 func New() *Service {
-	return &Service{}
+	return &Service{
+		KafkaReady: make(chan struct{}),
+	}
 }
 
 // Init initialises the service
@@ -104,11 +107,35 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 		}
 	}()
 
-	// wait for producer to be initialised and consumer to be in consuming state
-	<-svc.producer.Channels().Initialised
-	log.Info(ctx, "kafka producer initialised")
-	<-svc.consumer.Channels().State.Consuming
-	log.Info(ctx, "kafka consumer is in consuming state")
+	// Create a go-routine to notify that the service is ready from kafka consumers and producers point of view
+	// Close on context.Done
+	go func() {
+		producerInitialised := false
+		consumerConsuming := false
+		select {
+		case <-ctx.Done():
+			return
+		case <-svc.producer.Channels().Initialised:
+			producerInitialised = true
+			log.Info(ctx, "kafka producer initialised", log.Data{
+				"topic": svc.config.Kafka.CantabularCSVWCreatedTopic,
+			})
+			if consumerConsuming {
+				close(svc.KafkaReady)
+				return
+			}
+		case <-svc.consumer.Channels().State.Consuming:
+			consumerConsuming = true
+			log.Info(ctx, "kafka consumer is in consuming state", log.Data{
+				"topic":      svc.config.Kafka.CantabularCSVCreatedTopic,
+				"group_name": svc.config.Kafka.CantabularMetadataExportGroup,
+			})
+			if producerInitialised {
+				close(svc.KafkaReady)
+				return
+			}
+		}
+	}()
 }
 
 // Close gracefully shuts the service down in the required order, with timeout
