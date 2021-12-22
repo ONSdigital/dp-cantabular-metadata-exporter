@@ -3,6 +3,7 @@ package steps
 import (
 	"context"
 	"fmt"
+	"errors"
 	"testing"
 	"sync"
 	"time"
@@ -36,6 +37,7 @@ type Component struct {
 	DatasetAPI       *httpfake.HTTPFake
 	S3Downloader     *s3manager.Downloader
 	producer         kafka.IProducer
+	consumer         kafka.IConsumerGroup
 	errorChan        chan error
 	svcStarted       chan bool
 	svc              *service.Service
@@ -95,10 +97,37 @@ func (c *Component) initService(ctx context.Context) error {
 		return fmt.Errorf("error creating kafka producer: %w", err)
 	}
 
-	// start kafka logging go-routines and wait for producer to be ready
+	// consumer for receiving events
+	cgChannels := kafka.CreateConsumerGroupChannels(1)
+	kafkaOffset := kafka.OffsetNewest
+	if cfg.Kafka.OffsetOldest {
+		kafkaOffset = kafka.OffsetOldest
+	}
+
+	if c.consumer, err = kafka.NewConsumerGroup(
+		ctx,
+		cfg.Kafka.Addr,
+		cfg.Kafka.CantabularCSVWCreatedTopic,
+		"csvw-created-group",
+		cgChannels,
+		&kafka.ConsumerGroupConfig{
+			KafkaVersion: &cfg.Kafka.Version,
+			Offset:       &kafkaOffset,
+		},
+	); err != nil {
+		return fmt.Errorf("error creating kafka consumer: %w", err)
+	}
+
+	// start kafka logging go-routines
 	c.producer.Channels().LogErrors(ctx, "component producer")
+	c.consumer.Channels().LogErrors(ctx, "component consumer")
+
+	// wait for consumer and producer to be ready
+	<-c.consumer.Channels().Ready
+	log.Info(ctx, "consumer ready")
+
 	<-c.producer.Channels().Ready
-	log.Info(ctx, "component-test kafka producer ready")
+	log.Info(ctx, "producer ready")
 
 	// Create service and initialise it
 	c.svc = service.New()
@@ -131,13 +160,51 @@ func (c *Component) startService(ctx context.Context) {
 	}
 }
 
+// drainTopic drains the topic of any residual messages between scenarios.
+// Prevents future tests failing if previous tests fail unexpectedly and
+// leave messages in the queue.
+func (c *Component) drainTopic(ctx context.Context) error {
+	var msgs []interface{}
+
+	defer func() {
+		log.Info(ctx, "drained topic", log.Data{
+			"len":      len(msgs),
+			"messages": msgs,
+		})
+	}()
+
+	for {
+		select {
+		case <-time.After(time.Second * 1):
+			return nil
+		case msg, ok := <-c.consumer.Channels().Upstream:
+			if !ok {
+				return errors.New("upstream channel closed")
+			}
+
+			msgs = append(msgs, msg)
+			msg.Commit()
+			msg.Release()
+		}
+	}
+}
+
 // Close kills the application under test, and then it shuts down the testing consumer and producer.
 func (c *Component) Close() {
 	ctx := context.Background()
 
+	if err := c.drainTopic(ctx); err != nil {
+		log.Error(ctx, "error draining topic", err)
+	}
+
 	// close producer
 	if err := c.producer.Close(ctx); err != nil {
 		log.Error(ctx, "error closing kafka producer", err)
+	}
+
+	// close consumer
+	if err := c.consumer.Close(ctx); err != nil {
+		log.Error(ctx, "error closing kafka consumer", err)
 	}
 
 	// kill application

@@ -216,7 +216,7 @@ Feature: Cantabular-Metadata-Exporter
           }
         ],
         "edition": "2021",
-        "id": "c733977d-a2ca-4596-9cb1-08a6e724858b",
+        "id": "c733977d-a2ca-4596-9cb1-08a6e724858a",
         "links": {
           "dataset": {
             "href": "http://dp-dataset-api:22000/datasets/cantabular-example-1",
@@ -882,24 +882,37 @@ Feature: Cantabular-Metadata-Exporter
     When this cantabular-metadata-export event is consumed:
       """
       {
-        "datasetID":     "cantabular-example-1",
-        "edition":       "2021",
-        "version":       "1"
+        "datasetID":   "cantabular-example-1",
+        "edition":     "2021",
+        "version":     "1",
+        "InstanceID":  "test-instance-01",
+        "RowCount":    5
       }
       """
 
     Then a file with filename "datasets/cantabular-example-1-2021-1.csvw" can be seen in minio bucket "dp-cantabular-metadata-exporter-pub"
 
+    And these CSVW Created events should be produced:
+
+      | InstanceID       | DatasetID            | Edition | Version | RowCount |
+      | test-instance-01 | cantabular-example-1 | 2021    | 1       | 5        |
 
   Scenario: Consuming a cantabular-metadata-export event with the correct fields and the collection is not published
 
     When this cantabular-metadata-export event is consumed:
       """
       {
-        "datasetID":     "cantabular-example-2",
-        "edition":       "2021",
-        "version":       "1"
+        "datasetID":   "cantabular-example-2",
+        "edition":     "2021",
+        "version":     "1",
+        "InstanceID":  "test-instance-02",
+        "RowCount":    3
       }
       """
 
     Then a file with filename "datasets/cantabular-example-2-2021-1.csvw" can be seen in minio bucket "dp-cantabular-metadata-exporter-priv"
+
+    And these CSVW Created events should be produced:
+
+      | InstanceID        | DatasetID            | Edition | Version | RowCount |
+      | test-instance-02  | cantabular-example-2 | 2021    | 1       | 3        |

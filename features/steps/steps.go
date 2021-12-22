@@ -14,6 +14,8 @@ import (
 	"github.com/ONSdigital/log.go/v2/log"
 
 	"github.com/cucumber/godog"
+	assistdog "github.com/ONSdigital/dp-assistdog"
+	"github.com/google/go-cmp/cmp"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
@@ -46,6 +48,10 @@ func (c *Component) RegisterSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(
 		`^the following options response is available for dimension "([^"]*)" for dataset "([^"]*)" edition "([^"]*)" version "([^"]*)" with query params "([^"]*)":$`,
 		c.theFollowingOptionsResponseIsAvailable,
+	)
+	ctx.Step(
+		`^these CSVW Created events should be produced:$`,
+		c.theseCSVWCreatedEventsShouldBeProduced,
 	)
 }
 
@@ -209,6 +215,49 @@ func (c *Component) theFollowingFileCanBeSeenInMinio(fileName string, bucket str
 	log.Info(ctx, "got file contents", log.Data{
 		"contents": string(f.Bytes()),
 	})
+
+	return nil
+}
+
+func (c *Component) theseCSVWCreatedEventsShouldBeProduced(events *godog.Table) error {
+	expected, err := assistdog.NewDefault().CreateSlice(new(event.CSVWCreated), events)
+	if err != nil {
+		return fmt.Errorf("failed to create slice from godog table: %w", err)
+	}
+
+	var got []*event.CSVWCreated
+	listen := true
+
+	for listen {
+		select {
+		case <-time.After(time.Second * 1):
+			listen = false
+		case <-c.consumer.Channels().Closer:
+			return errors.New("closer channel closed")
+		case msg, ok := <-c.consumer.Channels().Upstream:
+			if !ok {
+				return errors.New("upstream channel closed")
+			}
+
+			var e event.CSVWCreated
+			var s = schema.CSVWCreated
+
+			if err := s.Unmarshal(msg.GetData(), &e); err != nil {
+				msg.Commit()
+				msg.Release()
+				return fmt.Errorf("error unmarshalling message: %w", err)
+			}
+
+			msg.Commit()
+			msg.Release()
+
+			got = append(got, &e)
+		}
+	}
+
+	if diff := cmp.Diff(got, expected); diff != "" {
+		return fmt.Errorf("-got +expected)\n%s\n", diff)
+	}
 
 	return nil
 }
