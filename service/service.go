@@ -33,6 +33,16 @@ func New() *Service {
 	return &Service{}
 }
 
+// Producer is a getter for the kafka producer for use outside package
+func (svc *Service) Producer() kafka.IProducer {
+	return svc.producer
+}
+
+// Consumer is a getter for the kafka consumer for use outside package
+func (svc *Service) Consumer() kafka.IConsumerGroup {
+	return svc.consumer
+}
+
 // Init initialises the service
 func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit, ver string) error {
 	log.Info(ctx, "initialising service with config", log.Data{"config": cfg})
@@ -103,12 +113,6 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 			svcErrors <- fmt.Errorf("failed to start main http server: %w", err)
 		}
 	}()
-
-	// wait for producer to be initialised and consumer to be in consuming state
-	<-svc.producer.Channels().Initialised
-	log.Info(ctx, "kafka producer initialised")
-	<-svc.consumer.Channels().State.Consuming
-	log.Info(ctx, "kafka consumer is in consuming state")
 }
 
 // Close gracefully shuts the service down in the required order, with timeout

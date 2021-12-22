@@ -146,6 +146,11 @@ func (c *Component) startService(ctx context.Context) {
 	defer c.wg.Done()
 
 	c.svc.Start(context.Background(), c.errorChan)
+	// wait for producer to be initialised and consumer to be in consuming state
+	<-c.svc.Producer().Channels().Initialised
+	log.Info(ctx, "kafka producer initialised")
+	<-c.svc.Consumer().Channels().State.Consuming
+	log.Info(ctx, "kafka consumer is in consuming state")
 	c.svcStarted <- true
 
 	// blocks until an os interrupt or a fatal error occurs

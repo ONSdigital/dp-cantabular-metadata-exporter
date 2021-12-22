@@ -199,13 +199,6 @@ func TestClose(t *testing.T) {
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 			So(err, ShouldBeNil)
 
-			// close kafka channels triggering broadcast signal representing
-			// readiness to prevent blocking on service start
-			go func(){
-				close(svc.producer.Channels().Initialised)
-				close(svc.consumer.Channels().State.Consuming)
-			}()
-			
 			svc.Start(context.Background(), svcErrors)
 
 			err = svc.Close(context.Background())
@@ -232,12 +225,6 @@ func TestClose(t *testing.T) {
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 			So(err, ShouldBeNil)
 
-			// close kafka channels triggering broadcast signal representing
-			// readiness to prevent blocking on service start
-			go func(){
-				close(svc.producer.Channels().Initialised)
-				close(svc.consumer.Channels().State.Consuming)
-			}()
 			svc.Start(context.Background(), svcErrors)
 
 			err = svc.Close(context.Background())
