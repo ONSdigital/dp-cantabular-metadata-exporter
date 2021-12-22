@@ -178,7 +178,7 @@ func (c *Component) theFollowingFileCanBeSeenInMinio(fileName string, bucket str
 	f := aws.NewWriteAtBuffer(b)
 
 	// probe bucket with backoff to give time for event to be processed
-	retries := 5
+	retries := c.minioRetries
 	timeout := 1
 	var numBytes int64
 	var err error
@@ -230,7 +230,7 @@ func (c *Component) theseCSVWCreatedEventsShouldBeProduced(events *godog.Table) 
 
 	for listen {
 		select {
-		case <-time.After(time.Second * 1):
+		case <-time.After(c.waitEventTimeout):
 			listen = false
 		case <-c.consumer.Channels().Closer:
 			return errors.New("closer channel closed")

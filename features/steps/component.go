@@ -45,6 +45,7 @@ type Component struct {
 	wg               *sync.WaitGroup
 	signals          chan os.Signal
 	waitEventTimeout time.Duration
+	minioRetries     int
 }
 
 func NewComponent(t *testing.T) *Component {
@@ -53,7 +54,8 @@ func NewComponent(t *testing.T) *Component {
 		svcStarted:       make(chan bool, 1),
 		DatasetAPI:       httpfake.New(httpfake.WithTesting(t)),
 		wg:               &sync.WaitGroup{},
-		waitEventTimeout: time.Second * 5,
+		waitEventTimeout: time.Second * 2,
+		minioRetries:     5,
 	}
 }
 
