@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
@@ -47,16 +46,11 @@ func TestInit(t *testing.T) {
 			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error){return &healthcheck.Check{}, nil},
 			StartFunc:    func(ctx context.Context) {},
 			StopFunc:     func() {},
+			SubscribeAllFunc: func(s healthcheck.Subscriber){},
 		}
 
 		GetHealthCheck = func(cfg *config.Config, buildTime, gitCommit, version string) (HealthChecker, error) {
 			return hcMock, nil
-		}
-
-		GetProcessor = func(cfg *config.Config) Processor {
-			return &mock.ProcessorMock{
-				ConsumeFunc: func(context.Context, kafka.IConsumerGroup, event.Handler) {},
-			}
 		}
 
 		GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
@@ -71,6 +65,9 @@ func TestInit(t *testing.T) {
 			return &kafkatest.IConsumerGroupMock{
 				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
 					return kafka.CreateConsumerGroupChannels(1)
+				},
+				RegisterHandlerFunc: func(ctx context.Context, h kafka.Handler) error{
+					return nil
 				},
 			}, nil
 		}
@@ -137,6 +134,7 @@ func TestClose(t *testing.T) {
 			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error){return &healthcheck.Check{}, nil},
 			StartFunc:    func(ctx context.Context) {},
 			StopFunc:     func() { hcStopped = true },
+			SubscribeAllFunc: func(s healthcheck.Subscriber){},
 		}
 		GetHealthCheck = func(cfg *config.Config, buildTime, gitCommit, version string) (HealthChecker, error) {
 			return hcMock, nil
@@ -155,12 +153,6 @@ func TestClose(t *testing.T) {
 
 		GetHTTPServer = func(bindAddr string, router http.Handler) HTTPServer {
 			return serverMock
-		}
-
-		GetProcessor = func(cfg *config.Config) Processor {
-			return &mock.ProcessorMock{
-				ConsumeFunc: func(context.Context, kafka.IConsumerGroup, event.Handler) {},
-			}
 		}
 
 		pc := kafka.CreateProducerChannels()
@@ -189,6 +181,10 @@ func TestClose(t *testing.T) {
 				CloseFunc: func(context.Context) error{
 					return nil
 				},
+				RegisterHandlerFunc: func(ctx context.Context, h kafka.Handler) error{
+					return nil
+				},
+				StopAndWaitFunc: func(){},
 			}, nil
 		}
 

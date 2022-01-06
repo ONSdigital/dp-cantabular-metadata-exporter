@@ -29,6 +29,7 @@ type Config struct {
 	ComponentTestUseLogFile    bool          `envconfig:"COMPONENT_TEST_USE_LOG_FILE"`
 	ServiceAuthToken           string        `envconfig:"SERVICE_AUTH_TOKEN"`
 	DownloadServiceURL         string        `envconfig:"DOWNLOAD_SERVICE_URL"`
+	StopConsumingOnUnhealthy   bool          `envconfig:"STOP_CONSUMING_ON_UNHEALTHY"`
 	Kafka                      KafkaConfig
 }
 
@@ -44,6 +45,8 @@ type KafkaConfig struct {
 	SecClientKey                  string   `envconfig:"KAFKA_SEC_CLIENT_KEY"                  json:"-"`
 	SecClientCert                 string   `envconfig:"KAFKA_SEC_CLIENT_CERT"`
 	SecSkipVerify                 bool     `envconfig:"KAFKA_SEC_SKIP_VERIFY"`
+	ConsumerMinBrokersHealthy     int      `envconfig:"KAFKA_CONSUMER_MIN_BROKERS_HEALTHY"`
+	ProducerMinBrokersHealthy     int      `envconfig:"KAFKA_PRODUCER_MIN_BROKERS_HEALTHY"`
 	CantabularCSVCreatedTopic     string   `envconfig:"KAFKA_TOPIC_CANTABULAR_CSV_CREATED"`
 	CantabularCSVWCreatedTopic    string   `envconfig:"KAFKA_TOPIC_CANTABULAR_CSVW_CREATED"`
 	CantabularMetadataExportGroup string   `envconfig:"KAFKA_GROUP_CANTABULAR_METADATA_EXPORT"`
@@ -73,8 +76,9 @@ func Get() (*Config, error) {
 		DatasetAPIURL:              "http://localhost:22000",
 		ComponentTestUseLogFile:    false,
 		DownloadServiceURL:         "http://localhost:23600",
+		StopConsumingOnUnhealthy:   true,
 		Kafka: KafkaConfig{
-			Addr:                          []string{"localhost:9092"},
+			Addr:                          []string{"localhost:9092", "localhost:9093", "localhost:9094"},
 			Version:                       "1.0.2",
 			OffsetOldest:                  true,
 			NumWorkers:                    1,
@@ -84,6 +88,8 @@ func Get() (*Config, error) {
 			SecClientKey:                  "",
 			SecClientCert:                 "",
 			SecSkipVerify:                 false,
+			ConsumerMinBrokersHealthy:     1,
+			ProducerMinBrokersHealthy:     2,
 			CantabularMetadataExportGroup: "cantabular-metadata-export",
 			CantabularCSVCreatedTopic:     "cantabular-csv-created",
 			CantabularCSVWCreatedTopic:    "cantabular-csvw-created",
