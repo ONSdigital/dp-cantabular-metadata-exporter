@@ -22,6 +22,10 @@ import (
 
 func (c *Component) RegisterSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(
+		`^the service starts`,
+		c.theServiceStarts,
+	)
+	ctx.Step(
 		`^the following metadata document with dataset id "([^"]*)", edition "([^"]*)" and version "([^"]*)" is available from dp-dataset-api:$`,
 		c.theFollowingMetadataDocumentIsAvailable,
 	)
@@ -52,6 +56,18 @@ func (c *Component) RegisterSteps(ctx *godog.ScenarioContext) {
 	ctx.Step(
 		`^these CSVW Created events should be produced:$`,
 		c.theseCSVWCreatedEventsShouldBeProduced,
+	)
+	ctx.Step(
+		`^no CSVW Created events should be produced`,
+		c.noCSVWCreatedEventsShouldBeProduced,
+	)
+	ctx.Step(
+		`^dataset-api is healthy`,
+		c.datasetAPIIsHealthy,
+	)
+	ctx.Step(
+		`^dataset-api is unhealthy`,
+		c.datasetAPIIsUnhealthy,
 	)
 }
 
@@ -259,5 +275,55 @@ func (c *Component) theseCSVWCreatedEventsShouldBeProduced(events *godog.Table) 
 		return fmt.Errorf("-got +expected)\n%s\n", diff)
 	}
 
+	return nil
+}
+
+func (c *Component) noCSVWCreatedEventsShouldBeProduced() error {
+	listen := true
+
+	for listen {
+		select {
+		case <-time.After(c.waitEventTimeout):
+			listen = false
+		case <-c.consumer.Channels().Closer:
+			return errors.New("closer channel closed")
+		case msg, ok := <-c.consumer.Channels().Upstream:
+			if !ok {
+				return errors.New("upstream channel closed")
+			}
+
+			err := fmt.Errorf("unexpected message receieved: %s", msg.GetData())
+
+			msg.Commit()
+			msg.Release()
+
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Component) datasetAPIIsHealthy() error {
+	resp := `{"status": "OK"}`
+	c.DatasetAPI.NewHandler().
+		Get("/health").
+		Reply(http.StatusOK).
+		BodyString(resp)
+	return nil
+}
+
+func (c *Component) datasetAPIIsUnhealthy() error {
+	resp := `{"status": "CRITICAL"}`
+	c.DatasetAPI.NewHandler().
+		Get("/health").
+		Reply(http.StatusInternalServerError).
+		BodyString(resp)
+	return nil
+}
+
+func (c *Component) theServiceStarts() error {
+	c.wg.Add(1)
+	go c.startService(context.Background())
 	return nil
 }

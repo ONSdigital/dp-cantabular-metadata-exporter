@@ -2,7 +2,7 @@ Feature: Cantabular-Metadata-Exporter
 
   Background:
 
-    Given the following metadata document with dataset id "cantabular-example-1", edition "2021" and version "1" is available from dp-dataset-api:
+    And the following metadata document with dataset id "cantabular-example-1", edition "2021" and version "1" is available from dp-dataset-api:
       """
       {
         "dimensions": [
@@ -879,6 +879,10 @@ Feature: Cantabular-Metadata-Exporter
 
   Scenario: Consuming a cantabular-metadata-export event with the correct fields and the collection is published
 
+    Given dataset-api is healthy
+
+    And the service starts
+
     When this cantabular-metadata-export event is consumed:
       """
       {
@@ -899,6 +903,10 @@ Feature: Cantabular-Metadata-Exporter
 
   Scenario: Consuming a cantabular-metadata-export event with the correct fields and the collection is not published
 
+    Given dataset-api is healthy
+
+    And the service starts
+
     When this cantabular-metadata-export event is consumed:
       """
       {
@@ -916,3 +924,22 @@ Feature: Cantabular-Metadata-Exporter
 
       | InstanceID        | DatasetID            | Edition | Version | RowCount |
       | test-instance-02  | cantabular-example-2 | 2021    | 1       | 3        |
+
+  Scenario: Consuming a cantabular-metadata-export event with the correct fields but a downstream service is unhealthy
+
+    Given dataset-api is unhealthy
+
+    And the service starts
+
+    When this cantabular-metadata-export event is consumed:
+      """
+      {
+        "datasetID":   "cantabular-example-1",
+        "edition":     "2021",
+        "version":     "1",
+        "InstanceID":  "test-instance-01",
+        "RowCount":    5
+      }
+      """
+
+    Then no CSVW Created events should be produced

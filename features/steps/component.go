@@ -151,7 +151,7 @@ func (c *Component) startService(ctx context.Context) {
 	log.Info(ctx, "kafka producer initialised")
 	<-c.svc.Consumer().Channels().State.Consuming
 	log.Info(ctx, "kafka consumer is in consuming state")
-	c.svcStarted <- true
+//	c.svcStarted <- true
 
 	// blocks until an os interrupt or a fatal error occurs
 	select {
@@ -230,13 +230,12 @@ func (c *Component) Reset() error {
 	}
 
 	c.DatasetAPI.Reset()
-
 	// run application in separate goroutine
-	c.wg.Add(1)
-	go c.startService(ctx)
+//	c.wg.Add(1)
+//	go c.startService(ctx)
 
 	// don't allow scenario to start until svc fully initialised
-	<- c.svcStarted
+//	<- c.svcStarted
 
 	return nil
 }

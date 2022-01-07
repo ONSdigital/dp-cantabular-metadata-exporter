@@ -198,6 +198,10 @@ func (svc *Service) registerCheckers() error {
 		return fmt.Errorf("error adding s3 public uploader health check: %w", err)
 	}
 
+	if _ , err := svc.healthCheck.AddAndGetCheck("Dataset API client", svc.datasetAPIClient.Checker); err != nil {
+		return fmt.Errorf("error adding dataset API health check: %w", err)
+	}
+
 	if svc.config.StopConsumingOnUnhealthy {
 		svc.healthCheck.SubscribeAll(svc.consumer)
 	}
