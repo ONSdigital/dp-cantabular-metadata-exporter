@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/generator"
 
@@ -59,11 +59,13 @@ var GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.ICon
 	}
 
 	cgConfig := &kafka.ConsumerGroupConfig{
-		BrokerAddrs:  cfg.Kafka.Addr,
-		Topic:        cfg.Kafka.CantabularCSVCreatedTopic,
-		GroupName:    cfg.Kafka.CantabularMetadataExportGroup,
-		KafkaVersion: &cfg.Kafka.Version,
-		Offset:       &kafkaOffset,
+		BrokerAddrs:       cfg.Kafka.Addr,
+		Topic:             cfg.Kafka.CantabularCSVCreatedTopic,
+		GroupName:         cfg.Kafka.CantabularMetadataExportGroup,
+		KafkaVersion:      &cfg.Kafka.Version,
+		Offset:            &kafkaOffset,
+		NumWorkers:        &cfg.Kafka.NumWorkers,
+		MinBrokersHealthy: &cfg.Kafka.ConsumerMinBrokersHealthy,
 	}
 
 	if cfg.Kafka.SecProtocol == config.KafkaTLSProtocolFlag {
@@ -81,10 +83,11 @@ var GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.ICon
 // GetKafkaProducer creates a Kafka producer
 var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
 	pConfig := &kafka.ProducerConfig{
-		BrokerAddrs:     cfg.Kafka.Addr,
-		Topic:           cfg.Kafka.CantabularCSVWCreatedTopic,
-		KafkaVersion:    &cfg.Kafka.Version,
-		MaxMessageBytes: &cfg.Kafka.MaxBytes,
+		BrokerAddrs:       cfg.Kafka.Addr,
+		Topic:             cfg.Kafka.CantabularCSVWCreatedTopic,
+		KafkaVersion:      &cfg.Kafka.Version,
+		MaxMessageBytes:   &cfg.Kafka.MaxBytes,
+		MinBrokersHealthy: &cfg.Kafka.ProducerMinBrokersHealthy,
 	}
 
 	if cfg.Kafka.SecProtocol == config.KafkaTLSProtocolFlag {
@@ -97,11 +100,6 @@ var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IPro
 	}
 
 	return kafka.NewProducer(ctx, pConfig)
-}
-
-// GetProcessor gets and initialises the event Processor
-var GetProcessor = func(cfg *config.Config) Processor {
-	return event.NewProcessor(*cfg)
 }
 
 // GetDatasetAPIClient gets and initialises the DatasetAPI Client

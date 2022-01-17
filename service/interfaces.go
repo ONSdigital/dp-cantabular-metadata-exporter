@@ -5,19 +5,16 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	kafka "github.com/ONSdigital/dp-kafka/v3"
 
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 //go:generate moq -out mock/server.go -pkg mock . HTTPServer
 //go:generate moq -out mock/healthCheck.go -pkg mock . HealthChecker
-//go:generate moq -out mock/processor.go -pkg mock . Processor
 
 // HTTPServer defines the required methods from the HTTP server
 type HTTPServer interface {
@@ -31,11 +28,7 @@ type HealthChecker interface {
 	Start(ctx context.Context)
 	Stop()
 	AddAndGetCheck(name string, checker healthcheck.Checker) (*healthcheck.Check, error)
-}
-
-// Processor defines the required methods for the Processor object
-type Processor interface {
-	Consume(context.Context, kafka.IConsumerGroup, event.Handler)
+	SubscribeAll(s healthcheck.Subscriber)
 }
 
 type DatasetAPIClient interface {

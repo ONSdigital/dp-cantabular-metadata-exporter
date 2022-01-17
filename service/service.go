@@ -20,7 +20,6 @@ type Service struct {
 	router           chi.Router
 	consumer         kafka.IConsumerGroup
 	producer         kafka.IProducer
-	processor        Processor
 	datasetAPIClient DatasetAPIClient
 	healthCheck      HealthChecker
 	vaultClient      VaultClient
@@ -69,11 +68,18 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 	}
 
 	svc.datasetAPIClient = GetDatasetAPIClient(cfg)
-	svc.processor = GetProcessor(cfg)
 
 	if svc.healthCheck, err = GetHealthCheck(cfg, buildT, commit, ver); err != nil {
 		return fmt.Errorf("could not get healtcheck: %w", err)
 	}
+
+	h := handler.NewCantabularMetadataExport(
+		*svc.config,
+		svc.datasetAPIClient,
+		svc.fileManager,
+		svc.producer,
+	)
+	svc.consumer.RegisterHandler(ctx, h.Handle)
 
 	if err := svc.registerCheckers(); err != nil {
 		return fmt.Errorf("unable to register checkers: %w", err)
@@ -95,17 +101,10 @@ func (svc *Service) Start(ctx context.Context, svcErrors chan error) {
 	svc.consumer.LogErrors(ctx)
 	svc.consumer.Start()
 
-	// Event Handler for Kafka Consumer
-	svc.processor.Consume(
-		ctx,
-		svc.consumer,
-		handler.NewCantabularMetadataExport(
-			*svc.config,
-			svc.datasetAPIClient,
-			svc.fileManager,
-			svc.producer,
-		),
-	)
+	// If start/stop on health updates is disabled, start consuming as soon as possible
+	if !svc.config.StopConsumingOnUnhealthy {
+		svc.consumer.Start()
+	}
 
 	// Run the http server in a new go-routine
 	go func() {
@@ -132,8 +131,9 @@ func (svc *Service) Close(ctx context.Context) error {
 			svc.healthCheck.Stop()
 		}
 
-		// If kafka consumer exists, close it.
+		// If kafka consumer exists, stop and close it.
 		if svc.consumer != nil {
+			svc.consumer.StopAndWait()
 			if err := svc.consumer.Close(ctx); err != nil {
 				log.Error(ctx, "error closing kafka consumer", err)
 				hasShutDownErr = true
@@ -196,6 +196,14 @@ func (svc *Service) registerCheckers() error {
 
 	if _, err := svc.healthCheck.AddAndGetCheck("S3 public uploader", svc.fileManager.PublicUploader().Checker); err != nil {
 		return fmt.Errorf("error adding s3 public uploader health check: %w", err)
+	}
+
+	if _ , err := svc.healthCheck.AddAndGetCheck("Dataset API client", svc.datasetAPIClient.Checker); err != nil {
+		return fmt.Errorf("error adding dataset API health check: %w", err)
+	}
+
+	if svc.config.StopConsumingOnUnhealthy {
+		svc.healthCheck.SubscribeAll(svc.consumer)
 	}
 
 	return nil

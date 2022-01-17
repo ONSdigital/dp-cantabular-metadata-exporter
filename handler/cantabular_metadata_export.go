@@ -42,7 +42,19 @@ func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, fm FileM
 }
 
 // Handle takes a single event.
-func (h *CantabularMetadataExport) Handle(ctx context.Context, e *event.CSVCreated) error {
+func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg kafka.Message) error {
+	e := &event.CSVCreated{}
+	s := schema.CSVCreated
+
+	if err := s.Unmarshal(msg.GetData(), e); err != nil {
+		return &Error{
+			err: fmt.Errorf("failed to unmarshal event: %w", err),
+			logData: map[string]interface{}{
+				"msg_data": msg.GetData(),
+			},
+		}
+	}
+
 	logData := log.Data{
 		"event": e,
 	}
