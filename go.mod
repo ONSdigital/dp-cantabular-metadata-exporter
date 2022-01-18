@@ -9,9 +9,8 @@ require (
 	github.com/ONSdigital/dp-api-clients-go/v2 v2.4.6
 	github.com/ONSdigital/dp-assistdog v0.0.1
 	github.com/ONSdigital/dp-component-test v0.6.3
-	github.com/ONSdigital/dp-healthcheck v1.2.2
-	github.com/ONSdigital/dp-kafka/v2 v2.4.2
-	github.com/ONSdigital/dp-kafka/v3 v3.0.0
+	github.com/ONSdigital/dp-healthcheck v1.2.3
+	github.com/ONSdigital/dp-kafka/v3 v3.0.3-0.20220118150334-810844890fc9
 	github.com/ONSdigital/dp-net v1.2.0
 	github.com/ONSdigital/dp-s3 v1.7.0
 	github.com/ONSdigital/dp-vault v1.2.0
@@ -19,7 +18,7 @@ require (
 	github.com/aws/aws-sdk-go v1.41.6
 	github.com/cucumber/godog v0.12.1
 	github.com/go-chi/chi/v5 v5.0.4
-	github.com/google/go-cmp v0.5.5
+	github.com/google/go-cmp v0.5.6
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/maxcnunes/httpfake v1.2.4
 	github.com/smartystreets/goconvey v1.7.2
