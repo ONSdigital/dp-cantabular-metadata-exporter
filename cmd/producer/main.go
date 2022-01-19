@@ -5,12 +5,13 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
-	kafka "github.com/ONSdigital/dp-kafka/v2"
+	kafka "github.com/ONSdigital/dp-kafka/v3"
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
@@ -20,6 +21,13 @@ func main() {
 	log.Namespace = serviceName
 	ctx := context.Background()
 
+	if err := run(ctx); err != nil {
+		log.Fatal(ctx, "fatal runtime error", err)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context) error {
 	// Get Config
 	cfg, err := config.Get()
 	if err != nil {
@@ -28,50 +36,85 @@ func main() {
 	}
 
 	// Create Kafka Producer
-	pChannels := kafka.CreateProducerChannels()
-	kafkaProducer, err := kafka.NewProducer(ctx, []string{"http://localhost:9092"}, cfg.Kafka.CantabularCSVCreatedTopic, pChannels, &kafka.ProducerConfig{
-		KafkaVersion: &cfg.Kafka.Version,
-	})
+	pConfig := &kafka.ProducerConfig{
+		BrokerAddrs:     cfg.Kafka.Addr,
+		Topic:           cfg.Kafka.CantabularCSVCreatedTopic,
+		KafkaVersion:    &cfg.Kafka.Version,
+		MaxMessageBytes: &cfg.Kafka.MaxBytes,
+	}
+	if cfg.Kafka.SecProtocol == config.KafkaTLSProtocolFlag {
+		pConfig.SecurityConfig = kafka.GetSecurityConfig(
+			cfg.Kafka.SecCACerts,
+			cfg.Kafka.SecClientCert,
+			cfg.Kafka.SecClientKey,
+			cfg.Kafka.SecSkipVerify,
+		)
+	}
+	kafkaProducer, err := kafka.NewProducer(ctx, pConfig)
 	if err != nil {
-		log.Fatal(ctx, "fatal error trying to create kafka producer", err, log.Data{"topic": cfg.Kafka.CantabularCSVCreatedTopic})
-		os.Exit(1)
+		return fmt.Errorf("failed to create kafka producer: %w", err)
 	}
 
 	// kafka error logging go-routines
-	kafkaProducer.Channels().LogErrors(ctx, "kafka producer")
+	kafkaProducer.LogErrors(ctx)
 
+	// Wait for producer to be initialised plus 500ms
+	<-kafkaProducer.Channels().Initialised
 	time.Sleep(500 * time.Millisecond)
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		e := scanEvent(scanner)
-		log.Info(ctx, "sending event", log.Data{"Event": e})
+		log.Info(ctx, "sending event", log.Data{"event": e, "topic": cfg.Kafka.CantabularCSVCreatedTopic})
 
 		bytes, err := schema.CSVCreated.Marshal(e)
 		if err != nil {
-			log.Fatal(ctx, "hello-called event error", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to marshal event: %w", err)
 		}
 
-		// Send bytes to Output channel, after calling Initialise just in case it is not initialised.
-		// Wait for producer to be initialised
-		<-kafkaProducer.Channels().Ready
+		// Send bytes to Output channel
 		kafkaProducer.Channels().Output <- bytes
 	}
-
 }
 
 // scanEvent creates a HelloCalled event according to the user input
 func scanEvent(scanner *bufio.Scanner) *event.CSVCreated {
-	fmt.Println("--- [Send Kafka CantabularMetadataExport] ---")
+	fmt.Println("--- [Send Kafka CantabularCsvCreated] ---")
+
+	e := &event.CSVCreated{}
+
+	fmt.Println("Please type the instance_id")
+	fmt.Printf("$ ")
+	scanner.Scan()
+	e.InstanceID = scanner.Text()
 
 	fmt.Println("Please type the dataset_id")
 	fmt.Printf("$ ")
 	scanner.Scan()
-	datasetID := scanner.Text()
+	e.DatasetID = scanner.Text()
 
-	return &event.CSVCreated{
-		DatasetID: datasetID,
-		Edition:   "2021",
-		Version:   "1",
+	fmt.Println("Please type the edition")
+	fmt.Printf("$ ")
+	scanner.Scan()
+	e.Edition = scanner.Text()
+
+	fmt.Println("Please type the version")
+	fmt.Printf("$ ")
+	scanner.Scan()
+	e.Version = scanner.Text()
+
+	for {
+		fmt.Println("Please type the row_count")
+		fmt.Printf("$ ")
+		scanner.Scan()
+		i, err := strconv.ParseInt(scanner.Text(), 10, 32)
+		if err != nil {
+			fmt.Println("Wrong value provided for row_count. Value must be int32")
+			continue
+		}
+		e.RowCount = int32(i)
+		break
 	}
+
+	return e
 }

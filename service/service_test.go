@@ -43,10 +43,12 @@ func TestInit(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		hcMock := &mock.HealthCheckerMock{
-			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error){return &healthcheck.Check{}, nil},
-			StartFunc:    func(ctx context.Context) {},
-			StopFunc:     func() {},
-			SubscribeAllFunc: func(s healthcheck.Subscriber){},
+			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error) {
+				return &healthcheck.Check{}, nil
+			},
+			StartFunc:        func(ctx context.Context) {},
+			StopFunc:         func() {},
+			SubscribeAllFunc: func(s healthcheck.Subscriber) {},
 		}
 
 		GetHealthCheck = func(cfg *config.Config, buildTime, gitCommit, version string) (HealthChecker, error) {
@@ -55,7 +57,7 @@ func TestInit(t *testing.T) {
 
 		GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
 			return &kafkatest.IProducerMock{
-				ChannelsFunc: func() *kafka.ProducerChannels{
+				ChannelsFunc: func() *kafka.ProducerChannels {
 					return kafka.CreateProducerChannels()
 				},
 			}, nil
@@ -66,7 +68,7 @@ func TestInit(t *testing.T) {
 				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
 					return kafka.CreateConsumerGroupChannels(1)
 				},
-				RegisterHandlerFunc: func(ctx context.Context, h kafka.Handler) error{
+				RegisterHandlerFunc: func(ctx context.Context, h kafka.Handler) error {
 					return nil
 				},
 			}, nil
@@ -131,10 +133,12 @@ func TestClose(t *testing.T) {
 
 		// healthcheck Stop does not depend on any other service being closed/stopped
 		hcMock := &mock.HealthCheckerMock{
-			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error){return &healthcheck.Check{}, nil},
-			StartFunc:    func(ctx context.Context) {},
-			StopFunc:     func() { hcStopped = true },
-			SubscribeAllFunc: func(s healthcheck.Subscriber){},
+			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error) {
+				return &healthcheck.Check{}, nil
+			},
+			StartFunc:        func(ctx context.Context) {},
+			StopFunc:         func() { hcStopped = true },
+			SubscribeAllFunc: func(s healthcheck.Subscriber) {},
 		}
 		GetHealthCheck = func(cfg *config.Config, buildTime, gitCommit, version string) (HealthChecker, error) {
 			return hcMock, nil
@@ -158,10 +162,10 @@ func TestClose(t *testing.T) {
 		pc := kafka.CreateProducerChannels()
 		GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
 			return &kafkatest.IProducerMock{
-				ChannelsFunc: func() *kafka.ProducerChannels{
+				ChannelsFunc: func() *kafka.ProducerChannels {
 					return pc
 				},
-				CloseFunc: func(context.Context) error{
+				CloseFunc: func(context.Context) error {
 					return nil
 				},
 			}, nil
@@ -169,7 +173,7 @@ func TestClose(t *testing.T) {
 
 		cgc := kafka.CreateConsumerGroupChannels(1)
 		cgc.State = &kafka.ConsumerStateChannels{
-			Consuming: make(chan struct{}, 1),
+			Consuming: kafka.NewStateChan(),
 		}
 		GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
 			return &kafkatest.IConsumerGroupMock{
@@ -177,14 +181,14 @@ func TestClose(t *testing.T) {
 					return cgc
 				},
 				LogErrorsFunc: func(ctx context.Context) {},
-				StartFunc: func() error { return nil },
-				CloseFunc: func(context.Context) error{
+				StartFunc:     func() error { return nil },
+				CloseFunc: func(context.Context) error {
 					return nil
 				},
-				RegisterHandlerFunc: func(ctx context.Context, h kafka.Handler) error{
+				RegisterHandlerFunc: func(ctx context.Context, h kafka.Handler) error {
 					return nil
 				},
-				StopAndWaitFunc: func(){},
+				StopAndWaitFunc: func() {},
 			}, nil
 		}
 
