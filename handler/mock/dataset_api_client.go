@@ -6,8 +6,13 @@ package mock
 import (
 	"context"
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
 	"sync"
 )
+
+// Ensure, that DatasetAPIClientMock does implement handler.DatasetAPIClient.
+// If this is not the case, regenerate this file with moq.
+var _ handler.DatasetAPIClient = &DatasetAPIClientMock{}
 
 // DatasetAPIClientMock is a mock implementation of handler.DatasetAPIClient.
 //

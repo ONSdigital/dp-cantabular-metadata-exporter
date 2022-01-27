@@ -61,7 +61,9 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("failed to initialise service: %w", err)
 	}
 
-	svc.Start(ctx, svcErrors)
+	if err := svc.Start(ctx, svcErrors); err != nil {
+		return fmt.Errorf("failed to start service: %w", err)
+	}
 
 	// blocks until an os interrupt or a fatal error occurs
 	select {

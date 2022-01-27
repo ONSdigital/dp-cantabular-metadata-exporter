@@ -2,13 +2,13 @@ package main
 
 import (
 	"flag"
-	"os"
 	"io"
 	"log"
+	"os"
 	"testing"
 
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/features/steps"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/features/steps"
 
 	componenttest "github.com/ONSdigital/dp-component-test"
 	dplogs "github.com/ONSdigital/log.go/v2/log"
@@ -21,7 +21,7 @@ const componentLogFile = "component-output.txt"
 var componentFlag = flag.Bool("component", false, "perform component tests")
 
 type ComponentTest struct {
-	t *testing.T
+	t            *testing.T
 	MongoFeature *componenttest.MongoFeature
 }
 
@@ -64,7 +64,11 @@ func TestComponent(t *testing.T) {
 				t.Fatalf("could not create logs file: %s", err)
 			}
 
-			defer logfile.Close()
+			defer func() {
+				if err := logfile.Close(); err != nil {
+					t.Fatalf("failed to close logs file: %s", err)
+				}
+			}()
 			output = logfile
 
 			dplogs.SetDestination(logfile, nil)

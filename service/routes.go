@@ -9,7 +9,7 @@ func (svc *Service) BuildRoutes() {
 	r := chi.NewRouter()
 
 	// Healthcheck
-	r.HandleFunc("/health", svc.healthCheck.Handler)
+	r.HandleFunc("/health", svc.HealthCheck.Handler)
 
 	svc.router = r
 }

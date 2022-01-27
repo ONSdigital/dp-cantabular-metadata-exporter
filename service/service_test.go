@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service/mock"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
@@ -22,16 +23,15 @@ var (
 	testBuildTime = "12"
 	testGitCommit = "GitCommit"
 	testVersion   = "Version"
-	errServer     = errors.New("HTTP Server error")
 )
 
 var errHealthcheck = errors.New("could not get healthcheck")
 
-var funcDoGetHealthcheckErr = func(cfg *config.Config, buildTime string, gitCommit string, version string) (HealthChecker, error) {
+var funcDoGetHealthcheckErr = func(cfg *config.Config, buildTime string, gitCommit string, version string) (service.HealthChecker, error) {
 	return nil, errHealthcheck
 }
 
-var funcDoGetHTTPServerNil = func(bindAddr string, router http.Handler) HTTPServer {
+var funcDoGetHTTPServerNil = func(bindAddr string, router http.Handler) service.HTTPServer {
 	return nil
 }
 
@@ -51,11 +51,11 @@ func TestInit(t *testing.T) {
 			SubscribeAllFunc: func(s healthcheck.Subscriber) {},
 		}
 
-		GetHealthCheck = func(cfg *config.Config, buildTime, gitCommit, version string) (HealthChecker, error) {
+		service.GetHealthCheck = func(cfg *config.Config, buildTime, gitCommit, version string) (service.HealthChecker, error) {
 			return hcMock, nil
 		}
 
-		GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
+		service.GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
 			return &kafkatest.IProducerMock{
 				ChannelsFunc: func() *kafka.ProducerChannels {
 					return kafka.CreateProducerChannels()
@@ -63,7 +63,7 @@ func TestInit(t *testing.T) {
 			}, nil
 		}
 
-		GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
+		service.GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
 			return &kafkatest.IConsumerGroupMock{
 				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
 					return kafka.CreateConsumerGroupChannels(1)
@@ -82,18 +82,18 @@ func TestInit(t *testing.T) {
 				return nil
 			},
 		}
-		GetHTTPServer = func(bindAddr string, router http.Handler) HTTPServer {
+		service.GetHTTPServer = func(bindAddr string, router http.Handler) service.HTTPServer {
 			return serverMock
 		}
 
-		svc := &Service{}
+		svc := &service.Service{}
 
 		Convey("Given that initialising healthcheck returns an error", func() {
-			GetHealthCheck = func(cfg *config.Config, buildTime, gitCommit, version string) (HealthChecker, error) {
+			service.GetHealthCheck = func(cfg *config.Config, buildTime, gitCommit, version string) (service.HealthChecker, error) {
 				return nil, errHealthcheck
 			}
 			// setup (run before each `Convey` at this scope / indentation):
-			svc := New()
+			svc := service.New()
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 
 			Convey("Then service Init fails with an error", func() {
@@ -140,7 +140,7 @@ func TestClose(t *testing.T) {
 			StopFunc:         func() { hcStopped = true },
 			SubscribeAllFunc: func(s healthcheck.Subscriber) {},
 		}
-		GetHealthCheck = func(cfg *config.Config, buildTime, gitCommit, version string) (HealthChecker, error) {
+		service.GetHealthCheck = func(cfg *config.Config, buildTime, gitCommit, version string) (service.HealthChecker, error) {
 			return hcMock, nil
 		}
 
@@ -155,12 +155,12 @@ func TestClose(t *testing.T) {
 			},
 		}
 
-		GetHTTPServer = func(bindAddr string, router http.Handler) HTTPServer {
+		service.GetHTTPServer = func(bindAddr string, router http.Handler) service.HTTPServer {
 			return serverMock
 		}
 
 		pc := kafka.CreateProducerChannels()
-		GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
+		service.GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
 			return &kafkatest.IProducerMock{
 				ChannelsFunc: func() *kafka.ProducerChannels {
 					return pc
@@ -168,6 +168,7 @@ func TestClose(t *testing.T) {
 				CloseFunc: func(context.Context) error {
 					return nil
 				},
+				LogErrorsFunc: func(ctx context.Context) {},
 			}, nil
 		}
 
@@ -175,7 +176,7 @@ func TestClose(t *testing.T) {
 		cgc.State = &kafka.ConsumerStateChannels{
 			Consuming: kafka.NewStateChan(),
 		}
-		GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
+		service.GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
 			return &kafkatest.IConsumerGroupMock{
 				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
 					return cgc
@@ -188,18 +189,19 @@ func TestClose(t *testing.T) {
 				RegisterHandlerFunc: func(ctx context.Context, h kafka.Handler) error {
 					return nil
 				},
-				StopAndWaitFunc: func() {},
+				StopAndWaitFunc: func() error { return nil },
 			}, nil
 		}
 
 		Convey("Closing the service results in all the dependencies being closed in the expected order", func() {
 
 			svcErrors := make(chan error, 1)
-			svc := New()
+			svc := service.New()
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 			So(err, ShouldBeNil)
 
 			svc.Start(context.Background(), svcErrors)
+			So(err, ShouldBeNil)
 
 			err = svc.Close(context.Background())
 			So(err, ShouldBeNil)
@@ -216,16 +218,17 @@ func TestClose(t *testing.T) {
 				},
 			}
 
-			GetHTTPServer = func(bindAddr string, router http.Handler) HTTPServer {
+			service.GetHTTPServer = func(bindAddr string, router http.Handler) service.HTTPServer {
 				return failingserverMock
 			}
 
 			svcErrors := make(chan error, 1)
-			svc := New()
+			svc := service.New()
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 			So(err, ShouldBeNil)
 
 			svc.Start(context.Background(), svcErrors)
+			So(err, ShouldBeNil)
 
 			err = svc.Close(context.Background())
 			So(err, ShouldNotBeNil)
@@ -243,10 +246,10 @@ func TestClose(t *testing.T) {
 				},
 			}
 
-			svc := Service{
-				config:      cfg,
-				server:      timeoutServerMock,
-				healthCheck: hcMock,
+			svc := service.Service{
+				Config:      cfg,
+				Server:      timeoutServerMock,
+				HealthCheck: hcMock,
 			}
 
 			err = svc.Close(context.Background())

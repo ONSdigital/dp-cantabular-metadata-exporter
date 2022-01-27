@@ -1,23 +1,23 @@
 package steps
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
-	"errors"
-	"context"
-	"encoding/json"
 
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
 
 	"github.com/ONSdigital/log.go/v2/log"
 
-	"github.com/cucumber/godog"
 	assistdog "github.com/ONSdigital/dp-assistdog"
-	"github.com/google/go-cmp/cmp"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/cucumber/godog"
+	"github.com/google/go-cmp/cmp"
 )
 
 func (c *Component) RegisterSteps(ctx *godog.ScenarioContext) {
@@ -43,7 +43,7 @@ func (c *Component) RegisterSteps(ctx *godog.ScenarioContext) {
 	)
 	ctx.Step(
 		`^the following version with dataset id "([^"]*)", edition "([^"]*)" and version "([^"]*)" will be updated to dp-dataset-api:$`,
-		 c.theFollowingVersionWillBeUpdated,
+		c.theFollowingVersionWillBeUpdated,
 	)
 	ctx.Step(
 		`^the following dimensions are available from dataset "([^"]*)" edition "([^"]*)" version "([^"]*)":$`,
@@ -106,6 +106,7 @@ func (c *Component) theFollowingOptionsResponseIsAvailable(dimension, datasetID,
 
 	return nil
 }
+
 // theFollowingDimensionsAreAvailable generates a mocked response for dataset API
 // GET /datasets/{dataset_id}/editions/{edition}/versions/{version}/dimensions
 func (c *Component) theFollowingDimensionsAreAvailable(datasetID, edition, version string, d *godog.DocString) error {
@@ -323,7 +324,5 @@ func (c *Component) datasetAPIIsUnhealthy() error {
 }
 
 func (c *Component) theServiceStarts() error {
-	c.wg.Add(1)
-	go c.startService(context.Background())
-	return nil
+	return c.startService(c.ctx)
 }

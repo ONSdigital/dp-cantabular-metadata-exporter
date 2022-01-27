@@ -4,9 +4,14 @@
 package mock
 
 import (
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
 	"io"
 	"sync"
 )
+
+// Ensure, that FileManagerMock does implement handler.FileManager.
+// If this is not the case, regenerate this file with moq.
+var _ handler.FileManager = &FileManagerMock{}
 
 // FileManagerMock is a mock implementation of handler.FileManager.
 //
