@@ -1,8 +1,8 @@
 package steps
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -22,18 +22,21 @@ func newPutVersionAssertor(b []byte) *putVersionAssertor {
 // endpoint is made. A custom assertor is required because godog strips the
 // request body of all newlines and the default httpfake AssertBody does not
 // so does return as equal even when it is correct
-type putVersionAssertor struct{
+type putVersionAssertor struct {
 	expectedBody []byte
 }
 
 func (p *putVersionAssertor) Assert(r *http.Request) error {
-	defer r.Body.Close()
+	var err error
+	defer func() {
+		err = r.Body.Close()
+	}()
 
 	var got, expected dataset.Version
-	if err := json.Unmarshal(p.expectedBody, &expected); err != nil{
+	if err := json.Unmarshal(p.expectedBody, &expected); err != nil {
 		return fmt.Errorf("failed to unmarshal expected body: %w", err)
 	}
-	if err := json.NewDecoder(r.Body).Decode(&got); err != nil{
+	if err := json.NewDecoder(r.Body).Decode(&got); err != nil {
 		return fmt.Errorf("failed to decode request body: %w", err)
 	}
 
@@ -41,7 +44,7 @@ func (p *putVersionAssertor) Assert(r *http.Request) error {
 		return fmt.Errorf("request body does not match expected (-got +expected)\n%s\n", diff)
 	}
 
-	return nil
+	return err
 }
 
 func (p *putVersionAssertor) Log(t testing.TB) {

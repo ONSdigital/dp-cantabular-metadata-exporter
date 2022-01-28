@@ -1,15 +1,12 @@
 package handler
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-var ctx = context.Background()
 
 var eventTest = event.CSVCreated{
 	DatasetID: "test_id",

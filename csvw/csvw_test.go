@@ -2,8 +2,8 @@ package csvw
 
 import (
 	"context"
-	"testing"
 	"errors"
+	"testing"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	. "github.com/smartystreets/goconvey/convey"
@@ -22,8 +22,8 @@ func TestNew(t *testing.T) {
 				CSVHeader:   []string{"cantabular_table", "sex", "age"},
 			},
 			DatasetDetails: dataset.DatasetDetails{
-				Title:         "title",
-				Description:   "description",
+				Title:       "title",
+				Description: "description",
 			},
 		}
 
@@ -62,7 +62,7 @@ func TestGenerate(t *testing.T) {
 			Version: dataset.Version{
 				ReleaseDate: "1 Jan 2000",
 				Dimensions: []dataset.VersionDimension{
-					dataset.VersionDimension{
+					{
 						Name: "geography",
 						Links: dataset.Links{
 							Self: dataset.Link{

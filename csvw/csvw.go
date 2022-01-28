@@ -44,7 +44,7 @@ type Contact struct {
 type Publisher struct {
 	Name string `json:"name,omitempty"`
 	Type string `json:"@type,omitempty"`
-	ID   string `json:"@id"` //a URL where more info is available
+	ID   string `json:"@id"` // a URL where more info is available
 }
 
 // Columns provides the nested structure expected within the tableSchema of a CSVW
@@ -66,7 +66,6 @@ type Note struct {
 	Motivation string `json:"motivation,omitempty"` // how is this different from type? do we need this? is this an enum?
 }
 
-var errInvalidHeader = errors.New("invalid header row - no V4_X cell")
 var errMissingDimensions = errors.New("no dimensions in provided metadata")
 
 // New CSVW returned with top level fields populated based on provided metadata
@@ -131,13 +130,13 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 	csvw := New(metadata, downloadURL)
 
 	var list []Column
-	obs := newObservationColumn(ctx, h[0], metadata.UnitOfMeasure)
+	obs := newObservationColumn(h[0], metadata.UnitOfMeasure)
 	list = append(list, obs)
 
-	//add dimension columns
-	for i := 1; i < len(h); i = i + 1 {
+	// add dimension columns
+	for i := 1; i < len(h); i++ {
 		l, err := newLabelColumn(i, apiDomain, h, metadata.Dimensions)
-		if err != nil{
+		if err != nil {
 			return nil, Error{
 				err:     fmt.Errorf("failed to create label column: %w", err),
 				logData: logData,
@@ -176,7 +175,7 @@ func formatAboutURL(aboutURL, domain string) (string, error) {
 	about, err := url.Parse(aboutURL)
 	if err != nil {
 		return "", Error{
-			err:     fmt.Errorf("failed to parse aboutURL: %w", err),
+			err: fmt.Errorf("failed to parse aboutURL: %w", err),
 			logData: log.Data{
 				"about_url": aboutURL,
 			},
@@ -186,14 +185,14 @@ func formatAboutURL(aboutURL, domain string) (string, error) {
 	d, err := url.Parse(domain)
 	if err != nil {
 		return "", Error{
-			err:     fmt.Errorf("failed to parse domain: %w", err),
+			err: fmt.Errorf("failed to parse domain: %w", err),
 			logData: log.Data{
 				"domain": domain,
 			},
 		}
 	}
 
-	d.Path = d.Path + about.Path
+	d.Path += about.Path
 
 	return d.String(), nil
 }
@@ -222,7 +221,7 @@ func (csvw *CSVW) AddNotes(metadata *dataset.Metadata, url string) {
 	}
 }
 
-func newObservationColumn(ctx context.Context, title, name string) Column {
+func newObservationColumn(title, name string) Column {
 	c := newColumn(title, name)
 
 	c["datatype"] = "string"
@@ -251,7 +250,7 @@ func newLabelColumn(i int, apiDomain string, header []string, dims []dataset.Ver
 		uri, err := url.Parse(dim.URL)
 		if err != nil {
 			return nil, Error{
-				err:     fmt.Errorf("failed to parse dimension url: %w", err),
+				err: fmt.Errorf("failed to parse dimension url: %w", err),
 				logData: log.Data{
 					"dimension_url": dim.URL,
 				},

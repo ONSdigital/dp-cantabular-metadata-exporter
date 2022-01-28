@@ -52,7 +52,7 @@ func TestConfig(t *testing.T) {
 						ProducerMinBrokersHealthy:     2,
 						CantabularMetadataExportGroup: "cantabular-metadata-export",
 						CantabularCSVCreatedTopic:     "cantabular-csv-created",
-						CantabularCSVWCreatedTopic:     "cantabular-csvw-created",
+						CantabularCSVWCreatedTopic:    "cantabular-csvw-created",
 					},
 				})
 			})

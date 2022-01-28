@@ -41,7 +41,7 @@ func (f *FileManager) PublicUploader() S3Uploader {
 	return f.s3public
 }
 
-// PublicUploader returns the private S3 uploader
+// PrivateUploader returns the private S3 uploader
 func (f *FileManager) PrivateUploader() S3Uploader {
 	return f.s3private
 }
@@ -55,9 +55,9 @@ func (f *FileManager) Upload(body io.Reader, filename string) (string, error) {
 	})
 	if err != nil {
 		return "", Error{
-			err:     fmt.Errorf("failed to upload to S3: %w", err),
+			err: fmt.Errorf("failed to upload to S3: %w", err),
 			logData: map[string]interface{}{
-				"filename": filename,
+				"filename":    filename,
 				"bucket_name": bucket,
 			},
 		}

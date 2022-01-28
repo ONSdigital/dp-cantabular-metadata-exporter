@@ -27,14 +27,6 @@ var (
 
 var errHealthcheck = errors.New("could not get healthcheck")
 
-var funcDoGetHealthcheckErr = func(cfg *config.Config, buildTime string, gitCommit string, version string) (service.HealthChecker, error) {
-	return nil, errHealthcheck
-}
-
-var funcDoGetHTTPServerNil = func(bindAddr string, router http.Handler) service.HTTPServer {
-	return nil
-}
-
 func TestInit(t *testing.T) {
 
 	Convey("Having a set of mocked dependencies", t, func() {
@@ -149,7 +141,7 @@ func TestClose(t *testing.T) {
 			ListenAndServeFunc: func() error { return nil },
 			ShutdownFunc: func(ctx context.Context) error {
 				if !hcStopped {
-					return errors.New("Server stopped before healthcheck")
+					return errors.New("server stopped before healthcheck")
 				}
 				return nil
 			},
@@ -200,7 +192,7 @@ func TestClose(t *testing.T) {
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 			So(err, ShouldBeNil)
 
-			svc.Start(context.Background(), svcErrors)
+			err = svc.Start(context.Background(), svcErrors)
 			So(err, ShouldBeNil)
 
 			err = svc.Close(context.Background())
@@ -214,7 +206,7 @@ func TestClose(t *testing.T) {
 			failingserverMock := &mock.HTTPServerMock{
 				ListenAndServeFunc: func() error { return nil },
 				ShutdownFunc: func(ctx context.Context) error {
-					return errors.New("Failed to stop http server")
+					return errors.New("failed to stop http server")
 				},
 			}
 
@@ -227,7 +219,7 @@ func TestClose(t *testing.T) {
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 			So(err, ShouldBeNil)
 
-			svc.Start(context.Background(), svcErrors)
+			err = svc.Start(context.Background(), svcErrors)
 			So(err, ShouldBeNil)
 
 			err = svc.Close(context.Background())

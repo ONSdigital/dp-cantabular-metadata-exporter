@@ -5,7 +5,7 @@ import (
 )
 
 var (
-  csvCreated = `{
+	csvCreated = `{
     "type": "record",
     "name": "cantabular-metadata-export",
     "fields": [
@@ -17,7 +17,7 @@ var (
     ]
   }`
 
-  csvwCreated = `{
+	csvwCreated = `{
     "type": "record",
     "name": "cantabular-metadata-complete",
     "fields": [
@@ -29,13 +29,13 @@ var (
     ]
   }`
 
-  // CSVCreated is the Avro schema for Metadata Export messages.
-  CSVCreated = &avro.Schema{
-    Definition: csvCreated,
-  }
+	// CSVCreated is the Avro schema for Metadata Export messages.
+	CSVCreated = &avro.Schema{
+		Definition: csvCreated,
+	}
 
-  // CSVWCreated is the Avro schema for Metadata Complete messages.
-  CSVWCreated = &avro.Schema{
-    Definition: csvwCreated,
-  }
+	// CSVWCreated is the Avro schema for Metadata Complete messages.
+	CSVWCreated = &avro.Schema{
+		Definition: csvwCreated,
+	}
 )
