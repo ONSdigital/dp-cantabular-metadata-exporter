@@ -144,7 +144,7 @@ func (c *Component) theFollowingVersionDocumentIsAvailable(datasetID, edition, v
 }
 
 // theFollowingVersionWillBeUpdated generates a mocked response for dataset API
-// PUT /instances/{id} with the provided instance response
+// PUT /datasets/{dataset_id}/editions/{edition}/versions/{version} with the provided update in the request body
 func (c *Component) theFollowingVersionWillBeUpdated(datasetID, edition, version string, v *godog.DocString) error {
 	url := fmt.Sprintf(
 		"/datasets/%s/editions/%s/versions/%s",
