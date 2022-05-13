@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
@@ -11,12 +12,12 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
 
-	"github.com/ONSdigital/log.go/v2/log"
 	kafka "github.com/ONSdigital/dp-kafka/v3"
+	"github.com/ONSdigital/log.go/v2/log"
 )
 
 const (
-	batchSize = 1000
+	batchSize  = 1000
 	maxWorkers = 10
 )
 
@@ -59,7 +60,17 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		"event": e,
 	}
 
-	m, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, e.Version)
+	req := dataset.GetVersionMetadataSelectionInput{
+		UserAuthToken:    "",
+		ServiceAuthToken: h.cfg.ServiceAuthToken,
+		CollectionID:     "",
+		DatasetID:        e.DatasetID,
+		Edition:          e.Edition,
+		Version:          e.Version,
+		Dimensions:       strings.Split(e.DimensionIDs, ","),
+	}
+
+	m, err := h.dataset.GetVersionMetadataSelection(ctx, req)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to get version metadata: %w", err),
@@ -68,7 +79,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 	}
 
 	isPublished, err := h.isVersionPublished(ctx, e)
-	if err != nil{
+	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to determine published state: %w", err),
 			logData: logData,
@@ -77,7 +88,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 
 	logData["isPublished"] = isPublished
 
-	csvwDownload, err := h.exportCSVW(ctx, e, m, isPublished)
+	csvwDownload, err := h.exportCSVW(ctx, e, *m, isPublished)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to export csvw: %w", err),
@@ -85,7 +96,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		}
 	}
 
-	txtDownload, err := h.exportTXTFile(ctx, e, m, isPublished)
+	txtDownload, err := h.exportTXTFile(ctx, e, *m, isPublished)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to export metadata text file: %w", err),
@@ -110,7 +121,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		ctx,
 		"",
 		h.cfg.ServiceAuthToken,
-		m.Version.CollectionID, 
+		m.Version.CollectionID,
 		e.DatasetID,
 		e.Edition,
 		e.Version,
@@ -122,7 +133,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		}
 	}
 
-	if err := h.produceOutputMessage(e); err != nil{
+	if err := h.produceOutputMessage(e); err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to producer output kafka message: %w", err),
 			logData: logData,
@@ -145,7 +156,7 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 
 	var url string
 
-	if isPublished{
+	if isPublished {
 		url, err = h.file.Upload(bytes.NewReader(b), h.generateTextFilename(e))
 	} else {
 		url, err = h.file.UploadPrivate(bytes.NewReader(b), h.generateTextFilename(e), h.generateVaultPath(e, "txt"))
@@ -180,7 +191,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 	}
 
 	log.Info(ctx, "uploading csvw file to s3", log.Data{
-		"filename": filename,
+		"filename":       filename,
 		"private_bucket": !isPublished,
 	})
 
@@ -252,7 +263,7 @@ func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset
 			ctx,
 			"",
 			h.cfg.ServiceAuthToken,
-			"", 
+			"",
 			e.DatasetID,
 			e.Edition,
 			e.Version,
@@ -292,11 +303,11 @@ func (h *CantabularMetadataExport) produceOutputMessage(e *event.CSVCreated) err
 	s := schema.CSVWCreated
 
 	b, err := s.Marshal(&event.CSVWCreated{
-		InstanceID:   e.InstanceID,
-		DatasetID:    e.DatasetID,
-		Edition:      e.Edition,
-		Version:      e.Version,
-		RowCount:     e.RowCount,
+		InstanceID: e.InstanceID,
+		DatasetID:  e.DatasetID,
+		Edition:    e.Edition,
+		Version:    e.Version,
+		RowCount:   e.RowCount,
 	})
 	if err != nil {
 		return fmt.Errorf("error marshalling csvw created event: %w", err)
