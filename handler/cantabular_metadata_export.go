@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
@@ -67,7 +66,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		DatasetID:        e.DatasetID,
 		Edition:          e.Edition,
 		Version:          e.Version,
-		Dimensions:       strings.Split(e.DimensionIDs, ","),
+		Dimensions:       e.DimensionIDs,
 	}
 
 	m, err := h.dataset.GetVersionMetadataSelection(ctx, req)
