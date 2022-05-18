@@ -66,7 +66,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		DatasetID:        e.DatasetID,
 		Edition:          e.Edition,
 		Version:          e.Version,
-		Dimensions:       e.DimensionIDs,
+		Dimensions:       e.Dimensions,
 	}
 
 	m, err := h.dataset.GetVersionMetadataSelection(ctx, req)
