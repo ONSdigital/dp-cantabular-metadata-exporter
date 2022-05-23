@@ -7,6 +7,7 @@ type CSVCreated struct {
 	Version    string   `avro:"version"`
 	InstanceID string   `avro:"instance_id"`
 	RowCount   int32    `avro:"row_count"`
+	FileName   string   `avro:"file_name"`
 	Dimensions []string `avro:"dimensions"`
 }
 
