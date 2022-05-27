@@ -19,7 +19,7 @@ func TestGenerateTextFilename(t *testing.T) {
 	Convey("Succesfully return a string representing the .txt filename", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
-		h := NewCantabularMetadataExport(*cfg, nil, nil, nil)
+		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil)
 		filename := h.generateTextFilename(&eventTest)
 		expectedFilename := "datasets/test_id-test-edition-1.txt"
 		So(filename, ShouldResemble, expectedFilename)
@@ -33,7 +33,7 @@ func TestGenerateVaultPath(t *testing.T) {
 	Convey("Succesfully return a string representing the vault path with given file extension", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
-		h := NewCantabularMetadataExport(*cfg, nil, nil, nil)
+		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil)
 
 		Convey("Vault path ends in 'foo'", func() {
 			vaultPath := h.generateVaultPath(&eventTest, "foo")
@@ -55,7 +55,7 @@ func TestGenerateDownloadURL(t *testing.T) {
 	Convey("Succesfully return a string representing the download URL with given file extension", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
-		h := NewCantabularMetadataExport(*cfg, nil, nil, nil)
+		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil)
 
 		Convey("Download URL ends in 'foo'", func() {
 			vaultPath := h.generateDownloadURL(&eventTest, "foo")

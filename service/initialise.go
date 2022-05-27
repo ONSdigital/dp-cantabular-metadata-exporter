@@ -11,6 +11,7 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/generator"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	kafka "github.com/ONSdigital/dp-kafka/v3"
 	dphttp "github.com/ONSdigital/dp-net/http"
@@ -20,7 +21,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 )
-
 
 const (
 	VaultRetries = 3
@@ -104,7 +104,12 @@ var GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IPro
 
 // GetDatasetAPIClient gets and initialises the DatasetAPI Client
 var GetDatasetAPIClient = func(cfg *config.Config) DatasetAPIClient {
- 	return dataset.NewAPIClient(cfg.DatasetAPIURL)
+	return dataset.NewAPIClient(cfg.DatasetAPIURL)
+}
+
+// GetDatasetAPIClient gets and initialises the FilterAPI Client
+var GetFilterAPIClient = func(cfg *config.Config) FilterAPIClient {
+	return filter.New(cfg.FilterAPIURL)
 }
 
 // GetFileManager instantiates teh service FileManager

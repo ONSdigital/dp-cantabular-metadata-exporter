@@ -21,6 +21,7 @@ type Service struct {
 	consumer         kafka.IConsumerGroup
 	producer         kafka.IProducer
 	datasetAPIClient DatasetAPIClient
+	filterAPIClient  FilterAPIClient
 	HealthCheck      HealthChecker
 	vaultClient      VaultClient
 	generator        Generator
@@ -68,6 +69,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 	}
 
 	svc.datasetAPIClient = GetDatasetAPIClient(cfg)
+	svc.filterAPIClient = GetFilterAPIClient(cfg)
 
 	if svc.HealthCheck, err = GetHealthCheck(cfg, buildT, commit, ver); err != nil {
 		return fmt.Errorf("could not get healtcheck: %w", err)
@@ -76,6 +78,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 	h := handler.NewCantabularMetadataExport(
 		*svc.Config,
 		svc.datasetAPIClient,
+		svc.filterAPIClient,
 		svc.fileManager,
 		svc.producer,
 	)

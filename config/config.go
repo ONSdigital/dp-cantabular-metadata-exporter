@@ -29,6 +29,7 @@ type Config struct {
 	ComponentTestUseLogFile    bool          `envconfig:"COMPONENT_TEST_USE_LOG_FILE"`
 	ServiceAuthToken           string        `envconfig:"SERVICE_AUTH_TOKEN"`
 	DownloadServiceURL         string        `envconfig:"DOWNLOAD_SERVICE_URL"`
+	FilterAPIURL               string        `envconfig:"FILTER_API_URL"`
 	StopConsumingOnUnhealthy   bool          `envconfig:"STOP_CONSUMING_ON_UNHEALTHY"`
 	Kafka                      KafkaConfig
 }
@@ -74,6 +75,7 @@ func Get() (*Config, error) {
 		PrivateBucket:              "dp-cantabular-metadata-exporter",
 		S3BucketURL:                "",
 		DatasetAPIURL:              "http://localhost:22000",
+		FilterAPIURL:               "http://localhost:22100",
 		ComponentTestUseLogFile:    false,
 		DownloadServiceURL:         "http://localhost:23600",
 		StopConsumingOnUnhealthy:   true,

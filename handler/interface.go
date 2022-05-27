@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 )
 
 //go:generate moq -out mock/filemanager.go        -pkg mock . FileManager
@@ -23,4 +24,7 @@ type DatasetAPIClient interface {
 	GetOptionsInBatches(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version, dimension string, batchSize, maxWorkers int) (dataset.Options, error)
 	PutVersion(ctx context.Context, usrAuthToken, svcAuthToken, collectionID, datasetID, edition, ver string, v dataset.Version) error
 	GetMetadataURL(id, edition, version string) (url string)
+}
+type FilterAPIClient interface {
+	UpdateFilterOutput(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, filterOutputID string, m *filter.Model) error
 }
