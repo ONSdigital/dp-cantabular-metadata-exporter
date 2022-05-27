@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
@@ -25,6 +26,11 @@ type DatasetAPIClient interface {
 	PutVersion(ctx context.Context, usrAuthToken, svcAuthToken, collectionID, datasetID, edition, ver string, v dataset.Version) error
 	GetMetadataURL(id, edition, version string) (url string)
 }
+
 type FilterAPIClient interface {
 	UpdateFilterOutput(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, filterOutputID string, m *filter.Model) error
+}
+
+type Generator interface {
+	Timestamp() time.Time
 }

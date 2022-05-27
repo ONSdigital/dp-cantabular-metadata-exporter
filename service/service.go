@@ -81,6 +81,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 		svc.filterAPIClient,
 		svc.fileManager,
 		svc.producer,
+		svc.generator,
 	)
 	if err := svc.consumer.RegisterHandler(ctx, h.Handle); err != nil {
 		return fmt.Errorf("could not register kafka handler: %w", err)

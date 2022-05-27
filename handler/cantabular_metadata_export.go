@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
@@ -36,19 +37,21 @@ type CantabularMetadataExport struct {
 	filter            FilterAPIClient
 	file              FileManager
 	producer          kafka.IProducer
+	generate          Generator
 	csvwPrefix        string
 	metadataExtension string
 	apiDomainURL      string
 }
 
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler
-func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, f FilterAPIClient, fm FileManager, p kafka.IProducer) *CantabularMetadataExport {
+func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, f FilterAPIClient, fm FileManager, p kafka.IProducer, g Generator) *CantabularMetadataExport {
 	return &CantabularMetadataExport{
 		cfg:      cfg,
 		dataset:  d,
 		filter:   f,
 		file:     fm,
 		producer: p,
+		generate: g,
 	}
 }
 
@@ -276,17 +279,31 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 }
 
 func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated) string {
-	return fmt.Sprintf("datasets/%s-%s-%s.txt", e.DatasetID, e.Edition, e.Version)
+	fn := fmt.Sprintf("datasets/%s-%s-%s", e.DatasetID, e.Edition, e.Version)
+
+	suffix := ".txt"
+	if len(e.FilterOutputID) != 0 {
+		suffix = fmt.Sprintf("-%s.txt", h.generate.Timestamp().Format(time.RFC3339))
+	}
+
+	return fn + suffix
 }
 
 func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated) string {
-	return fmt.Sprintf(
-		"datasets/%s%s-%s-%s.csvw",
+	fn := fmt.Sprintf(
+		"datasets/%s%s-%s-%s",
 		h.csvwPrefix,
 		e.DatasetID,
 		e.Edition,
 		e.Version,
 	)
+
+	suffix := ".csvw"
+	if len(e.FilterOutputID) != 0 {
+		suffix = fmt.Sprintf("-%s.csvw", h.generate.Timestamp().Format(time.RFC3339))
+	}
+
+	return fn + suffix
 }
 
 func (h *CantabularMetadataExport) generateDownloadURL(e *event.CSVCreated, extension string) string {
@@ -374,7 +391,7 @@ func (h *CantabularMetadataExport) produceOutputMessage(e *event.CSVCreated) err
 	return nil
 }
 
-func (h *CantabularMetadataExport) UpdateInstance(ctx context.Context, e *event.CSVCreated, txtInfo, csvwInfo *downloadInfo, collectionID string) error {
+func (h *CantabularMetadataExport) UpdateInstance(ctx context.Context, e *event.CSVCreated, csvwInfo, txtInfo *downloadInfo, collectionID string) error {
 	log.Info(ctx, "updating instance with download link")
 
 	downloads := map[string]dataset.Download{
@@ -417,7 +434,7 @@ func (h *CantabularMetadataExport) UpdateInstance(ctx context.Context, e *event.
 	return nil
 }
 
-func (h *CantabularMetadataExport) UpdateFilterOutput(ctx context.Context, e *event.CSVCreated, txtInfo, csvwInfo *downloadInfo) error {
+func (h *CantabularMetadataExport) UpdateFilterOutput(ctx context.Context, e *event.CSVCreated, csvwInfo, txtInfo *downloadInfo) error {
 	log.Info(ctx, "Updating filter output with download link")
 
 	txtDownload := filter.Download{

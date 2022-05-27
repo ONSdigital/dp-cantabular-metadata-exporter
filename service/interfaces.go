@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
 
@@ -75,4 +76,5 @@ type FileManager interface {
 // e.g. UUIDs, PSKs.
 type Generator interface {
 	NewPSK() ([]byte, error)
+	Timestamp() time.Time
 }
