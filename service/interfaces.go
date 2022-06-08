@@ -4,10 +4,13 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
@@ -35,12 +38,18 @@ type DatasetAPIClient interface {
 	GetInstance(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, instanceID, ifMatch string) (m dataset.Instance, eTag string, err error)
 	PutInstance(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, instanceID string, instanceUpdate dataset.UpdateInstance, ifMatch string) (eTag string, err error)
 	GetVersion(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceAuthToken, collectionID, datasetID, edition, version string) (dataset.Version, error)
+	GetVersionMetadataSelection(ctx context.Context, req dataset.GetVersionMetadataSelectionInput) (*dataset.Metadata, error)
 	GetVersionMetadata(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version string) (dataset.Metadata, error)
 	GetVersionDimensions(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version string) (dataset.VersionDimensions, error)
 	GetOptionsInBatches(ctx context.Context, userAuthToken, serviceAuthToken, collectionID, id, edition, version, dimension string, batchSize, maxWorkers int) (dataset.Options, error)
 	GetMetadataURL(id, edition, version string) (url string)
 	Checker(context.Context, *healthcheck.CheckState) error
 	PutVersion(ctx context.Context, usrAuthToken, svcAuthToken, collectionID, datasetID, edition, ver string, v dataset.Version) error
+}
+
+type FilterAPIClient interface {
+	UpdateFilterOutput(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, filterOutputID string, m *filter.Model) error
+	Checker(context.Context, *healthcheck.CheckState) error
 }
 
 type S3Uploader interface {
@@ -67,4 +76,5 @@ type FileManager interface {
 // e.g. UUIDs, PSKs.
 type Generator interface {
 	NewPSK() ([]byte, error)
+	Timestamp() time.Time
 }

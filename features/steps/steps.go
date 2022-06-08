@@ -46,6 +46,10 @@ func (c *Component) RegisterSteps(ctx *godog.ScenarioContext) {
 		c.theFollowingVersionWillBeUpdated,
 	)
 	ctx.Step(
+		`^the following filter output with id "([^"]*)" will be updated to dp-filter-api:$`,
+		c.theFollowingFilterOutputWillBeUpdated,
+	)
+	ctx.Step(
 		`^the following dimensions are available from dataset "([^"]*)" edition "([^"]*)" version "([^"]*)":$`,
 		c.theFollowingDimensionsAreAvailable,
 	)
@@ -144,7 +148,7 @@ func (c *Component) theFollowingVersionDocumentIsAvailable(datasetID, edition, v
 }
 
 // theFollowingVersionWillBeUpdated generates a mocked response for dataset API
-// PUT /instances/{id} with the provided instance response
+// PUT /datasets/{dataset_id}/editions/{edition}/versions/{version} with the provided update in the request body
 func (c *Component) theFollowingVersionWillBeUpdated(datasetID, edition, version string, v *godog.DocString) error {
 	url := fmt.Sprintf(
 		"/datasets/%s/editions/%s/versions/%s",
@@ -156,6 +160,20 @@ func (c *Component) theFollowingVersionWillBeUpdated(datasetID, edition, version
 	c.DatasetAPI.NewHandler().
 		Put(url).
 		AssertCustom(newPutVersionAssertor([]byte(v.Content))).
+		Reply(http.StatusOK)
+
+	return nil
+}
+
+func (c *Component) theFollowingFilterOutputWillBeUpdated(filterOutputID string, v *godog.DocString) error {
+	url := fmt.Sprintf(
+		"/filter-outputs/%s",
+		filterOutputID,
+	)
+
+	c.FilterAPI.NewHandler().
+		Put(url).
+		AssertCustom(newPutFilterOutputAssertor([]byte(v.Content))).
 		Reply(http.StatusOK)
 
 	return nil

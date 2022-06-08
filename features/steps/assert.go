@@ -6,13 +6,20 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ONSdigital/dp-api-clients-go/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 
 	"github.com/google/go-cmp/cmp"
 )
 
 func newPutVersionAssertor(b []byte) *putVersionAssertor {
 	return &putVersionAssertor{
+		expectedBody: b,
+	}
+}
+
+func newPutFilterOutputAssertor(b []byte) *putFilterOutputAssertor {
+	return &putFilterOutputAssertor{
 		expectedBody: b,
 	}
 }
@@ -53,4 +60,37 @@ func (p *putVersionAssertor) Log(t testing.TB) {
 
 func (p *putVersionAssertor) Error(t testing.TB, err error) {
 	t.Errorf("error asserting request to PUT version: %s", err)
+}
+
+type putFilterOutputAssertor struct {
+	expectedBody []byte
+}
+
+func (p *putFilterOutputAssertor) Assert(r *http.Request) error {
+	var err error
+	defer func() {
+		err = r.Body.Close()
+	}()
+
+	var got, expected filter.Model
+	if err := json.Unmarshal(p.expectedBody, &expected); err != nil {
+		return fmt.Errorf("failed to unmarshal expected body: %w", err)
+	}
+	if err := json.NewDecoder(r.Body).Decode(&got); err != nil {
+		return fmt.Errorf("failed to decode request body: %w", err)
+	}
+
+	if diff := cmp.Diff(got, expected); diff != "" {
+		return fmt.Errorf("request body does not match expected (-got +expected)\n%s\n", diff)
+	}
+
+	return err
+}
+
+func (p *putFilterOutputAssertor) Log(t testing.TB) {
+	t.Log("asserting request PUT filter-output")
+}
+
+func (p *putFilterOutputAssertor) Error(t testing.TB, err error) {
+	t.Errorf("error asserting request to PUT filter-output: %s", err)
 }

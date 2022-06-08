@@ -4,40 +4,54 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/csvw"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
+	"github.com/pkg/errors"
 
-	"github.com/ONSdigital/log.go/v2/log"
 	kafka "github.com/ONSdigital/dp-kafka/v3"
+	"github.com/ONSdigital/log.go/v2/log"
 )
 
 const (
-	batchSize = 1000
+	batchSize  = 1000
 	maxWorkers = 10
 )
+
+type downloadInfo struct {
+	size        int
+	publicURL   string
+	privateURL  string
+	downloadURL string
+}
 
 // CantabularMetadataExport is the event handler for the CantabularMetadataExport event
 type CantabularMetadataExport struct {
 	cfg               config.Config
 	dataset           DatasetAPIClient
+	filter            FilterAPIClient
 	file              FileManager
 	producer          kafka.IProducer
+	generate          Generator
 	csvwPrefix        string
 	metadataExtension string
 	apiDomainURL      string
 }
 
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler
-func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, fm FileManager, p kafka.IProducer) *CantabularMetadataExport {
+func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, f FilterAPIClient, fm FileManager, p kafka.IProducer, g Generator) *CantabularMetadataExport {
 	return &CantabularMetadataExport{
 		cfg:      cfg,
 		dataset:  d,
+		filter:   f,
 		file:     fm,
 		producer: p,
+		generate: g,
 	}
 }
 
@@ -59,7 +73,19 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		"event": e,
 	}
 
-	m, err := h.dataset.GetVersionMetadata(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, e.Version)
+	isFilterJob := len(e.FilterOutputID) != 0
+
+	req := dataset.GetVersionMetadataSelectionInput{
+		UserAuthToken:    "",
+		ServiceAuthToken: h.cfg.ServiceAuthToken,
+		CollectionID:     "",
+		DatasetID:        e.DatasetID,
+		Edition:          e.Edition,
+		Version:          e.Version,
+		Dimensions:       e.Dimensions,
+	}
+
+	m, err := h.dataset.GetVersionMetadataSelection(ctx, req)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to get version metadata: %w", err),
@@ -68,7 +94,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 	}
 
 	isPublished, err := h.isVersionPublished(ctx, e)
-	if err != nil{
+	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to determine published state: %w", err),
 			logData: logData,
@@ -77,7 +103,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 
 	logData["isPublished"] = isPublished
 
-	csvwDownload, err := h.exportCSVW(ctx, e, m, isPublished)
+	csvwDownload, err := h.exportCSVW(ctx, e, *m, isPublished)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to export csvw: %w", err),
@@ -85,7 +111,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		}
 	}
 
-	txtDownload, err := h.exportTXTFile(ctx, e, m, isPublished)
+	txtDownload, err := h.exportTXTFile(ctx, e, *m, isPublished)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to export metadata text file: %w", err),
@@ -93,36 +119,23 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		}
 	}
 
-	downloads := map[string]dataset.Download{
-		"CSVW": *csvwDownload,
-		"TXT":  *txtDownload,
-	}
-
-	logData["downloads"] = downloads
-
-	log.Info(ctx, "updating dataset api with download link", logData)
-
-	v := dataset.Version{
-		Downloads: downloads,
-	}
-
-	if err := h.dataset.PutVersion(
-		ctx,
-		"",
-		h.cfg.ServiceAuthToken,
-		m.Version.CollectionID, 
-		e.DatasetID,
-		e.Edition,
-		e.Version,
-		v,
-	); err != nil {
-		return Error{
-			err:     fmt.Errorf("failed to update version: %w", err),
-			logData: logData,
+	if isFilterJob {
+		if err := h.UpdateFilterOutput(ctx, e, csvwDownload, txtDownload); err != nil {
+			return Error{
+				err:     errors.Wrap(err, "failed to update filter output"),
+				logData: logData,
+			}
+		}
+	} else {
+		if err := h.UpdateInstance(ctx, e, csvwDownload, txtDownload, m.Version.CollectionID); err != nil {
+			return Error{
+				err:     errors.Wrap(err, "failed to update instance"),
+				logData: logData,
+			}
 		}
 	}
 
-	if err := h.produceOutputMessage(e); err != nil{
+	if err := h.produceOutputMessage(e); err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to producer output kafka message: %w", err),
 			logData: logData,
@@ -132,7 +145,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 	return nil
 }
 
-func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
+func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*downloadInfo, error) {
 	dimensions, err := h.dataset.GetVersionDimensions(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, e.Version)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get version dimensions: %w", err)
@@ -145,7 +158,7 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 
 	var url string
 
-	if isPublished{
+	if isPublished {
 		url, err = h.file.Upload(bytes.NewReader(b), h.generateTextFilename(e))
 	} else {
 		url, err = h.file.UploadPrivate(bytes.NewReader(b), h.generateTextFilename(e), h.generateVaultPath(e, "txt"))
@@ -154,22 +167,21 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 		return nil, fmt.Errorf("failed to upload file: %w", err)
 	}
 
-	download := &dataset.Download{
-		Size: fmt.Sprintf("%d", len(b)),
+	d := downloadInfo{
+		size:        len(b),
+		downloadURL: h.generateDownloadURL(e, "txt"),
 	}
 
 	if isPublished {
-		download.Public = url
+		d.publicURL = url
 	} else {
-		download.Private = url
+		d.privateURL = url
 	}
 
-	download.URL = h.generateDownloadURL(e, "txt")
-
-	return download, nil
+	return &d, nil
 }
 
-func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*dataset.Download, error) {
+func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*downloadInfo, error) {
 	filename := h.generateCSVWFilename(e)
 	downloadURL := h.generateDownloadURL(e, "csv-metadata.json")
 	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, e.Version)
@@ -180,7 +192,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 	}
 
 	log.Info(ctx, "uploading csvw file to s3", log.Data{
-		"filename": filename,
+		"filename":       filename,
 		"private_bucket": !isPublished,
 	})
 
@@ -194,33 +206,46 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 		return nil, fmt.Errorf("failed to upload file: %w", err)
 	}
 
-	download := &dataset.Download{
-		Size: fmt.Sprintf("%d", len(f)),
+	d := downloadInfo{
+		size:        len(f),
+		downloadURL: downloadURL,
 	}
 
 	if isPublished {
-		download.Public = url
+		d.publicURL = url
 	} else {
-		download.Private = url
+		d.privateURL = url
 	}
 
-	download.URL = downloadURL
-
-	return download, nil
+	return &d, nil
 }
 
 func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated) string {
-	return fmt.Sprintf("datasets/%s-%s-%s.txt", e.DatasetID, e.Edition, e.Version)
+	fn := fmt.Sprintf("datasets/%s-%s-%s", e.DatasetID, e.Edition, e.Version)
+
+	suffix := ".txt"
+	if len(e.FilterOutputID) != 0 {
+		suffix = fmt.Sprintf("-%s.txt", h.generate.Timestamp().Format(time.RFC3339))
+	}
+
+	return fn + suffix
 }
 
 func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated) string {
-	return fmt.Sprintf(
-		"datasets/%s%s-%s-%s.csvw",
+	fn := fmt.Sprintf(
+		"datasets/%s%s-%s-%s",
 		h.csvwPrefix,
 		e.DatasetID,
 		e.Edition,
 		e.Version,
 	)
+
+	suffix := ".csvw"
+	if len(e.FilterOutputID) != 0 {
+		suffix = fmt.Sprintf("-%s.csvw", h.generate.Timestamp().Format(time.RFC3339))
+	}
+
+	return fn + suffix
 }
 
 func (h *CantabularMetadataExport) generateDownloadURL(e *event.CSVCreated, extension string) string {
@@ -252,7 +277,7 @@ func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset
 			ctx,
 			"",
 			h.cfg.ServiceAuthToken,
-			"", 
+			"",
 			e.DatasetID,
 			e.Edition,
 			e.Version,
@@ -292,11 +317,11 @@ func (h *CantabularMetadataExport) produceOutputMessage(e *event.CSVCreated) err
 	s := schema.CSVWCreated
 
 	b, err := s.Marshal(&event.CSVWCreated{
-		InstanceID:   e.InstanceID,
-		DatasetID:    e.DatasetID,
-		Edition:      e.Edition,
-		Version:      e.Version,
-		RowCount:     e.RowCount,
+		InstanceID: e.InstanceID,
+		DatasetID:  e.DatasetID,
+		Edition:    e.Edition,
+		Version:    e.Version,
+		RowCount:   e.RowCount,
 	})
 	if err != nil {
 		return fmt.Errorf("error marshalling csvw created event: %w", err)
@@ -304,6 +329,84 @@ func (h *CantabularMetadataExport) produceOutputMessage(e *event.CSVCreated) err
 
 	// Send bytes to kafka producer output channel
 	h.producer.Channels().Output <- b
+
+	return nil
+}
+
+func (h *CantabularMetadataExport) UpdateInstance(ctx context.Context, e *event.CSVCreated, csvwInfo, txtInfo *downloadInfo, collectionID string) error {
+	log.Info(ctx, "updating instance with download link")
+
+	downloads := map[string]dataset.Download{
+		"CSVW": dataset.Download{
+			Size:    fmt.Sprintf("%d", csvwInfo.size),
+			Public:  csvwInfo.publicURL,
+			Private: csvwInfo.privateURL,
+			URL:     csvwInfo.downloadURL,
+		},
+		"TXT": dataset.Download{
+			Size:    fmt.Sprintf("%d", txtInfo.size),
+			Public:  txtInfo.publicURL,
+			Private: txtInfo.privateURL,
+			URL:     txtInfo.downloadURL,
+		},
+	}
+
+	v := dataset.Version{
+		Downloads: downloads,
+	}
+
+	if err := h.dataset.PutVersion(
+		ctx,
+		"",
+		h.cfg.ServiceAuthToken,
+		collectionID,
+		e.DatasetID,
+		e.Edition,
+		e.Version,
+		v,
+	); err != nil {
+		return Error{
+			err: errors.Wrap(err, "failed to put version"),
+			logData: log.Data{
+				"downloads": downloads,
+			},
+		}
+	}
+
+	return nil
+}
+
+func (h *CantabularMetadataExport) UpdateFilterOutput(ctx context.Context, e *event.CSVCreated, csvwInfo, txtInfo *downloadInfo) error {
+	log.Info(ctx, "Updating filter output with download link")
+
+	txtDownload := filter.Download{
+		URL:     fmt.Sprintf("%s/downloads/filter-outputs/%s.txt", h.cfg.DownloadServiceURL, e.FilterOutputID),
+		Size:    fmt.Sprintf("%d", txtInfo.size),
+		Skipped: false,
+	}
+
+	txtDownload.Public = txtInfo.publicURL
+	txtDownload.Private = txtInfo.privateURL
+
+	csvwDownload := filter.Download{
+		URL:     fmt.Sprintf("%s/downloads/filter-outputs/%s.csv-metadata.json", h.cfg.DownloadServiceURL, e.FilterOutputID),
+		Size:    fmt.Sprintf("%d", csvwInfo.size),
+		Skipped: false,
+	}
+
+	csvwDownload.Public = csvwInfo.publicURL
+	csvwDownload.Private = csvwInfo.privateURL
+
+	m := filter.Model{
+		Downloads: map[string]filter.Download{
+			"CSVW": csvwDownload,
+			"TXT":  txtDownload,
+		},
+	}
+
+	if err := h.filter.UpdateFilterOutput(ctx, "", h.cfg.ServiceAuthToken, "", e.FilterOutputID, &m); err != nil {
+		return errors.Wrap(err, "failed to update filter output")
+	}
 
 	return nil
 }

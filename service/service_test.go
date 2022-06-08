@@ -58,7 +58,7 @@ func TestInit(t *testing.T) {
 		service.GetKafkaConsumer = func(ctx context.Context, cfg *config.Config) (kafka.IConsumerGroup, error) {
 			return &kafkatest.IConsumerGroupMock{
 				ChannelsFunc: func() *kafka.ConsumerGroupChannels {
-					return kafka.CreateConsumerGroupChannels(1)
+					return kafka.CreateConsumerGroupChannels(1, 1)
 				},
 				RegisterHandlerFunc: func(ctx context.Context, h kafka.Handler) error {
 					return nil
@@ -164,7 +164,7 @@ func TestClose(t *testing.T) {
 			}, nil
 		}
 
-		cgc := kafka.CreateConsumerGroupChannels(1)
+		cgc := kafka.CreateConsumerGroupChannels(1, 1)
 		cgc.State = &kafka.ConsumerStateChannels{
 			Consuming: kafka.NewStateChan(),
 		}

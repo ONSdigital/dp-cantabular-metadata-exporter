@@ -5,6 +5,7 @@ services:
         build:
             context: ../../../dp-cantabular-metadata-exporter
             dockerfile: Dockerfile.local
+        user: "${MY_UID}:${MY_GID}"
         command:
             - go 
             - test 
@@ -15,12 +16,9 @@ services:
         volumes:
             - ../../:/dp-cantabular-metadata-exporter
         depends_on:
-            kafka-1:
-                condition: service_started
-            minio:
-                condition: service_healthy
-            vault:
-                condition: service_started
+            - kafka-1
+            - minio
+            - vault
         ports:
             - "26700:26700"
         environment:

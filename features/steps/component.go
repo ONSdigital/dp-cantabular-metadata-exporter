@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/features/mock"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service"
 
 	cmptest "github.com/ONSdigital/dp-component-test"
@@ -42,6 +43,7 @@ type Component struct {
 	cmptest.ErrorFeature
 	apiFeature       *cmptest.APIFeature
 	DatasetAPI       *httpfake.HTTPFake
+	FilterAPI        *httpfake.HTTPFake
 	S3Downloader     *s3manager.Downloader
 	producer         kafka.IProducer
 	consumer         kafka.IConsumerGroup
@@ -50,6 +52,7 @@ type Component struct {
 	svc              *service.Service
 	cfg              *config.Config
 	wg               *sync.WaitGroup
+	g                service.Generator
 	signals          chan os.Signal
 	waitEventTimeout time.Duration
 	minioRetries     int
@@ -61,6 +64,7 @@ func NewComponent(t *testing.T) *Component {
 		errorChan:        make(chan error),
 		svcStarted:       make(chan bool, 1),
 		DatasetAPI:       httpfake.New(httpfake.WithTesting(t)),
+		FilterAPI:        httpfake.New(httpfake.WithTesting(t)),
 		wg:               &sync.WaitGroup{},
 		waitEventTimeout: WaitEventTimeout,
 		minioRetries:     MinioCheckRetries,
@@ -82,6 +86,11 @@ func (c *Component) initService(ctx context.Context) error {
 	log.Info(ctx, "config used by component tests", log.Data{"cfg": c.cfg})
 
 	c.cfg.DatasetAPIURL = c.DatasetAPI.ResolveURL("")
+	c.cfg.FilterAPIURL = c.FilterAPI.ResolveURL("")
+
+	service.GetGenerator = func() service.Generator {
+		return &mock.Generator{}
+	}
 
 	s3Config := &aws.Config{
 		Credentials:      credentials.NewStaticCredentials(c.cfg.MinioAccessKey, c.cfg.MinioSecretKey, ""),
@@ -325,12 +334,7 @@ func (c *Component) Reset() error {
 	}
 
 	c.DatasetAPI.Reset()
-	// run application in separate goroutine
-	//	c.wg.Add(1)
-	//	go c.startService(ctx)
-
-	// don't allow scenario to start until svc fully initialised
-	//	<- c.svcStarted
+	c.FilterAPI.Reset()
 
 	return nil
 }

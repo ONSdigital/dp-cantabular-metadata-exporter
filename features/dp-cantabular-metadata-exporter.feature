@@ -2,7 +2,7 @@ Feature: Cantabular-Metadata-Exporter
 
   Background:
 
-    And the following metadata document with dataset id "cantabular-example-1", edition "2021" and version "1" is available from dp-dataset-api:
+    Given the following metadata document with dataset id "cantabular-example-1", edition "2021" and version "1" is available from dp-dataset-api:
       """
       {
         "dimensions": [
@@ -476,74 +476,76 @@ Feature: Cantabular-Metadata-Exporter
         "total_count": 2
       }
       """
+
     And the following options response is available for dimension "siblings_3" for dataset "cantabular-example-1" edition "2021" version "1" with query params "offset=0&limit=1000":
-    """
-    {
-      "items": [
-        {
-          "label": "No siblings",
-          "links": {
-            "code": {
-              "href": "http://localhost:22400/code-lists/siblings_3/codes/0",
-              "id": "0"
+      """
+      {
+        "items": [
+          {
+            "label": "No siblings",
+            "links": {
+              "code": {
+                "href": "http://localhost:22400/code-lists/siblings_3/codes/0",
+                "id": "0"
+              },
+              "code_list": {
+                "href": "http://localhost:22400/code-lists/siblings_3",
+                "id": "siblings_3"
+              },
+              "version": {
+                "href": "http://localhost:22000/datasets/cantabular-example-1/editions/2021/versions/1",
+                "id": "1"
+              }
             },
-            "code_list": {
-              "href": "http://localhost:22400/code-lists/siblings_3",
-              "id": "siblings_3"
-            },
-            "version": {
-              "href": "http://localhost:22000/datasets/cantabular-example-1/editions/2021/versions/1",
-              "id": "1"
-            }
+            "dimension": "siblings_3",
+            "option": "0"
           },
-          "dimension": "siblings_3",
-          "option": "0"
-        },
-        {
-          "label": "1 or 2 siblings",
-          "links": {
-            "code": {
-              "href": "http://localhost:22400/code-lists/siblings_3/codes/1-2",
-              "id": "1-2"
+          {
+            "label": "1 or 2 siblings",
+            "links": {
+              "code": {
+                "href": "http://localhost:22400/code-lists/siblings_3/codes/1-2",
+                "id": "1-2"
+              },
+              "code_list": {
+                "href": "http://localhost:22400/code-lists/siblings_3",
+                "id": "siblings_3"
+              },
+              "version": {
+                "href": "http://localhost:22000/datasets/cantabular-example-1/editions/2021/versions/1",
+                "id": "1"
+              }
             },
-            "code_list": {
-              "href": "http://localhost:22400/code-lists/siblings_3",
-              "id": "siblings_3"
-            },
-            "version": {
-              "href": "http://localhost:22000/datasets/cantabular-example-1/editions/2021/versions/1",
-              "id": "1"
-            }
+            "dimension": "siblings_3",
+            "option": "1-2"
           },
-          "dimension": "siblings_3",
-          "option": "1-2"
-        },
-        {
-          "label": "3 or more siblings",
-          "links": {
-            "code": {
-              "href": "http://localhost:22400/code-lists/siblings_3/codes/3+",
-              "id": "3+"
+          {
+            "label": "3 or more siblings",
+            "links": {
+              "code": {
+                "href": "http://localhost:22400/code-lists/siblings_3/codes/3+",
+                "id": "3+"
+              },
+              "code_list": {
+                "href": "http://localhost:22400/code-lists/siblings_3",
+                "id": "siblings_3"
+              },
+              "version": {
+                "href": "http://localhost:22000/datasets/cantabular-example-1/editions/2021/versions/1",
+                "id": "1"
+              }
             },
-            "code_list": {
-              "href": "http://localhost:22400/code-lists/siblings_3",
-              "id": "siblings_3"
-            },
-            "version": {
-              "href": "http://localhost:22000/datasets/cantabular-example-1/editions/2021/versions/1",
-              "id": "1"
-            }
-          },
-          "dimension": "siblings_3",
-          "option": "3+"
-        }
-      ],
-      "count": 3,
-      "offset": 0,
-      "limit": 1000,
-      "total_count": 3
-    }
-    """
+            "dimension": "siblings_3",
+            "option": "3+"
+          }
+        ],
+        "count": 3,
+        "offset": 0,
+        "limit": 1000,
+        "total_count": 3
+      }
+      """
+
     And the following options response is available for dimension "city" for dataset "cantabular-example-2" edition "2021" version "1" with query params "offset=0&limit=1000":
       """
       {
@@ -612,6 +614,7 @@ Feature: Cantabular-Metadata-Exporter
         "total_count": 3
       }
       """
+
     And the following options response is available for dimension "sex" for dataset "cantabular-example-2" edition "2021" version "1" with query params "offset=0&limit=1000":
       """
       {
@@ -731,7 +734,7 @@ Feature: Cantabular-Metadata-Exporter
       }
       """
 
-    Given the following version with dataset id "cantabular-example-2", edition "2021" and version "1" will be updated to dp-dataset-api:
+    And the following version with dataset id "cantabular-example-2", edition "2021" and version "1" will be updated to dp-dataset-api:
       """
       {
         "alerts": null,
@@ -801,6 +804,24 @@ Feature: Cantabular-Metadata-Exporter
         "state": "",
         "temporal": null,
         "version": 0
+      }
+      """
+
+    And the following filter output with id "filter-output-2" will be updated to dp-filter-api:
+      """
+      {
+        "downloads": {
+          "CSVW": {
+            "href": "http://localhost:23600/downloads/filter-outputs/filter-output-2.csv-metadata.json",
+            "size": "643",
+            "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/cantabular-example-2-2021-1-2022-01-26T12:27:04Z.csvw"
+          },
+          "TXT": {
+            "href": "http://localhost:23600/downloads/filter-outputs/filter-output-2.txt",
+            "size": "503",
+            "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/cantabular-example-2-2021-1-2022-01-26T12:27:04Z.txt"
+          }
+        }
       }
       """
 
@@ -901,6 +922,7 @@ Feature: Cantabular-Metadata-Exporter
       | InstanceID       | DatasetID            | Edition | Version | RowCount |
       | test-instance-01 | cantabular-example-1 | 2021    | 1       | 5        |
 
+
   Scenario: Consuming a cantabular-metadata-export event with the correct fields and the collection is not published
 
     Given dataset-api is healthy
@@ -925,6 +947,31 @@ Feature: Cantabular-Metadata-Exporter
       | InstanceID        | DatasetID            | Edition | Version | RowCount |
       | test-instance-02  | cantabular-example-2 | 2021    | 1       | 3        |
 
+  Scenario: Consuming a cantabular-metadata-export event with the correct fields and the filter_output_id field is populated
+
+    Given dataset-api is healthy
+
+    And the service starts
+
+    When this cantabular-metadata-export event is consumed:
+      """
+      {
+        "datasetID":      "cantabular-example-2",
+        "edition":        "2021",
+        "version":        "1",
+        "InstanceID":     "test-instance-02",
+        "FilterOutputID": "filter-output-2",
+        "RowCount":       3
+      }
+      """
+ 
+    Then a file with filename "datasets/cantabular-example-2-2021-1.csvw" can be seen in minio bucket "dp-cantabular-metadata-exporter-priv"
+
+    And these CSVW Created events should be produced:
+
+      | InstanceID        | DatasetID            | Edition | Version | RowCount |
+      | test-instance-02  | cantabular-example-2 | 2021    | 1       | 3        |
+
   Scenario: Consuming a cantabular-metadata-export event with the correct fields but a downstream service is unhealthy
 
     Given dataset-api is unhealthy
@@ -934,10 +981,10 @@ Feature: Cantabular-Metadata-Exporter
     When this cantabular-metadata-export event is consumed:
       """
       {
-        "datasetID":   "cantabular-example-1",
+        "datasetID":   "cantabular-example-3",
         "edition":     "2021",
         "version":     "1",
-        "InstanceID":  "test-instance-01",
+        "InstanceID":  "test-instance-03",
         "RowCount":    5
       }
       """
