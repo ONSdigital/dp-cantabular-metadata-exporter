@@ -814,12 +814,12 @@ Feature: Cantabular-Metadata-Exporter
           "CSVW": {
             "href": "http://localhost:23600/downloads/filter-outputs/filter-output-2.csv-metadata.json",
             "size": "643",
-            "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/cantabular-example-2-2021-1-2022-01-26T12:27:04Z.csvw"
+            "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/filter-output-2/cantabular-example-2-2021-1-2022-01-26T12:27:04Z.csvw"
           },
           "TXT": {
             "href": "http://localhost:23600/downloads/filter-outputs/filter-output-2.txt",
             "size": "503",
-            "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/cantabular-example-2-2021-1-2022-01-26T12:27:04Z.txt"
+            "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/filter-output-2/cantabular-example-2-2021-1-2022-01-26T12:27:04Z.txt"
           }
         }
       }
