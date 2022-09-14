@@ -230,7 +230,7 @@ func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated) str
 		suffix = fmt.Sprintf("-%s.txt", h.generate.Timestamp().Format(time.RFC3339))
 	}
 
-	fn := fmt.Sprintf("datasets/%s-%s-%s", e.DatasetID, e.Edition, e.Version)
+	fn := fmt.Sprintf("%s-%s-%s", e.DatasetID, e.Edition, e.Version)
 
 	return prefix + fn + suffix
 }
@@ -239,7 +239,7 @@ func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated) str
 	var prefix, suffix string
 
 	if len(e.FilterOutputID) == 0 {
-		prefix, suffix = "datsets/", ".csvw"
+		prefix, suffix = "datasets/", ".csvw"
 	} else {
 		prefix = fmt.Sprintf("datasets/%s/", e.FilterOutputID)
 		suffix = fmt.Sprintf("-%s.csvw", h.generate.Timestamp().Format(time.RFC3339))
