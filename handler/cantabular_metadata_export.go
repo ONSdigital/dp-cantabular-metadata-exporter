@@ -221,31 +221,39 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 }
 
 func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated) string {
-	fn := fmt.Sprintf("datasets/%s-%s-%s", e.DatasetID, e.Edition, e.Version)
+	var prefix, suffix string
 
-	suffix := ".txt"
-	if len(e.FilterOutputID) != 0 {
+	if len(e.FilterOutputID) == 0 {
+		prefix, suffix = "datasets/", ".txt"
+	} else {
+		prefix = fmt.Sprintf("datasets/%s/", e.FilterOutputID)
 		suffix = fmt.Sprintf("-%s.txt", h.generate.Timestamp().Format(time.RFC3339))
 	}
 
-	return fn + suffix
+	fn := fmt.Sprintf("%s-%s-%s", e.DatasetID, e.Edition, e.Version)
+
+	return prefix + fn + suffix
 }
 
 func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated) string {
+	var prefix, suffix string
+
+	if len(e.FilterOutputID) == 0 {
+		prefix, suffix = "datasets/", ".csvw"
+	} else {
+		prefix = fmt.Sprintf("datasets/%s/", e.FilterOutputID)
+		suffix = fmt.Sprintf("-%s.csvw", h.generate.Timestamp().Format(time.RFC3339))
+	}
+
 	fn := fmt.Sprintf(
-		"datasets/%s%s-%s-%s",
+		"%s%s-%s-%s",
 		h.csvwPrefix,
 		e.DatasetID,
 		e.Edition,
 		e.Version,
 	)
 
-	suffix := ".csvw"
-	if len(e.FilterOutputID) != 0 {
-		suffix = fmt.Sprintf("-%s.csvw", h.generate.Timestamp().Format(time.RFC3339))
-	}
-
-	return fn + suffix
+	return prefix + fn + suffix
 }
 
 func (h *CantabularMetadataExport) generateDownloadURL(e *event.CSVCreated, extension string) string {
