@@ -15,7 +15,7 @@ replace github.com/spf13/cobra => github.com/spf13/cobra v1.4.0
 // to avoid 'sonatype-2020-1055' non-CVE vulnerability introduced by github.com/go-ldap/ldap/v3@v3.1.10
 replace github.com/go-ldap/ldap/v3 v3.1.10 => github.com/go-ldap/ldap/v3 v3.4.3
 
-replace github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.11.1
+replace golang.org/x/text => golang.org/x/text v0.3.8
 
 require (
 	github.com/ONSdigital/dp-api-clients-go/v2 v2.186.0
