@@ -15,7 +15,8 @@ replace github.com/spf13/cobra => github.com/spf13/cobra v1.4.0
 // to avoid 'sonatype-2020-1055' non-CVE vulnerability introduced by github.com/go-ldap/ldap/v3@v3.1.10
 replace github.com/go-ldap/ldap/v3 v3.1.10 => github.com/go-ldap/ldap/v3 v3.4.3
 
-replace golang.org/x/text => golang.org/x/text v0.3.8
+// to avoid [CVE-2022-21698] CWE-400: Uncontrolled Resource Consumption ('Resource Exhaustion')
+replace github.com/prometheus/client_golang => github.com/prometheus/client_golang v1.13.0
 
 require (
 	github.com/ONSdigital/dp-api-clients-go/v2 v2.186.0
@@ -129,7 +130,7 @@ require (
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	google.golang.org/genproto v0.0.0-20220622171453-ea41d75dfa0f // indirect
 	google.golang.org/grpc v1.47.0 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
