@@ -12,6 +12,8 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/csvw"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/text"
+
 	"github.com/pkg/errors"
 
 	kafka "github.com/ONSdigital/dp-kafka/v3"
@@ -146,18 +148,10 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 }
 
 func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*downloadInfo, error) {
-	dimensions, err := h.dataset.GetVersionDimensions(ctx, "", h.cfg.ServiceAuthToken, "", e.DatasetID, e.Edition, e.Version)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get version dimensions: %w", err)
-	}
-
-	b, err := h.getText(ctx, m, dimensions, e)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get text bytes: %w", err)
-	}
+	b := text.NewMetadata(&m)
 
 	var url string
-
+	var err error
 	if isPublished {
 		url, err = h.file.Upload(bytes.NewReader(b), h.generateTextFilename(e))
 	} else {
@@ -270,37 +264,6 @@ func (h *CantabularMetadataExport) generateDownloadURL(e *event.CSVCreated, exte
 // generateVaultPathForFile generates the vault path for the provided root and filename
 func (h *CantabularMetadataExport) generateVaultPath(e *event.CSVCreated, filetype string) string {
 	return fmt.Sprintf("%s/%s-%s-%s.%s", h.cfg.VaultPath, e.DatasetID, e.Edition, e.Version, filetype)
-}
-
-// getText gets a byte array containing the metadata content, based on options returned by dataset API.
-// If a dimension has more than maxMetadataOptions, an error will be returned
-func (h *CantabularMetadataExport) getText(ctx context.Context, metadata dataset.Metadata, dimensions dataset.VersionDimensions, e *event.CSVCreated) ([]byte, error) {
-	var b bytes.Buffer
-
-	b.WriteString(metadata.ToString())
-	b.WriteString("Dimensions:\n")
-
-	for _, dimension := range dimensions.Items {
-		options, err := h.dataset.GetOptionsInBatches(
-			ctx,
-			"",
-			h.cfg.ServiceAuthToken,
-			"",
-			e.DatasetID,
-			e.Edition,
-			e.Version,
-			dimension.Name,
-			batchSize,
-			maxWorkers,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get dimension options: %w", err)
-		}
-
-		b.WriteString(options.String())
-	}
-
-	return b.Bytes(), nil
 }
 
 func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *event.CSVCreated) (bool, error) {

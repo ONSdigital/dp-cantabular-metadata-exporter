@@ -30,8 +30,32 @@ type CSVW struct {
 	License     string    `json:"dct:license,omitempty"`
 	Frequency   string    `json:"dct:accrualPeriodicity,omitempty"`
 	Notes       []Note    `json:"notes,omitempty"`
+	// New fields
+	Downloads     map[string]Download `json:"dcat:distribution,omitempty"`
+	Keywords      []string            `json:"dcat:keyword,omitempty"`
+	UnitOfMeasure string              `json:"dcat:conformsTo,omitempty"`
+	Version       int                 `json:"dcat:version"`
+	IsBasedOn     string              `json:"prov:wasGeneratedBy,omitempty`
+	DatasetLinks  *DatasetLinks       `json:"dcat:record,omitempty"`
 }
 
+// New fields
+type DatasetLinks struct {
+	Editions      Link `json:"editions"`
+	LatestVersion Link `json:"latestVersion"`
+	Self          Link `json:"self"`
+}
+type Link struct {
+	HREF string `json:"HREF"`
+	ID   string `json:"ID"`
+}
+
+type Download struct {
+	HREF string `json:"HREF"`
+	Size string `json:"Size"`
+}
+
+// Old fields
 // Contact represents a response model within a dataset
 type Contact struct {
 	Name      string `json:"vcard:fn"`
@@ -99,6 +123,40 @@ func New(m *dataset.Metadata, csvURL string) *CSVW {
 		}
 	}
 
+	if m.Downloads != nil {
+		csvw.Downloads = make(map[string]Download)
+		for k, v := range m.Downloads {
+			csvw.Downloads[k] = Download{
+				HREF: v.URL,
+				Size: v.Size,
+			}
+		}
+	}
+
+	if m.Keywords != nil {
+		csvw.Keywords = *m.Keywords
+	}
+
+	csvw.UnitOfMeasure = m.UnitOfMeasure
+	csvw.Version = m.Version.Version
+	if m.Version.IsBasedOn != nil {
+		csvw.IsBasedOn = m.Version.IsBasedOn.ID
+	}
+
+	csvw.DatasetLinks = &DatasetLinks{
+		Editions: Link{
+			HREF: m.DatasetLinks.Editions.URL,
+			ID:   m.DatasetLinks.Editions.ID,
+		},
+		LatestVersion: Link{
+			HREF: m.DatasetLinks.LatestVersion.URL,
+			ID:   m.DatasetLinks.LatestVersion.ID,
+		},
+		Self: Link{
+			HREF: m.DatasetLinks.Self.URL,
+			ID:   m.DatasetLinks.Editions.ID,
+		},
+	}
 	return csvw
 }
 
@@ -264,19 +322,20 @@ func newLabelColumn(i int, apiDomain string, header []string, dims []dataset.Ver
 	labelCol["description"] = dim.Description
 	labelCol["valueURL"] = dimURL + "/codes/{" + dimHeader + "}"
 	labelCol["required"] = true
+	labelCol["optionCount"] = dim.NumberOfOptions
 	// TODO: determine what could go in c["datatype"] and c["required"]
 
 	return labelCol, nil
 }
 
-func newColumn(title, name string) Column {
+func newColumn(title, label string) Column {
 	c := make(Column)
 	if len(title) > 0 {
 		c["titles"] = title
 	}
 
-	if len(name) > 0 {
-		c["name"] = name
+	if len(label) > 0 {
+		c["label"] = label
 	}
 
 	return c
