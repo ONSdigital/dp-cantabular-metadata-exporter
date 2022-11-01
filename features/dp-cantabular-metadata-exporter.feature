@@ -742,12 +742,12 @@ Feature: Cantabular-Metadata-Exporter
         "downloads": {
           "CSVW": {
             "href": "http://localhost:23600/downloads/datasets/cantabular-example-2/editions/2021/versions/1.csv-metadata.json",
-            "size": "643",
+            "size": "833",
             "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/cantabular-example-2-2021-1.csvw"
           },
           "TXT": {
             "href": "http://localhost:23600/downloads/datasets/cantabular-example-2/editions/2021/versions/1.txt",
-            "size": "503",
+            "size": "2445",
             "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/cantabular-example-2-2021-1.txt"
           }
         },
@@ -813,12 +813,12 @@ Feature: Cantabular-Metadata-Exporter
         "downloads": {
           "CSVW": {
             "href": "http://localhost:23600/downloads/filter-outputs/filter-output-2.csv-metadata.json",
-            "size": "643",
+            "size": "833",
             "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/filter-output-2/cantabular-example-2-2021-1-2022-01-26T12:27:04Z.csvw"
           },
           "TXT": {
             "href": "http://localhost:23600/downloads/filter-outputs/filter-output-2.txt",
-            "size": "503",
+            "size": "2445",
             "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/filter-output-2/cantabular-example-2-2021-1-2022-01-26T12:27:04Z.txt"
           }
         }
@@ -833,12 +833,12 @@ Feature: Cantabular-Metadata-Exporter
         "downloads": {
           "CSVW": {
             "href": "http://localhost:23600/downloads/datasets/cantabular-example-1/editions/2021/versions/1.csv-metadata.json",
-            "size": "641",
+            "size": "831",
             "public": "http://minio:9000/dp-cantabular-metadata-exporter-pub/datasets/cantabular-example-1-2021-1.csvw"
           },
           "TXT": {
             "href": "http://localhost:23600/downloads/datasets/cantabular-example-1/editions/2021/versions/1.txt",
-            "size": "499",
+            "size": "2441",
             "public": "http://minio:9000/dp-cantabular-metadata-exporter-pub/datasets/cantabular-example-1-2021-1.txt"
           }
         },
