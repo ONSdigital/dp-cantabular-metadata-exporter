@@ -149,13 +149,14 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 
 func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*downloadInfo, error) {
 	b := text.NewMetadata(&m)
+	filename := h.generateTextFilename(e)
 
 	var url string
 	var err error
 	if isPublished {
-		url, err = h.file.Upload(bytes.NewReader(b), h.generateTextFilename(e))
+		url, err = h.file.Upload(bytes.NewReader(b), filename)
 	} else {
-		url, err = h.file.UploadPrivate(bytes.NewReader(b), h.generateTextFilename(e), h.generateVaultPath(e, "txt"))
+		url, err = h.file.UploadPrivate(bytes.NewReader(b), filename, h.generateVaultPath(e, "txt"))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %w", err)
@@ -167,7 +168,10 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 	}
 
 	if isPublished {
-		d.publicURL = url
+		d.publicURL = fmt.Sprintf("%s/%s",
+			h.cfg.S3PublicURL,
+			filename,
+		)
 	} else {
 		d.privateURL = url
 	}
@@ -206,7 +210,10 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 	}
 
 	if isPublished {
-		d.publicURL = url
+		d.publicURL = fmt.Sprintf("%s/%s",
+			h.cfg.S3PublicURL,
+			filename,
+		)
 	} else {
 		d.privateURL = url
 	}

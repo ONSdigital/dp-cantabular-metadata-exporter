@@ -31,6 +31,7 @@ type Config struct {
 	DownloadServiceURL         string        `envconfig:"DOWNLOAD_SERVICE_URL"`
 	FilterAPIURL               string        `envconfig:"FILTER_API_URL"`
 	StopConsumingOnUnhealthy   bool          `envconfig:"STOP_CONSUMING_ON_UNHEALTHY"`
+	S3PublicURL                string        `envconfig:"S3_PUBLIC_URL"`
 	Kafka                      KafkaConfig
 }
 
@@ -79,6 +80,7 @@ func Get() (*Config, error) {
 		ComponentTestUseLogFile:    false,
 		DownloadServiceURL:         "http://localhost:23600",
 		StopConsumingOnUnhealthy:   true,
+		S3PublicURL:                "http://public-bucket",
 		Kafka: KafkaConfig{
 			Addr:                          []string{"localhost:9092", "localhost:9093", "localhost:9094"},
 			Version:                       "1.0.2",

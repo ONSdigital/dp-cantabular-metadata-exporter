@@ -38,6 +38,7 @@ func TestConfig(t *testing.T) {
 					DownloadServiceURL:         "http://localhost:23600",
 					AWSRegion:                  "eu-west-1",
 					StopConsumingOnUnhealthy:   true,
+					S3PublicURL:                "http://public-bucket",
 					Kafka: KafkaConfig{
 						Addr:                          []string{"localhost:9092", "localhost:9093", "localhost:9094"},
 						Version:                       "1.0.2",
