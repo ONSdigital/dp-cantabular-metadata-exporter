@@ -834,12 +834,12 @@ Feature: Cantabular-Metadata-Exporter
           "CSVW": {
             "href": "http://localhost:23600/downloads/datasets/cantabular-example-1/editions/2021/versions/1.csv-metadata.json",
             "size": "831",
-            "public": "http://minio:9000/dp-cantabular-metadata-exporter-pub/datasets/cantabular-example-1-2021-1.csvw"
+            "public": "http://public-bucket/datasets/cantabular-example-1-2021-1.csvw"
           },
           "TXT": {
             "href": "http://localhost:23600/downloads/datasets/cantabular-example-1/editions/2021/versions/1.txt",
             "size": "2441",
-            "public": "http://minio:9000/dp-cantabular-metadata-exporter-pub/datasets/cantabular-example-1-2021-1.txt"
+            "public": "http://public-bucket/datasets/cantabular-example-1-2021-1.txt"
           }
         },
         "edition": "",
