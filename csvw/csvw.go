@@ -169,14 +169,14 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 
 	log.Info(ctx, "generating csvw file", logData)
 
-	if len(metadata.Dimensions) == 0 {
-		return nil, Error{
-			err:     errMissingDimensions,
-			logData: logData,
-		}
-	}
+	// if len(metadata.Dimensions) == 0 {
+	// 	return nil, Error{
+	// 		err:     errMissingDimensions,
+	// 		logData: logData,
+	// 	}
+	// }
 
-	if len(metadata.CSVHeader) < 2 {
+	if len(metadata.CSVHeader) < 1 {
 		return nil, Error{
 			err:     errors.New("CSV header empty or missing dimensions"),
 			logData: logData,
@@ -192,15 +192,17 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 	list = append(list, obs)
 
 	// add dimension columns
-	for i := 1; i < len(h); i++ {
-		l, err := newLabelColumn(i, apiDomain, h, metadata.Dimensions)
-		if err != nil {
-			return nil, Error{
-				err:     fmt.Errorf("failed to create label column: %w", err),
-				logData: logData,
+	if len(metadata.Dimensions) > 0 {
+		for i := 1; i < len(h); i++ {
+			l, err := newLabelColumn(i, apiDomain, h, metadata.Dimensions)
+			if err != nil {
+				return nil, Error{
+					err:     fmt.Errorf("failed to create label column: %w", err),
+					logData: logData,
+				}
 			}
+			list = append(list, l)
 		}
-		list = append(list, l)
 	}
 
 	aboutURL, err := formatAboutURL(aboutURL, apiDomain)
