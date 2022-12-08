@@ -45,7 +45,6 @@ func NewMetadata(m *dataset.Metadata) []byte {
 	if m.Methodologies != nil {
 		b.WriteString(fmt.Sprintf("Methodologies: %s\n", *m.Methodologies))
 	}
-	b.WriteString(fmt.Sprintf("National Statistic: %t\n", m.NationalStatistic))
 	if m.Publications != nil {
 		b.WriteString(fmt.Sprintf("Publications: %s\n", *m.Publications))
 	}
