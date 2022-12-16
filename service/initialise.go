@@ -12,6 +12,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	kafka "github.com/ONSdigital/dp-kafka/v3"
 	dphttp "github.com/ONSdigital/dp-net/http"
@@ -110,6 +111,11 @@ var GetDatasetAPIClient = func(cfg *config.Config) DatasetAPIClient {
 // GetDatasetAPIClient gets and initialises the FilterAPI Client
 var GetFilterAPIClient = func(cfg *config.Config) FilterAPIClient {
 	return filter.New(cfg.FilterAPIURL)
+}
+
+// GetPopulationTypesAPIClient gets and initialises the PopulationTypesAPI Client
+var GetPopulationTypesAPIClient = func(cfg *config.Config) (PopulationTypesAPIClient, error) {
+	return population.NewClient(cfg.PopulationTypesAPIURL)
 }
 
 // GetFileManager instantiates teh service FileManager

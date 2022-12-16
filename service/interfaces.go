@@ -10,6 +10,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 
@@ -49,7 +50,12 @@ type DatasetAPIClient interface {
 
 type FilterAPIClient interface {
 	UpdateFilterOutput(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, filterOutputID string, m *filter.Model) error
+	GetOutput(ctx context.Context, userAuthToken, serviceAuthToken, downloadServiceToken, collectionID, filterOutput string) (m filter.Model, err error)
 	Checker(context.Context, *healthcheck.CheckState) error
+}
+
+type PopulationTypesAPIClient interface {
+	GetAreaTypes(ctx context.Context, input population.GetAreaTypesInput) (population.GetAreaTypesResponse, error)
 }
 
 type S3Uploader interface {

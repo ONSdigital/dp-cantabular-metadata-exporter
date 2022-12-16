@@ -35,6 +35,7 @@ func TestConfig(t *testing.T) {
 					PrivateBucket:              "dp-cantabular-metadata-exporter",
 					DatasetAPIURL:              "http://localhost:22000",
 					FilterAPIURL:               "http://localhost:22100",
+					PopulationTypesAPIURL:      "http://localhost:27300",
 					DownloadServiceURL:         "http://localhost:23600",
 					AWSRegion:                  "eu-west-1",
 					StopConsumingOnUnhealthy:   true,

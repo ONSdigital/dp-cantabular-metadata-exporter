@@ -15,17 +15,18 @@ import (
 
 // Service contains all the configs, server and clients to run the dp-topic-api API
 type Service struct {
-	Config           *config.Config
-	Server           HTTPServer
-	router           chi.Router
-	consumer         kafka.IConsumerGroup
-	producer         kafka.IProducer
-	datasetAPIClient DatasetAPIClient
-	filterAPIClient  FilterAPIClient
-	HealthCheck      HealthChecker
-	vaultClient      VaultClient
-	generator        Generator
-	fileManager      FileManager
+	Config                   *config.Config
+	Server                   HTTPServer
+	router                   chi.Router
+	consumer                 kafka.IConsumerGroup
+	producer                 kafka.IProducer
+	datasetAPIClient         DatasetAPIClient
+	filterAPIClient          FilterAPIClient
+	populationTypesAPIClient PopulationTypesAPIClient
+	HealthCheck              HealthChecker
+	vaultClient              VaultClient
+	generator                Generator
+	fileManager              FileManager
 }
 
 // New returns a new Service
@@ -70,6 +71,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 
 	svc.datasetAPIClient = GetDatasetAPIClient(cfg)
 	svc.filterAPIClient = GetFilterAPIClient(cfg)
+	svc.populationTypesAPIClient, _ = GetPopulationTypesAPIClient(cfg)
 
 	if svc.HealthCheck, err = GetHealthCheck(cfg, buildT, commit, ver); err != nil {
 		return fmt.Errorf("could not get healtcheck: %w", err)
@@ -79,6 +81,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 		*svc.Config,
 		svc.datasetAPIClient,
 		svc.filterAPIClient,
+		svc.populationTypesAPIClient,
 		svc.fileManager,
 		svc.producer,
 		svc.generator,

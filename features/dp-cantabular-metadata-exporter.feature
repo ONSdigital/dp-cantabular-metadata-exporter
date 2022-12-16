@@ -960,7 +960,6 @@ Feature: Cantabular-Metadata-Exporter
         "edition":        "2021",
         "version":        "1",
         "InstanceID":     "test-instance-02",
-        "FilterOutputID": "filter-output-2",
         "RowCount":       3
       }
       """

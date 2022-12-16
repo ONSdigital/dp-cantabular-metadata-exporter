@@ -8,6 +8,7 @@ import (
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
+	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/csvw"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
@@ -37,6 +38,7 @@ type CantabularMetadataExport struct {
 	cfg               config.Config
 	dataset           DatasetAPIClient
 	filter            FilterAPIClient
+	populationTypes   PopulationTypesAPIClient
 	file              FileManager
 	producer          kafka.IProducer
 	generate          Generator
@@ -46,14 +48,15 @@ type CantabularMetadataExport struct {
 }
 
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler
-func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, f FilterAPIClient, fm FileManager, p kafka.IProducer, g Generator) *CantabularMetadataExport {
+func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, f FilterAPIClient, t PopulationTypesAPIClient, fm FileManager, p kafka.IProducer, g Generator) *CantabularMetadataExport {
 	return &CantabularMetadataExport{
-		cfg:      cfg,
-		dataset:  d,
-		filter:   f,
-		file:     fm,
-		producer: p,
-		generate: g,
+		cfg:             cfg,
+		dataset:         d,
+		filter:          f,
+		populationTypes: t,
+		file:            fm,
+		producer:        p,
+		generate:        g,
 	}
 }
 
@@ -92,6 +95,60 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		return Error{
 			err:     fmt.Errorf("failed to get version metadata: %w", err),
 			logData: logData,
+		}
+	}
+
+	if e.FilterOutputID != "" {
+		filterModel, err := h.filter.GetOutput(ctx, "", h.cfg.ServiceAuthToken, "", "", e.FilterOutputID)
+		if err != nil {
+			return &Error{
+				err:     errors.Wrap(err, "failed to get filter output"),
+				logData: logData,
+			}
+		}
+
+		populationType := filterModel.PopulationType
+
+		areaTypesInput := population.GetAreaTypesInput{
+			AuthTokens: population.AuthTokens{
+				ServiceAuthToken: h.cfg.ServiceAuthToken,
+			},
+			PopulationType: populationType,
+		}
+
+		areaType, err := h.populationTypes.GetAreaTypes(ctx, areaTypesInput)
+		if err != nil {
+			return &Error{
+				err:     errors.Wrap(err, "failed to get area types"),
+				logData: logData,
+			}
+		}
+		areaTypeFound := false
+		var areaTypeLabel string
+		var areaTypeDescription string
+		for _, fd := range filterModel.Dimensions {
+			if fd.IsAreaType != nil {
+				if *fd.IsAreaType {
+					areaTypeLabel = fd.Label
+				}
+				for _, area := range areaType.AreaTypes {
+					if area.Label == fd.Label {
+						areaTypeDescription = area.Description
+						areaTypeFound = true
+						break
+					}
+				}
+				if areaTypeFound {
+					break
+				}
+			}
+		}
+		for _, d := range m.Version.Dimensions {
+			if *d.IsAreaType {
+				d.Label = areaTypeLabel
+				d.Description = areaTypeDescription
+				break
+			}
 		}
 	}
 
