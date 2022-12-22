@@ -152,7 +152,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 				d.Label = areaTypeLabel
 				d.Description = areaTypeDescription
 				fmt.Printf("********** AREA TYPE LABEL AFTER LOOP %v\n ******************", d.Label)
-				fmt.Printf("********** AREA TYPE DESCRIPTION AFTER LOOP %v\n ******************", d.Label)
+				fmt.Printf("********** AREA TYPE DESCRIPTION AFTER LOOP %v\n ******************", d.Description)
 				break
 			}
 		}
