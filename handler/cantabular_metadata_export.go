@@ -99,6 +99,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 	}
 
 	if e.FilterOutputID != "" {
+		fmt.Printf("********** FILTER OUTPUT ID %v\n ******************", e.FilterOutputID)
 		filterModel, err := h.filter.GetOutput(ctx, "", h.cfg.ServiceAuthToken, "", "", e.FilterOutputID)
 		if err != nil {
 			return &Error{
@@ -130,10 +131,12 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 			if fd.IsAreaType != nil {
 				if *fd.IsAreaType {
 					areaTypeLabel = fd.Label
+					fmt.Printf("********** AREA TYPE LABEL %v\n ******************", areaTypeLabel)
 				}
 				for _, area := range areaType.AreaTypes {
 					if area.Label == fd.Label {
 						areaTypeDescription = area.Description
+						fmt.Printf("********** AREA TYPE DESCRIPTION %v\n ******************", areaTypeDescription)
 						areaTypeFound = true
 						break
 					}
@@ -145,12 +148,18 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		}
 		for _, d := range m.Version.Dimensions {
 			if *d.IsAreaType {
+
 				d.Label = areaTypeLabel
 				d.Description = areaTypeDescription
+				fmt.Printf("********** AREA TYPE LABEL AFTER LOOP %v\n ******************", d.Label)
+				fmt.Printf("********** AREA TYPE DESCRIPTION AFTER LOOP %v\n ******************", d.Label)
 				break
 			}
 		}
 	}
+
+	fmt.Printf("********** METADATA AREA TYPE DESCRIPTION %v\n ******************", m.Dimensions[0].Description)
+	fmt.Printf("********** METADATA AREA TYPE LABEL %v\n ******************", m.Dimensions[0].Label)
 
 	isPublished, err := h.isVersionPublished(ctx, e)
 	if err != nil {
