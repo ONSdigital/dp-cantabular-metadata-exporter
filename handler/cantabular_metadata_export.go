@@ -99,7 +99,6 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 	}
 
 	if e.FilterOutputID != "" {
-		fmt.Printf("********** FILTER OUTPUT ID %v\n ******************", e.FilterOutputID)
 		filterModel, err := h.filter.GetOutput(ctx, "", h.cfg.ServiceAuthToken, "", "", e.FilterOutputID)
 		if err != nil {
 			return &Error{
@@ -126,17 +125,19 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		}
 		areaTypeFound := false
 		var areaTypeLabel string
+		var areaTypeId string
 		var areaTypeDescription string
+		var numberOfOptions int
 		for _, fd := range filterModel.Dimensions {
 			if fd.IsAreaType != nil {
 				if *fd.IsAreaType {
 					areaTypeLabel = fd.Label
-					fmt.Printf("********** AREA TYPE LABEL %v\n ******************", areaTypeLabel)
+					areaTypeId = fd.ID
+					numberOfOptions = len(fd.Options)
 				}
 				for _, area := range areaType.AreaTypes {
 					if area.Label == fd.Label {
 						areaTypeDescription = area.Description
-						fmt.Printf("********** AREA TYPE DESCRIPTION %v\n ******************", areaTypeDescription)
 						areaTypeFound = true
 						break
 					}
@@ -146,20 +147,32 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 				}
 			}
 		}
+
+		areaTypeFound = false
+
 		for _, d := range m.Version.Dimensions {
 			if *d.IsAreaType {
-
 				d.Label = areaTypeLabel
 				d.Description = areaTypeDescription
-				fmt.Printf("********** AREA TYPE LABEL AFTER LOOP %v\n ******************", d.Label)
-				fmt.Printf("********** AREA TYPE DESCRIPTION AFTER LOOP %v\n ******************", d.Description)
+				d.ID = areaTypeId
+				d.NumberOfOptions = numberOfOptions
+				areaTypeFound = true
 				break
 			}
 		}
-	}
 
-	fmt.Printf("********** METADATA AREA TYPE DESCRIPTION %v\n ******************", m.Dimensions[0].Description)
-	fmt.Printf("********** METADATA AREA TYPE LABEL %v\n ******************", m.Dimensions[0].Label)
+		if !areaTypeFound {
+			areaTypeDimension := []dataset.VersionDimension{
+				{
+					Label:           areaTypeLabel,
+					Description:     areaTypeDescription,
+					ID:              areaTypeId,
+					NumberOfOptions: numberOfOptions,
+				},
+			}
+			m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension...)
+		}
+	}
 
 	isPublished, err := h.isVersionPublished(ctx, e)
 	if err != nil {
