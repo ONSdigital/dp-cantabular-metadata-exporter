@@ -22,12 +22,12 @@ require (
 	github.com/ONSdigital/dp-api-clients-go/v2 v2.207.1
 	github.com/ONSdigital/dp-assistdog v0.0.1
 	github.com/ONSdigital/dp-component-test v0.7.0
-	github.com/ONSdigital/dp-healthcheck v1.3.0
+	github.com/ONSdigital/dp-healthcheck v1.5.0
 	github.com/ONSdigital/dp-kafka/v3 v3.6.0
 	github.com/ONSdigital/dp-net v1.5.0
 	github.com/ONSdigital/dp-s3 v1.10.0
 	github.com/ONSdigital/dp-vault v1.2.0
-	github.com/ONSdigital/log.go/v2 v2.2.0
+	github.com/ONSdigital/log.go/v2 v2.3.0
 	github.com/aws/aws-sdk-go v1.44.76
 	github.com/cucumber/godog v0.12.5
 	github.com/go-chi/chi/v5 v5.0.7
@@ -41,7 +41,7 @@ require (
 require (
 	github.com/ONSdigital/dp-api-clients-go v1.43.0 // indirect
 	github.com/ONSdigital/dp-mongodb-in-memory v1.3.1 // indirect
-	github.com/ONSdigital/dp-net/v2 v2.4.0 // indirect
+	github.com/ONSdigital/dp-net/v2 v2.6.0 // indirect
 	github.com/Shopify/sarama v1.37.2 // indirect
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
