@@ -150,27 +150,25 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 
 		areaTypeFound = false
 
-		for _, d := range m.Version.Dimensions {
+		for i, d := range m.Version.Dimensions {
 			if *d.IsAreaType {
-				d.Label = areaTypeLabel
-				d.Description = areaTypeDescription
-				d.ID = areaTypeId
-				d.NumberOfOptions = numberOfOptions
+				m.Version.Dimensions[i].Label = areaTypeLabel
+				m.Version.Dimensions[i].Description = areaTypeDescription
+				m.Version.Dimensions[i].ID = areaTypeId
+				m.Version.Dimensions[i].NumberOfOptions = numberOfOptions
 				areaTypeFound = true
 				break
 			}
 		}
 
 		if !areaTypeFound {
-			areaTypeDimension := []dataset.VersionDimension{
-				{
-					Label:           areaTypeLabel,
-					Description:     areaTypeDescription,
-					ID:              areaTypeId,
-					NumberOfOptions: numberOfOptions,
-				},
+			areaTypeDimension := dataset.VersionDimension{
+				Label:           areaTypeLabel,
+				Description:     areaTypeDescription,
+				ID:              areaTypeId,
+				NumberOfOptions: numberOfOptions,
 			}
-			m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension...)
+			m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
 		}
 	}
 
