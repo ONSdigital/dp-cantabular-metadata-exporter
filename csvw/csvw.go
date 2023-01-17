@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"strings"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/log.go/v2/log"
@@ -105,6 +104,8 @@ func New(m *dataset.Metadata, csvURL string) *CSVW {
 		URL:         csvURL,
 	}
 
+	fmt.Printf("********* METADATA: %v\n *********", m)
+
 	if m.Contacts != nil {
 		for _, c := range *m.Contacts {
 			csvw.Contact = append(csvw.Contact, Contact{
@@ -167,6 +168,8 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 		"csv_header": metadata.CSVHeader,
 	}
 
+	fmt.Printf("********* METADATA DIMENSIONS 1 BEFORE LOOP: %v\n *********", metadata.Dimensions)
+
 	log.Info(ctx, "generating csvw file", logData)
 
 	// if len(metadata.Dimensions) == 0 {
@@ -185,25 +188,41 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 
 	h := metadata.CSVHeader
 
+	fmt.Printf("********* CSV HEADER: %v\n *********", metadata.CSVHeader)
+
 	csvw := New(metadata, downloadURL)
 
 	var list []Column
 	obs := newObservationColumn(h[0], metadata.UnitOfMeasure)
 	list = append(list, obs)
 
-	// add dimension columns
-	if len(metadata.Dimensions) > 0 {
-		for i := 1; i < len(h); i++ {
-			l, err := newLabelColumn(i, apiDomain, h, metadata.Dimensions)
-			if err != nil {
-				return nil, Error{
-					err:     fmt.Errorf("failed to create label column: %w", err),
-					logData: logData,
-				}
+	// // add dimension columns
+	// if len(metadata.Dimensions) > 0 {
+	// 	for i := 1; i < len(h); i++ {
+	// 		fmt.Printf("********* HEADER INSIDE LOOP: %v\n *********", h[i])
+	// 		l, err := newLabelColumn(i, apiDomain, h, metadata.Dimensions)
+	// 		if err != nil {
+	// 			return nil, Error{
+	// 				err:     fmt.Errorf("failed to create label column: %w", err),
+	// 				logData: logData,
+	// 			}
+	// 		}
+	// 		list = append(list, l)
+	// 	}
+	// }
+
+	for i := range metadata.Dimensions {
+		l, err := newLabelColumn(i, apiDomain, h, metadata.Dimensions[i])
+		if err != nil {
+			return nil, Error{
+				err:     fmt.Errorf("failed to create label column: %w", err),
+				logData: logData,
 			}
-			list = append(list, l)
 		}
+		list = append(list, l)
 	}
+
+	fmt.Printf("********* METADATA DIMENSIONS 2 AFTER LOOP: %v\n *********", metadata.Dimensions)
 
 	aboutURL, err := formatAboutURL(aboutURL, apiDomain)
 	if err != nil {
@@ -292,27 +311,37 @@ func newObservationColumn(title, name string) Column {
 // TBC what the final content of these columns should be. For now is a rough port and amalgamation
 // of the code and label columns from the CMD implementation. Will be updated when we have full
 // metadata spec.
-func newLabelColumn(i int, apiDomain string, header []string, dims []dataset.VersionDimension) (Column, error) {
-	dimHeader := header[i]
-	dimHeader = strings.ToLower(dimHeader)
+func newLabelColumn(i int, apiDomain string, header []string, dims dataset.VersionDimension) (Column, error) {
+	// dimHeader := header[i]
+	// dimHeader = strings.ToLower(dimHeader)
 
-	var dim dataset.VersionDimension
+	// var dim dataset.VersionDimension
 
-	for _, d := range dims {
-		if d.Name == dimHeader {
-			dim = d
-			break
-		}
-	}
+	// fmt.Printf("********* DIMS: %v\n *********", dims)
+	// fmt.Printf("********* DIM HEADER: %v\n *********", dimHeader)
 
-	dimURL := dim.URL
+	// fmt.Printf("********* LENGTH OF DIMS: %v\n *********", len(dims))
+
+	// for _, d := range dims {
+	// 	fmt.Printf("********* D.NAME: %v\n *********", d.Name)
+	// 	fmt.Printf("********* DIMS FIRST INDEX: %v\n *********", dims[0])
+	// 	fmt.Printf("********* DIM HEADER INSIDE LOOP: %v\n *********", dimHeader)
+	// 	if d.Name == dimHeader {
+	// 		dim = d
+	// 		break
+	// 	}
+	// }
+
+	fmt.Printf("********* DIMENSIONS AFTER LOOP: %v\n *********", dims)
+
+	dimURL := dims.URL
 	if len(apiDomain) > 0 {
-		uri, err := url.Parse(dim.URL)
+		uri, err := url.Parse(dims.URL)
 		if err != nil {
 			return nil, Error{
 				err: fmt.Errorf("failed to parse dimension url: %w", err),
 				logData: log.Data{
-					"dimension_url": dim.URL,
+					"dimension_url": dims.URL,
 				},
 			}
 		}
@@ -320,11 +349,13 @@ func newLabelColumn(i int, apiDomain string, header []string, dims []dataset.Ver
 		dimURL = fmt.Sprintf("%s%s", apiDomain, uri.Path)
 	}
 
-	labelCol := newColumn(dim.Name, dim.Label)
-	labelCol["description"] = dim.Description
-	labelCol["valueURL"] = dimURL + "/codes/{" + dimHeader + "}"
+	fmt.Printf("********* DIM LABEL FOR NEW COLUMN: %v\n *********", dims.Label)
+	fmt.Printf("********* DIM NAME FOR NEW COLUMN: %v\n *********", dims.Name)
+	labelCol := newColumn(dims.Name, dims.Label)
+	labelCol["description"] = dims.Description
+	labelCol["valueURL"] = dimURL + "/codes/{" + dims.Label + "}"
 	labelCol["required"] = true
-	labelCol["optionCount"] = dim.NumberOfOptions
+	labelCol["optionCount"] = dims.NumberOfOptions
 	// TODO: determine what could go in c["datatype"] and c["required"]
 
 	return labelCol, nil

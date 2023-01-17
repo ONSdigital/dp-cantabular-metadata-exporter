@@ -128,10 +128,12 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		var areaTypeId string
 		var areaTypeDescription string
 		var numberOfOptions int
+		var areaTypeName string
 		for _, fd := range filterModel.Dimensions {
 			if fd.IsAreaType != nil {
 				if *fd.IsAreaType {
 					areaTypeLabel = fd.Label
+					areaTypeName = fd.Name
 					areaTypeId = fd.ID
 					numberOfOptions = len(fd.Options)
 				}
@@ -169,6 +171,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 				NumberOfOptions: numberOfOptions,
 			}
 			m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
+			m.CSVHeader = append(m.CSVHeader, areaTypeName)
 		}
 	}
 
