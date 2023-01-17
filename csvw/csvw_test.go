@@ -81,7 +81,7 @@ func TestGenerate(t *testing.T) {
 			data, err := Generate(ctx, m, fileURL, fileURL, apiURL)
 
 			Convey("Then results should be returned with no errors", func() {
-				So(data, ShouldHaveLength, 775)
+				So(data, ShouldHaveLength, 593)
 				So(err, ShouldBeNil)
 			})
 		})

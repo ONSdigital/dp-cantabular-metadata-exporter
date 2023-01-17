@@ -104,8 +104,6 @@ func New(m *dataset.Metadata, csvURL string) *CSVW {
 		URL:         csvURL,
 	}
 
-	fmt.Printf("********* METADATA: %v\n *********", m)
-
 	if m.Contacts != nil {
 		for _, c := range *m.Contacts {
 			csvw.Contact = append(csvw.Contact, Contact{
@@ -167,10 +165,6 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 		"dataset_id": metadata.DatasetDetails.ID,
 		"csv_header": metadata.CSVHeader,
 	}
-
-	fmt.Printf("********* METADATA DIMENSIONS 1 BEFORE LOOP: %v\n *********", metadata.Dimensions)
-
-	log.Info(ctx, "generating csvw file", logData)
 
 	// if len(metadata.Dimensions) == 0 {
 	// 	return nil, Error{
