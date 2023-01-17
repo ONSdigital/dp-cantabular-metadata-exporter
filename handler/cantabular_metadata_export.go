@@ -129,11 +129,13 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		var areaTypeDescription string
 		var numberOfOptions int
 		var areaTypeName string
+		var areaTypeURL string
 		for _, fd := range filterModel.Dimensions {
 			if fd.IsAreaType != nil {
 				if *fd.IsAreaType {
 					areaTypeLabel = fd.Label
 					areaTypeName = fd.Name
+					areaTypeURL = fd.URI
 					areaTypeId = fd.ID
 					numberOfOptions = len(fd.Options)
 				}
@@ -154,6 +156,8 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 
 		for i, d := range m.Version.Dimensions {
 			if *d.IsAreaType {
+				m.Version.Dimensions[i].Name = areaTypeName
+				m.Version.Dimensions[i].URL = areaTypeURL
 				m.Version.Dimensions[i].Label = areaTypeLabel
 				m.Version.Dimensions[i].Description = areaTypeDescription
 				m.Version.Dimensions[i].ID = areaTypeId
@@ -165,6 +169,8 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 
 		if !areaTypeFound {
 			areaTypeDimension := dataset.VersionDimension{
+				Name:            areaTypeName,
+				URL:             areaTypeURL,
 				Label:           areaTypeLabel,
 				Description:     areaTypeDescription,
 				ID:              areaTypeId,
