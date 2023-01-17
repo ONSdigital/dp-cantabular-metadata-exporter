@@ -190,7 +190,7 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 	obs := newObservationColumn(h[0], metadata.UnitOfMeasure)
 	list = append(list, obs)
 
-	// // add dimension columns
+	// add dimension columns
 	if len(metadata.Dimensions) > 0 {
 		for i := range metadata.Dimensions {
 			l, err := newLabelColumn(i, apiDomain, h, metadata.Dimensions[i])
