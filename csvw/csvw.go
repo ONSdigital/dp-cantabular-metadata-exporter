@@ -192,8 +192,8 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 
 	// add dimension columns
 	if len(metadata.Dimensions) > 0 {
-		for i := range metadata.Dimensions {
-			l, err := newLabelColumn(i, apiDomain, h, metadata.Dimensions[i])
+		for i, d := range metadata.Dimensions {
+			l, err := newLabelColumn(i, apiDomain, h, d)
 			if err != nil {
 				return nil, Error{
 					err:     fmt.Errorf("failed to create label column: %w", err),
@@ -294,12 +294,12 @@ func newObservationColumn(title, name string) Column {
 func newLabelColumn(i int, apiDomain string, header []string, dims dataset.VersionDimension) (Column, error) {
 	dimURL := dims.URL
 	if len(apiDomain) > 0 {
-		uri, err := url.Parse(dims.URL)
+		uri, err := url.Parse(dimURL)
 		if err != nil {
 			return nil, Error{
 				err: fmt.Errorf("failed to parse dimension url: %w", err),
 				logData: log.Data{
-					"dimension_url": dims.URL,
+					"dimension_url": dimURL,
 				},
 			}
 		}
