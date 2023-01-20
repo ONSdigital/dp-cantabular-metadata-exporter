@@ -291,8 +291,8 @@ func newObservationColumn(title, name string) Column {
 // TBC what the final content of these columns should be. For now is a rough port and amalgamation
 // of the code and label columns from the CMD implementation. Will be updated when we have full
 // metadata spec.
-func newLabelColumn(i int, apiDomain string, header []string, dims dataset.VersionDimension) (Column, error) {
-	dimURL := dims.URL
+func newLabelColumn(i int, apiDomain string, header []string, dim dataset.VersionDimension) (Column, error) {
+	dimURL := dim.URL
 	if len(apiDomain) > 0 {
 		uri, err := url.Parse(dimURL)
 		if err != nil {
@@ -307,11 +307,11 @@ func newLabelColumn(i int, apiDomain string, header []string, dims dataset.Versi
 		dimURL = fmt.Sprintf("%s%s", apiDomain, uri.Path)
 	}
 
-	labelCol := newColumn(dims.Name, dims.Label)
-	labelCol["description"] = dims.Description
-	labelCol["valueURL"] = dimURL + "/codes/{" + dims.Label + "}"
+	labelCol := newColumn(dim.Name, dim.Label)
+	labelCol["description"] = dim.Description
+	labelCol["valueURL"] = dimURL + "/codes/{" + dim.Label + "}"
 	labelCol["required"] = true
-	labelCol["optionCount"] = dims.NumberOfOptions
+	labelCol["optionCount"] = dim.NumberOfOptions
 	// TODO: determine what could go in c["datatype"] and c["required"]
 
 	return labelCol, nil
