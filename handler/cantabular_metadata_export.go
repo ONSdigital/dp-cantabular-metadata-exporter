@@ -142,8 +142,8 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 				for _, area := range areaType.AreaTypes {
 					if area.Label == fd.Label {
 						areaTypeDescription = area.Description
-						areaTypeFound = true
 						numberOfOptions = area.TotalCount
+						areaTypeFound = true
 						break
 					}
 				}
