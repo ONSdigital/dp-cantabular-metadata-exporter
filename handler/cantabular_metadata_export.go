@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
@@ -135,14 +136,14 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 				if *fd.IsAreaType {
 					areaTypeLabel = fd.Label
 					areaTypeName = fd.Name
-					areaTypeURL = fd.URI
+					areaTypeURL = "https://api.dp.aws.onsdigital.uk/v1/code-lists/" + strings.ToLower(fd.Name)
 					areaTypeId = fd.ID
-					numberOfOptions = len(fd.Options)
 				}
 				for _, area := range areaType.AreaTypes {
 					if area.Label == fd.Label {
 						areaTypeDescription = area.Description
 						areaTypeFound = true
+						numberOfOptions = area.TotalCount
 						break
 					}
 				}
