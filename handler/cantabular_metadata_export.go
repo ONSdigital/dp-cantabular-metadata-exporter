@@ -136,7 +136,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 				if *fd.IsAreaType {
 					areaTypeLabel = fd.Label
 					areaTypeName = fd.Name
-					areaTypeURL = "https://api.dp.aws.onsdigital.uk/v1/code-lists/" + strings.ToLower(fd.Name)
+					areaTypeURL = fmt.Sprintf("%s/code-lists/%s", h.cfg.BindAddr, strings.ToLower(fd.Name))
 					areaTypeId = fd.ID
 				}
 				for _, area := range areaType.AreaTypes {
