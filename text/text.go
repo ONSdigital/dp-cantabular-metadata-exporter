@@ -75,8 +75,8 @@ func NewMetadata(m *dataset.Metadata) []byte {
 	}
 
 	b.WriteString("Usage Notes:\n")
-	if m.UsageNotes != nil {
-		for _, n := range *m.UsageNotes {
+	if m.DatasetDetails.UsageNotes != nil {
+		for _, n := range *m.DatasetDetails.UsageNotes {
 			b.WriteString(fmt.Sprintf("Title: %s\nNote: %s\n\n", n.Title, n.Note))
 		}
 	}

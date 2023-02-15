@@ -175,7 +175,7 @@ func TestClose(t *testing.T) {
 				},
 				LogErrorsFunc: func(ctx context.Context) {},
 				StartFunc:     func() error { return nil },
-				CloseFunc: func(context.Context) error {
+				CloseFunc: func(ctx context.Context, optFuncs ...kafka.OptFunc) error {
 					return nil
 				},
 				RegisterHandlerFunc: func(ctx context.Context, h kafka.Handler) error {
