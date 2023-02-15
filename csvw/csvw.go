@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"regexp"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
@@ -93,6 +95,7 @@ var errMissingDimensions = errors.New("no dimensions in provided metadata")
 
 // New CSVW returned with top level fields populated based on provided metadata
 func New(m *dataset.Metadata, csvURL string) *CSVW {
+	var cfg config.Config
 	csvw := &CSVW{
 		Context:     "http://www.w3.org/ns/csvw",
 		Title:       m.Title,
@@ -142,17 +145,18 @@ func New(m *dataset.Metadata, csvURL string) *CSVW {
 		csvw.IsBasedOn = m.Version.IsBasedOn.ID
 	}
 
+	re := regexp.MustCompile("https://([^/]+)")
 	csvw.DatasetLinks = &DatasetLinks{
 		Editions: Link{
-			HREF: m.DatasetLinks.Editions.URL,
+			HREF: re.ReplaceAllString(m.DatasetLinks.Editions.URL, cfg.ExternalPrefixURL),
 			ID:   m.DatasetLinks.Editions.ID,
 		},
 		LatestVersion: Link{
-			HREF: m.DatasetLinks.LatestVersion.URL,
+			HREF: re.ReplaceAllString(m.DatasetLinks.LatestVersion.URL, cfg.ExternalPrefixURL),
 			ID:   m.DatasetLinks.LatestVersion.ID,
 		},
 		Self: Link{
-			HREF: m.DatasetLinks.Self.URL,
+			HREF: re.ReplaceAllString(m.DatasetLinks.Self.URL, cfg.ExternalPrefixURL),
 			ID:   m.DatasetLinks.Editions.ID,
 		},
 	}

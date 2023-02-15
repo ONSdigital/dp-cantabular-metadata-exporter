@@ -16,6 +16,7 @@ type Config struct {
 	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
 	DatasetAPIURL              string        `envconfig:"DATASET_API_URL"`
 	PopulationTypesAPIURL      string        `envconfig:"POPULATION_TYPES_API_URL"`
+	ExternalPrefixURL          string        `envconfig:"EXTERNAL_PREFIX_URL"`
 	AWSRegion                  string        `envconfig:"AWS_REGION"`
 	PublicBucket               string        `envconfig:"PUBLIC_BUCKET"`
 	PrivateBucket              string        `envconfig:"PRIVATE_BUCKET"`
@@ -79,6 +80,7 @@ func Get() (*Config, error) {
 		DatasetAPIURL:              "http://localhost:22000",
 		FilterAPIURL:               "http://localhost:22100",
 		PopulationTypesAPIURL:      "http://localhost:27300",
+		ExternalPrefixURL:          "http://localhost:22000",
 		ComponentTestUseLogFile:    false,
 		DownloadServiceURL:         "http://localhost:23600",
 		StopConsumingOnUnhealthy:   true,

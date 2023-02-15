@@ -36,6 +36,7 @@ func TestConfig(t *testing.T) {
 					DatasetAPIURL:              "http://localhost:22000",
 					FilterAPIURL:               "http://localhost:22100",
 					PopulationTypesAPIURL:      "http://localhost:27300",
+					ExternalPrefixURL:          "http://localhost:22000",
 					DownloadServiceURL:         "http://localhost:23600",
 					AWSRegion:                  "eu-west-1",
 					StopConsumingOnUnhealthy:   true,
