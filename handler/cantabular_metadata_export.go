@@ -271,7 +271,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 	downloadURL := h.generateDownloadURL(e, "csv-metadata.json")
 	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, e.Version)
 
-	f, err := csvw.Generate(ctx, &m, downloadURL, aboutURL, h.apiDomainURL)
+	f, err := csvw.Generate(ctx, &m, downloadURL, aboutURL, h.apiDomainURL, h.cfg.ExternalPrefixURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate csvw: %w", err)
 	}

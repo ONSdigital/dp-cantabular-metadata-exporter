@@ -9,7 +9,6 @@ import (
 	"regexp"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
-	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
@@ -94,8 +93,7 @@ type Note struct {
 var errMissingDimensions = errors.New("no dimensions in provided metadata")
 
 // New CSVW returned with top level fields populated based on provided metadata
-func New(m *dataset.Metadata, csvURL string) *CSVW {
-	var cfg config.Config
+func New(m *dataset.Metadata, csvURL, externalPrefixURL string) *CSVW {
 	csvw := &CSVW{
 		Context:     "http://www.w3.org/ns/csvw",
 		Title:       m.Title,
@@ -145,18 +143,18 @@ func New(m *dataset.Metadata, csvURL string) *CSVW {
 		csvw.IsBasedOn = m.Version.IsBasedOn.ID
 	}
 
-	re := regexp.MustCompile("https://([^/]+)")
+	re := regexp.MustCompile("http(s)?://([^/]+)")
 	csvw.DatasetLinks = &DatasetLinks{
 		Editions: Link{
-			HREF: re.ReplaceAllString(m.DatasetLinks.Editions.URL, cfg.ExternalPrefixURL),
+			HREF: re.ReplaceAllString(m.DatasetLinks.Editions.URL, externalPrefixURL),
 			ID:   m.DatasetLinks.Editions.ID,
 		},
 		LatestVersion: Link{
-			HREF: re.ReplaceAllString(m.DatasetLinks.LatestVersion.URL, cfg.ExternalPrefixURL),
+			HREF: re.ReplaceAllString(m.DatasetLinks.LatestVersion.URL, externalPrefixURL),
 			ID:   m.DatasetLinks.LatestVersion.ID,
 		},
 		Self: Link{
-			HREF: re.ReplaceAllString(m.DatasetLinks.Self.URL, cfg.ExternalPrefixURL),
+			HREF: re.ReplaceAllString(m.DatasetLinks.Self.URL, externalPrefixURL),
 			ID:   m.DatasetLinks.Editions.ID,
 		},
 	}
@@ -164,7 +162,7 @@ func New(m *dataset.Metadata, csvURL string) *CSVW {
 }
 
 // Generate the CSVW structured metadata file to describe a CSV
-func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, aboutURL, apiDomain string) ([]byte, error) {
+func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, aboutURL, apiDomain, externalPrefixURL string) ([]byte, error) {
 	logData := log.Data{
 		"dataset_id": metadata.DatasetDetails.ID,
 		"csv_header": metadata.CSVHeader,
@@ -188,7 +186,7 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 
 	h := metadata.CSVHeader
 
-	csvw := New(metadata, downloadURL)
+	csvw := New(metadata, downloadURL, externalPrefixURL)
 
 	var list []Column
 	obs := newObservationColumn(h[0], metadata.UnitOfMeasure)
