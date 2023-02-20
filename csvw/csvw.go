@@ -143,7 +143,7 @@ func New(m *dataset.Metadata, csvURL, externalPrefixURL string) *CSVW {
 		csvw.IsBasedOn = m.Version.IsBasedOn.ID
 	}
 
-	re := regexp.MustCompile("http(s)?://([^/]+)")
+	re := regexp.MustCompile("https?://([^/]+)")
 	csvw.DatasetLinks = &DatasetLinks{
 		Editions: Link{
 			HREF: re.ReplaceAllString(m.DatasetLinks.Editions.URL, externalPrefixURL),
