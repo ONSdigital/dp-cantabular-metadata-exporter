@@ -5,6 +5,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
@@ -35,6 +36,10 @@ type FilterAPIClient interface {
 
 type PopulationTypesAPIClient interface {
 	GetAreaTypes(ctx context.Context, input population.GetAreaTypesInput) (population.GetAreaTypesResponse, error)
+}
+
+type CantabularClient interface {
+	GetDimensionsByName(context.Context, cantabular.GetDimensionsByNameRequest) (*cantabular.GetDimensionsResponse, error)
 }
 
 type Generator interface {

@@ -22,6 +22,7 @@ type Service struct {
 	producer                 kafka.IProducer
 	datasetAPIClient         DatasetAPIClient
 	filterAPIClient          FilterAPIClient
+	cantabularClient         CantabularClient
 	populationTypesAPIClient PopulationTypesAPIClient
 	HealthCheck              HealthChecker
 	vaultClient              VaultClient
@@ -82,6 +83,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 		svc.datasetAPIClient,
 		svc.filterAPIClient,
 		svc.populationTypesAPIClient,
+		svc.cantabularClient,
 		svc.fileManager,
 		svc.producer,
 		svc.generator,

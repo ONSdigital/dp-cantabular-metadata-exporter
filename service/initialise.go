@@ -10,6 +10,7 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/generator"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
@@ -116,6 +117,19 @@ var GetFilterAPIClient = func(cfg *config.Config) FilterAPIClient {
 // GetPopulationTypesAPIClient gets and initialises the PopulationTypesAPI Client
 var GetPopulationTypesAPIClient = func(cfg *config.Config) (PopulationTypesAPIClient, error) {
 	return population.NewClient(cfg.PopulationTypesAPIURL)
+}
+
+// GetCantabularClient gets and initialises the Cantabular Client
+var GetCantabularClient = func(cfg *config.Config) CantabularClient {
+	return cantabular.NewClient(
+		cantabular.Config{
+			Host:           cfg.CantabularURL,
+			ExtApiHost:     cfg.CantabularExtURL,
+			GraphQLTimeout: cfg.DefaultRequestTimeout,
+		},
+		dphttp.NewClient(),
+		nil,
+	)
 }
 
 // GetFileManager instantiates teh service FileManager

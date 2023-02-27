@@ -14,9 +14,12 @@ type Config struct {
 	GracefulShutdownTimeout    time.Duration `envconfig:"GRACEFUL_SHUTDOWN_TIMEOUT"`
 	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
 	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
+	DefaultRequestTimeout      time.Duration `envconfig:"DEFAULT_REQUEST_TIMEOUT"`
 	DatasetAPIURL              string        `envconfig:"DATASET_API_URL"`
 	PopulationTypesAPIURL      string        `envconfig:"POPULATION_TYPES_API_URL"`
 	ExternalPrefixURL          string        `envconfig:"EXTERNAL_PREFIX_URL"`
+	CantabularURL              string        `envconfig:"CANTABULAR_URL"`
+	CantabularExtURL           string        `envconfig:"CANTABULAR_API_EXT_URL"`
 	AWSRegion                  string        `envconfig:"AWS_REGION"`
 	PublicBucket               string        `envconfig:"PUBLIC_BUCKET"`
 	PrivateBucket              string        `envconfig:"PRIVATE_BUCKET"`

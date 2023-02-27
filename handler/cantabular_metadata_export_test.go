@@ -27,7 +27,7 @@ func TestGenerateTextFilename(t *testing.T) {
 	Convey("Succesfully return a string representing the .txt filename", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
-		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil)
+		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil, nil)
 		filename := h.generateTextFilename(&eventTest)
 		expectedFilename := "datasets/test_id-test-edition-1.txt"
 		So(filename, ShouldResemble, expectedFilename)
@@ -37,7 +37,7 @@ func TestGenerateTextFilename(t *testing.T) {
 	Convey("Succesfully return a string representing the filtered .txt filename", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
-		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, &mock.Generator{})
+		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil, &mock.Generator{})
 		filename := h.generateTextFilename(&eventTestFiltered)
 		expectedFilename := "datasets/test-filter-output-id/test_id-test-edition-1-2022-01-26T12:27:04Z.txt"
 		So(filename, ShouldResemble, expectedFilename)
@@ -51,7 +51,7 @@ func TestGenerateCSVWFilename(t *testing.T) {
 	Convey("Succesfully return a string representing the .csvw filename", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
-		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil)
+		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil, nil)
 		filename := h.generateCSVWFilename(&eventTest)
 		expectedFilename := "datasets/test_id-test-edition-1.csvw"
 		So(filename, ShouldResemble, expectedFilename)
@@ -61,7 +61,7 @@ func TestGenerateCSVWFilename(t *testing.T) {
 	Convey("Succesfully return a string representing the filtered .txt filename", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
-		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, &mock.Generator{})
+		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil, &mock.Generator{})
 		filename := h.generateCSVWFilename(&eventTestFiltered)
 		expectedFilename := "datasets/test-filter-output-id/test_id-test-edition-1-2022-01-26T12:27:04Z.csvw"
 		So(filename, ShouldResemble, expectedFilename)
@@ -75,7 +75,7 @@ func TestGenerateVaultPath(t *testing.T) {
 	Convey("Succesfully return a string representing the vault path with given file extension", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
-		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil)
+		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil, nil)
 
 		Convey("Vault path ends in 'foo'", func() {
 			vaultPath := h.generateVaultPath(&eventTest, "foo")
@@ -97,7 +97,7 @@ func TestGenerateDownloadURL(t *testing.T) {
 	Convey("Succesfully return a string representing the download URL with given file extension", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
-		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil)
+		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil, nil)
 
 		Convey("Download URL ends in 'foo'", func() {
 			vaultPath := h.generateDownloadURL(&eventTest, "foo")

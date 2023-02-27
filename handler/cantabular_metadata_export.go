@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ONSdigital/dp-api-clients-go/v2/cantabular"
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
-	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/csvw"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
@@ -23,8 +23,10 @@ import (
 )
 
 const (
-	batchSize  = 1000
-	maxWorkers = 10
+	batchSize    = 1000
+	maxWorkers   = 10
+	flexible     = "flexible"
+	multivariate = "multivariate"
 )
 
 type downloadInfo struct {
@@ -40,6 +42,7 @@ type CantabularMetadataExport struct {
 	dataset           DatasetAPIClient
 	filter            FilterAPIClient
 	populationTypes   PopulationTypesAPIClient
+	ctblr             CantabularClient
 	file              FileManager
 	producer          kafka.IProducer
 	generate          Generator
@@ -49,7 +52,7 @@ type CantabularMetadataExport struct {
 }
 
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler
-func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, f FilterAPIClient, t PopulationTypesAPIClient, fm FileManager, p kafka.IProducer, g Generator) *CantabularMetadataExport {
+func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, f FilterAPIClient, t PopulationTypesAPIClient, c CantabularClient, fm FileManager, p kafka.IProducer, g Generator) *CantabularMetadataExport {
 	return &CantabularMetadataExport{
 		cfg:             cfg,
 		dataset:         d,
@@ -63,6 +66,7 @@ func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, f Filter
 
 // Handle takes a single event.
 func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg kafka.Message) error {
+	var err error
 	e := &event.CSVCreated{}
 	s := schema.CSVCreated
 
@@ -91,94 +95,61 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		Dimensions:       e.Dimensions,
 	}
 
-	m, err := h.dataset.GetVersionMetadataSelection(ctx, req)
-	if err != nil {
-		return Error{
-			err:     fmt.Errorf("failed to get version metadata: %w", err),
-			logData: logData,
+	isFilter := e.FilterOutputID != ""
+	var m *dataset.Metadata
+	var filterOutput filter.Model
+
+	if isFilter {
+		filterOutput, err = h.filter.GetOutput(ctx, "", h.cfg.ServiceAuthToken, "", "", e.FilterOutputID)
+		if err != nil {
+			return errors.Wrap(err, "failed to get filter output")
+		}
+	}
+	if filterOutput.Type == multivariate {
+		m = h.GetPlaceholderMetadata()
+	} else {
+		m, err = h.dataset.GetVersionMetadataSelection(ctx, req)
+		if err != nil {
+			return &Error{
+				err:     errors.Wrap(err, "failed to get version metadata"),
+				logData: logData,
+			}
 		}
 	}
 
-	if e.FilterOutputID != "" {
-		filterModel, err := h.filter.GetOutput(ctx, "", h.cfg.ServiceAuthToken, "", "", e.FilterOutputID)
+	var dims []dataset.VersionDimension
+
+	if isFilter {
+		dims, err = h.GetFilterDimensions(ctx, filterOutput)
 		if err != nil {
 			return &Error{
-				err:     errors.Wrap(err, "failed to get filter output"),
+				err:     errors.Wrap(err, "failed to get filter dimensions"),
 				logData: logData,
 			}
 		}
-
-		populationType := filterModel.PopulationType
-
-		areaTypesInput := population.GetAreaTypesInput{
-			AuthTokens: population.AuthTokens{
-				ServiceAuthToken: h.cfg.ServiceAuthToken,
-			},
-			PopulationType: populationType,
-		}
-
-		areaType, err := h.populationTypes.GetAreaTypes(ctx, areaTypesInput)
-		if err != nil {
-			return &Error{
-				err:     errors.Wrap(err, "failed to get area types"),
-				logData: logData,
-			}
-		}
-		areaTypeFound := false
-		var areaTypeLabel string
-		var areaTypeId string
-		var areaTypeDescription string
-		var numberOfOptions int
-		var areaTypeName string
-		var areaTypeURL string
-		for _, fd := range filterModel.Dimensions {
-			if fd.IsAreaType != nil {
-				if *fd.IsAreaType {
-					areaTypeLabel = fd.Label
-					areaTypeName = fd.Name
-					areaTypeURL = fmt.Sprintf("%s/code-lists/%s", h.cfg.BindAddr, strings.ToLower(fd.Name))
-					areaTypeId = fd.ID
+		for _, dim := range dims {
+			if dim.IsAreaType != nil && *dim.IsAreaType {
+				areaTypeDimension := dataset.VersionDimension{
+					Name:            dim.Name,
+					URL:             fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
+					Label:           dim.Label,
+					Description:     dim.Description,
+					ID:              dim.ID,
+					NumberOfOptions: dim.NumberOfOptions,
 				}
-				for _, area := range areaType.AreaTypes {
-					if area.Label == fd.Label {
-						areaTypeDescription = area.Description
-						numberOfOptions = area.TotalCount
-						areaTypeFound = true
-						break
-					}
+				m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
+			}
+			if filterOutput.Type == multivariate && !*dim.IsAreaType {
+				nonAreaTypeDimension := dataset.VersionDimension{
+					Name:            dim.Name,
+					URL:             fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
+					Label:           dim.Label,
+					Description:     dim.Description,
+					ID:              dim.ID,
+					NumberOfOptions: dim.NumberOfOptions,
 				}
-				if areaTypeFound {
-					break
-				}
+				m.Version.Dimensions = append(m.Version.Dimensions, nonAreaTypeDimension)
 			}
-		}
-
-		areaTypeFound = false
-
-		for i, d := range m.Version.Dimensions {
-			if *d.IsAreaType {
-				m.Version.Dimensions[i].Name = areaTypeName
-				m.Version.Dimensions[i].URL = areaTypeURL
-				m.Version.Dimensions[i].Label = areaTypeLabel
-				m.Version.Dimensions[i].Description = areaTypeDescription
-				m.Version.Dimensions[i].ID = areaTypeId
-				m.Version.Dimensions[i].NumberOfOptions = numberOfOptions
-				areaTypeFound = true
-				break
-			}
-		}
-
-		if !areaTypeFound {
-			areaTypeDimension := dataset.VersionDimension{
-				Name:            areaTypeName,
-				URL:             areaTypeURL,
-				Label:           areaTypeLabel,
-				Description:     areaTypeDescription,
-				ID:              areaTypeId,
-				NumberOfOptions: numberOfOptions,
-			}
-			m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
-			m.CSVHeader = append(m.CSVHeader, areaTypeName)
 		}
 	}
 
@@ -474,4 +445,48 @@ func (h *CantabularMetadataExport) UpdateFilterOutput(ctx context.Context, e *ev
 	}
 
 	return nil
+}
+
+func (h *CantabularMetadataExport) GetFilterDimensions(ctx context.Context, filterOutput filter.Model) ([]dataset.VersionDimension, error) {
+	var areaType string
+	for _, d := range filterOutput.Dimensions {
+		if d.IsAreaType != nil && *d.IsAreaType {
+			areaType = d.ID
+		}
+	}
+
+	cReq := cantabular.GetDimensionsByNameRequest{
+		Dataset: filterOutput.PopulationType,
+	}
+	for _, d := range filterOutput.Dimensions {
+		cReq.DimensionNames = append(cReq.DimensionNames, d.ID)
+	}
+	resp, err := h.ctblr.GetDimensionsByName(ctx, cReq)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query dimensions")
+	}
+
+	var dims []dataset.VersionDimension
+	for _, e := range resp.Dataset.Variables.Edges {
+		isAreaType := e.Node.Name == areaType
+		dim := dataset.VersionDimension{
+			Label:       e.Node.Label,
+			Description: e.Node.Description,
+			IsAreaType:  &isAreaType,
+		}
+		dims = append(dims, dim)
+	}
+
+	return dims, nil
+}
+
+func (h *CantabularMetadataExport) GetPlaceholderMetadata() *dataset.Metadata {
+	return &dataset.Metadata{
+		Version: dataset.Version{
+			ReleaseDate: "2006-01-02T15:04:05.000Z",
+		},
+		DatasetDetails: dataset.DatasetDetails{
+			Title: "Custom Dataset",
+		},
+	}
 }
