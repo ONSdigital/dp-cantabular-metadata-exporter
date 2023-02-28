@@ -14,7 +14,7 @@ dp-cantabular-metadata-exporter
 
 | Environment variable                | Default                              | Description
 | ----------------------------------- | ------------------------------------ | -----------
-| BIND_ADDR                           | localhost:26300                      | The host and port to bind to
+| BIND_ADDR                           | localhost:26700                      | The host and port to bind to
 | GRACEFUL_SHUTDOWN_TIMEOUT           | 5s                                   | The graceful shutdown timeout in seconds (`time.Duration` format)
 | HEALTHCHECK_INTERVAL                | 30s                                  | Time between self-healthchecks (`time.Duration` format)
 | HEALTHCHECK_CRITICAL_TIMEOUT        | 90s                                  | Time to wait until an unhealthy dependent propagates its state to make this app unhealthy (`time.Duration` format)
@@ -48,7 +48,7 @@ dp-cantabular-metadata-exporter
 | KAFKA_NUM_WORKERS                   | 1                                    | The maximum number of parallel kafka consumers
 | KAFKA_MAX_BYTES                     | 2000000                              | the maximum number of bytes per kafka message
 | KAFKA_TOPIC_CSV_CREATED             | cantabular-csv-created               | The name of the topic that is produced after a CSV file has been successfully generated
-| KAFKA_TOPIC_CSVW_CREATED            | cantabular-csvw-created               | The name of the topic that is produced after a CSVW file has been successfully generated
+| KAFKA_TOPIC_CSVW_CREATED            | cantabular-csvw-created              | The name of the topic that is produced after a CSVW file has been successfully generated
 | KAFKA_SEC_PROTO                     | _unset_                              | if set to `TLS`, kafka connections will use TLS [[1]](#notes_1)
 | KAFKA_SEC_CA_CERTS                  | _unset_                              | CA cert chain for the server cert [[1]](#notes_1)
 | KAFKA_SEC_CLIENT_KEY                | _unset_                              | PEM for the client key [[1]](#notes_1)
