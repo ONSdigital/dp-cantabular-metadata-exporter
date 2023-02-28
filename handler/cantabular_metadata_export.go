@@ -472,6 +472,7 @@ func (h *CantabularMetadataExport) GetFilterDimensions(ctx context.Context, filt
 		dim := dataset.VersionDimension{
 			Label:       e.Node.Label,
 			Description: e.Node.Description,
+			Name:        e.Node.Name,
 			IsAreaType:  &isAreaType,
 		}
 		dims = append(dims, dim)
