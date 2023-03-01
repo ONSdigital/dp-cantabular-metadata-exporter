@@ -128,17 +128,6 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 			}
 		}
 		for _, dim := range dims {
-			if dim.IsAreaType != nil && *dim.IsAreaType {
-				areaTypeDimension := dataset.VersionDimension{
-					Name:            dim.Name,
-					URL:             fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
-					Label:           dim.Label,
-					Description:     dim.Description,
-					ID:              dim.ID,
-					NumberOfOptions: dim.NumberOfOptions,
-				}
-				m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
-			}
 			if filterOutput.Type == multivariate && !*dim.IsAreaType {
 				nonAreaTypeDimension := dataset.VersionDimension{
 					Name:            dim.Name,
@@ -149,6 +138,17 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 					NumberOfOptions: dim.NumberOfOptions,
 				}
 				m.Version.Dimensions = append(m.Version.Dimensions, nonAreaTypeDimension)
+			}
+			if dim.IsAreaType != nil && *dim.IsAreaType {
+				areaTypeDimension := dataset.VersionDimension{
+					Name:            dim.Name,
+					URL:             fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
+					Label:           dim.Label,
+					Description:     dim.Description,
+					ID:              dim.ID,
+					NumberOfOptions: dim.NumberOfOptions,
+				}
+				m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
 			}
 		}
 	}
