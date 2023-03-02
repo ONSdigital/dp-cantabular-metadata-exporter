@@ -58,6 +58,7 @@ func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, f Filter
 		dataset:         d,
 		filter:          f,
 		populationTypes: t,
+		ctblr:           c,
 		file:            fm,
 		producer:        p,
 		generate:        g,
