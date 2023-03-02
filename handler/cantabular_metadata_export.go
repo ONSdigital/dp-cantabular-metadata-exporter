@@ -139,6 +139,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 					NumberOfOptions: dim.NumberOfOptions,
 				}
 				m.Version.Dimensions = append(m.Version.Dimensions, nonAreaTypeDimension)
+				m.CSVHeader = append(m.CSVHeader, dim.Name)
 			}
 			if dim.IsAreaType != nil && *dim.IsAreaType {
 				areaTypeDimension := dataset.VersionDimension{
@@ -150,6 +151,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 					NumberOfOptions: dim.NumberOfOptions,
 				}
 				m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
+				m.CSVHeader = append(m.CSVHeader, dim.Name)
 			}
 		}
 	}
