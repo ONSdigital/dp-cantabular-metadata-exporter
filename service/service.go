@@ -73,6 +73,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 	svc.datasetAPIClient = GetDatasetAPIClient(cfg)
 	svc.filterAPIClient = GetFilterAPIClient(cfg)
 	svc.populationTypesAPIClient, _ = GetPopulationTypesAPIClient(cfg)
+	svc.cantabularClient = GetCantabularClient(cfg)
 
 	if svc.HealthCheck, err = GetHealthCheck(cfg, buildT, commit, ver); err != nil {
 		return fmt.Errorf("could not get healtcheck: %w", err)
