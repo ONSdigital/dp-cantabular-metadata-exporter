@@ -131,24 +131,26 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		for _, dim := range dims {
 			if filterOutput.Type == multivariate && !*dim.IsAreaType {
 				nonAreaTypeDimension := dataset.VersionDimension{
-					Name:            dim.Name,
-					URL:             fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
-					Label:           dim.Label,
-					Description:     dim.Description,
-					ID:              dim.ID,
-					NumberOfOptions: dim.NumberOfOptions,
+					Name:                 dim.Name,
+					URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
+					Label:                dim.Label,
+					Description:          dim.Description,
+					ID:                   dim.ID,
+					NumberOfOptions:      dim.NumberOfOptions,
+					QualityStatementText: dim.QualityStatementText,
 				}
 				m.Version.Dimensions = append(m.Version.Dimensions, nonAreaTypeDimension)
 				m.CSVHeader = append(m.CSVHeader, dim.Name)
 			}
 			if dim.IsAreaType != nil && *dim.IsAreaType {
 				areaTypeDimension := dataset.VersionDimension{
-					Name:            dim.Name,
-					URL:             fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
-					Label:           dim.Label,
-					Description:     dim.Description,
-					ID:              dim.ID,
-					NumberOfOptions: dim.NumberOfOptions,
+					Name:                 dim.Name,
+					URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
+					Label:                dim.Label,
+					Description:          dim.Description,
+					ID:                   dim.ID,
+					NumberOfOptions:      dim.NumberOfOptions,
+					QualityStatementText: dim.QualityStatementText,
 				}
 				m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
 				m.CSVHeader = append(m.CSVHeader, dim.Name)
@@ -473,10 +475,13 @@ func (h *CantabularMetadataExport) GetFilterDimensions(ctx context.Context, filt
 	for _, e := range resp.Dataset.Variables.Edges {
 		isAreaType := e.Node.Name == areaType
 		dim := dataset.VersionDimension{
-			Label:       e.Node.Label,
-			Description: e.Node.Description,
-			Name:        e.Node.Name,
-			IsAreaType:  &isAreaType,
+			ID:                   e.Node.Name,
+			Name:                 e.Node.Name,
+			Description:          e.Node.Description,
+			Label:                e.Node.Label,
+			NumberOfOptions:      e.Node.Categories.TotalCount,
+			IsAreaType:           &isAreaType,
+			QualityStatementText: e.Node.Meta.ONSVariable.QualityStatementText,
 		}
 		dims = append(dims, dim)
 	}
