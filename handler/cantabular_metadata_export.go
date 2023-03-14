@@ -122,6 +122,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		falseFlag := false
 		filterOutput.Custom = &falseFlag
 	}
+
 	var dims []dataset.VersionDimension
 
 	if isFilter {
@@ -289,12 +290,7 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 }
 
 func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated, isCustom bool) string {
-	var prefix, suffix string
-
-	datasetID := e.DatasetID
-	if isCustom {
-		datasetID = "custom"
-	}
+	var prefix, suffix, fn string
 
 	if len(e.FilterOutputID) == 0 {
 		prefix, suffix = "datasets/", ".txt"
@@ -303,18 +299,23 @@ func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated, isC
 		suffix = fmt.Sprintf("-%s.txt", h.generate.Timestamp().Format(time.RFC3339))
 	}
 
-	fn := fmt.Sprintf("%s-%s-%s", datasetID, e.Edition, e.Version)
+	fn = fmt.Sprintf(
+		"%s-%s-%s",
+		e.DatasetID,
+		e.Edition,
+		e.Version,
+	)
+
+	if isCustom {
+		fn = "custom"
+	}
 
 	return prefix + fn + suffix
 }
 
 func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated, isCustom bool) string {
-	var prefix, suffix string
+	var prefix, suffix, fn string
 
-	datasetID := e.DatasetID
-	if isCustom {
-		datasetID = "custom"
-	}
 	if len(e.FilterOutputID) == 0 {
 		prefix, suffix = "datasets/", ".csvw"
 	} else {
@@ -322,13 +323,17 @@ func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated, isC
 		suffix = fmt.Sprintf("-%s.csvw", h.generate.Timestamp().Format(time.RFC3339))
 	}
 
-	fn := fmt.Sprintf(
+	fn = fmt.Sprintf(
 		"%s%s-%s-%s",
 		h.csvwPrefix,
-		datasetID,
+		e.DatasetID,
 		e.Edition,
 		e.Version,
 	)
+
+	if isCustom {
+		fn = "custom"
+	}
 
 	return prefix + fn + suffix
 }
