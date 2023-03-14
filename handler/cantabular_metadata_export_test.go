@@ -28,7 +28,7 @@ func TestGenerateTextFilename(t *testing.T) {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
 		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil, nil)
-		filename := h.generateTextFilename(&eventTest)
+		filename := h.generateTextFilename(&eventTest, false)
 		expectedFilename := "datasets/test_id-test-edition-1.txt"
 		So(filename, ShouldResemble, expectedFilename)
 
@@ -38,7 +38,7 @@ func TestGenerateTextFilename(t *testing.T) {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
 		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil, &mock.Generator{})
-		filename := h.generateTextFilename(&eventTestFiltered)
+		filename := h.generateTextFilename(&eventTestFiltered, false)
 		expectedFilename := "datasets/test-filter-output-id/test_id-test-edition-1-2022-01-26T12:27:04Z.txt"
 		So(filename, ShouldResemble, expectedFilename)
 
@@ -52,7 +52,7 @@ func TestGenerateCSVWFilename(t *testing.T) {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
 		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil, nil)
-		filename := h.generateCSVWFilename(&eventTest)
+		filename := h.generateCSVWFilename(&eventTest, false)
 		expectedFilename := "datasets/test_id-test-edition-1.csvw"
 		So(filename, ShouldResemble, expectedFilename)
 
@@ -62,7 +62,7 @@ func TestGenerateCSVWFilename(t *testing.T) {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
 		h := NewCantabularMetadataExport(*cfg, nil, nil, nil, nil, nil, nil, &mock.Generator{})
-		filename := h.generateCSVWFilename(&eventTestFiltered)
+		filename := h.generateCSVWFilename(&eventTestFiltered, false)
 		expectedFilename := "datasets/test-filter-output-id/test_id-test-edition-1-2022-01-26T12:27:04Z.csvw"
 		So(filename, ShouldResemble, expectedFilename)
 

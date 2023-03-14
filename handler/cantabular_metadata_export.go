@@ -118,7 +118,10 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 	if filterOutput.Type == multivariate {
 		m.Title = m.Title + " - customised"
 	}
-
+	if filterOutput.Custom == nil {
+		falseFlag := false
+		filterOutput.Custom = &falseFlag
+	}
 	var dims []dataset.VersionDimension
 
 	if isFilter {
@@ -169,7 +172,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 
 	logData["isPublished"] = isPublished
 
-	csvwDownload, err := h.exportCSVW(ctx, e, *m, isPublished)
+	csvwDownload, err := h.exportCSVW(ctx, e, *m, isPublished, *filterOutput.Custom)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to export csvw: %w", err),
@@ -177,7 +180,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		}
 	}
 
-	txtDownload, err := h.exportTXTFile(ctx, e, *m, isPublished)
+	txtDownload, err := h.exportTXTFile(ctx, e, *m, isPublished, *filterOutput.Custom)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to export metadata text file: %w", err),
@@ -211,9 +214,9 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 	return nil
 }
 
-func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*downloadInfo, error) {
+func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool, isCustom bool) (*downloadInfo, error) {
 	b := text.NewMetadata(&m)
-	filename := h.generateTextFilename(e)
+	filename := h.generateTextFilename(e, isCustom)
 
 	var url string
 	var err error
@@ -243,8 +246,8 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 	return &d, nil
 }
 
-func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool) (*downloadInfo, error) {
-	filename := h.generateCSVWFilename(e)
+func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool, isCustom bool) (*downloadInfo, error) {
+	filename := h.generateCSVWFilename(e, isCustom)
 	downloadURL := h.generateDownloadURL(e, "csv-metadata.json")
 	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, e.Version)
 
@@ -285,8 +288,13 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 	return &d, nil
 }
 
-func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated) string {
+func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated, isCustom bool) string {
 	var prefix, suffix string
+
+	datasetID := e.DatasetID
+	if isCustom {
+		datasetID = "custom"
+	}
 
 	if len(e.FilterOutputID) == 0 {
 		prefix, suffix = "datasets/", ".txt"
@@ -295,14 +303,18 @@ func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated) str
 		suffix = fmt.Sprintf("-%s.txt", h.generate.Timestamp().Format(time.RFC3339))
 	}
 
-	fn := fmt.Sprintf("%s-%s-%s", e.DatasetID, e.Edition, e.Version)
+	fn := fmt.Sprintf("%s-%s-%s", datasetID, e.Edition, e.Version)
 
 	return prefix + fn + suffix
 }
 
-func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated) string {
+func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated, isCustom bool) string {
 	var prefix, suffix string
 
+	datasetID := e.DatasetID
+	if isCustom {
+		datasetID = "custom"
+	}
 	if len(e.FilterOutputID) == 0 {
 		prefix, suffix = "datasets/", ".csvw"
 	} else {
@@ -313,7 +325,7 @@ func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated) str
 	fn := fmt.Sprintf(
 		"%s%s-%s-%s",
 		h.csvwPrefix,
-		e.DatasetID,
+		datasetID,
 		e.Edition,
 		e.Version,
 	)
