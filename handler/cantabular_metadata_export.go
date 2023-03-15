@@ -106,16 +106,17 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 			return errors.Wrap(err, "failed to get filter output")
 		}
 	}
-	if filterOutput.Type == multivariate {
-		m = h.GetPlaceholderMetadata()
-	} else {
-		m, err = h.dataset.GetVersionMetadataSelection(ctx, req)
-		if err != nil {
-			return &Error{
-				err:     errors.Wrap(err, "failed to get version metadata"),
-				logData: logData,
-			}
+
+	m, err = h.dataset.GetVersionMetadataSelection(ctx, req)
+	if err != nil {
+		return &Error{
+			err:     errors.Wrap(err, "failed to get version metadata"),
+			logData: logData,
 		}
+	}
+
+	if filterOutput.Type == multivariate {
+		m.Title = m.Title + " - customised"
 	}
 
 	var dims []dataset.VersionDimension
@@ -487,15 +488,4 @@ func (h *CantabularMetadataExport) GetFilterDimensions(ctx context.Context, filt
 	}
 
 	return dims, nil
-}
-
-func (h *CantabularMetadataExport) GetPlaceholderMetadata() *dataset.Metadata {
-	return &dataset.Metadata{
-		Version: dataset.Version{
-			ReleaseDate: "2006-01-02T15:04:05.000Z",
-		},
-		DatasetDetails: dataset.DatasetDetails{
-			Title: "Custom Dataset",
-		},
-	}
 }
