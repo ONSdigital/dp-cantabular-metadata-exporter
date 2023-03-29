@@ -11,6 +11,9 @@ import (
 var fileURL = "ons/file.csv"
 var apiURL = "api.example.com"
 var externalPrefixURL = "external.prefixurl.com"
+var filterOutputID = "filter-output-id"
+var downloadServiceURL = "download-service-url"
+var isCustom = false
 
 var ctx = context.Background()
 
@@ -28,7 +31,7 @@ func TestNew(t *testing.T) {
 		}
 
 		Convey("When the New csvw function is called", func() {
-			csvw := New(m, fileURL, externalPrefixURL)
+			csvw := New(m, fileURL, externalPrefixURL, filterOutputID, downloadServiceURL, isCustom)
 
 			Convey("Then the values should be set to the expected fields", func() {
 				So(csvw.Context, ShouldEqual, "http://www.w3.org/ns/csvw")
@@ -79,10 +82,10 @@ func TestGenerate(t *testing.T) {
 		}
 
 		Convey("When the Generate csvw function is called", func() {
-			data, err := Generate(ctx, m, fileURL, fileURL, apiURL, externalPrefixURL)
+			data, err := Generate(ctx, m, fileURL, fileURL, apiURL, externalPrefixURL, filterOutputID, downloadServiceURL, isCustom)
 
 			Convey("Then results should be returned with no errors", func() {
-				So(data, ShouldHaveLength, 593)
+				So(data, ShouldHaveLength, 568)
 				So(err, ShouldBeNil)
 			})
 		})
