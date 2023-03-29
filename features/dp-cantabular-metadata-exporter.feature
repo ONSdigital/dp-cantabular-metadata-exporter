@@ -742,7 +742,7 @@ Feature: Cantabular-Metadata-Exporter
         "downloads": {
           "CSVW": {
             "href": "http://localhost:23600/downloads/datasets/cantabular-example-2/editions/2021/versions/1.csv-metadata.json",
-            "size": "1137",
+            "size": "1080",
             "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/cantabular-example-2-2021-1.csvw"
           },
           "TXT": {
@@ -813,7 +813,7 @@ Feature: Cantabular-Metadata-Exporter
         "downloads": {
           "CSVW": {
             "href": "http://localhost:23600/downloads/filter-outputs/filter-output-2.csv-metadata.json",
-            "size": "1137",
+            "size": "1080",
             "private": "http://minio:9000/dp-cantabular-metadata-exporter-priv/datasets/filter-output-2/cantabular-example-2-2021-1-2022-01-26T12:27:04Z.csvw"
           },
           "TXT": {
@@ -833,7 +833,7 @@ Feature: Cantabular-Metadata-Exporter
         "downloads": {
           "CSVW": {
             "href": "http://localhost:23600/downloads/datasets/cantabular-example-1/editions/2021/versions/1.csv-metadata.json",
-            "size": "1135",
+            "size": "1078",
             "public": "http://public-bucket/datasets/cantabular-example-1-2021-1.csvw"
           },
           "TXT": {
