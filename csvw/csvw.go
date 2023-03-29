@@ -105,9 +105,10 @@ func New(m *dataset.Metadata, csvURL, externalPrefixURL, filterOutputID, downloa
 			titleDims = append(titleDims, d.Label)
 		}
 		csvw := &CSVW{
-			Title:  strings.Join(titleDims, " "),
-			Issued: issuedDate,
-			URL:    fmt.Sprintf("\tURL: %s\n\n", fmt.Sprintf("%s/downloads/filter-outputs/%s.csvw", downloadServiceURL, filterOutputID)),
+			Context: "http://www.w3.org/ns/csvw",
+			Title:   strings.Join(titleDims, " "),
+			Issued:  issuedDate,
+			URL:     fmt.Sprintf("%s/downloads/filter-outputs/%s.csvw", downloadServiceURL, filterOutputID),
 		}
 		csvw.UnitOfMeasure = m.UnitOfMeasure
 		return csvw
