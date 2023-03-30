@@ -134,31 +134,35 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 			}
 		}
 		for _, dim := range dims {
-			if filterOutput.Type == multivariate && !*dim.IsAreaType {
-				nonAreaTypeDimension := dataset.VersionDimension{
-					Name:                 dim.Name,
-					URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
-					Label:                dim.Label,
-					Description:          dim.Description,
-					ID:                   dim.ID,
-					NumberOfOptions:      dim.NumberOfOptions,
-					QualityStatementText: dim.QualityStatementText,
+			for _, vDim := range m.Version.Dimensions {
+				if filterOutput.Type == multivariate && !*dim.IsAreaType && dim.Label != vDim.Label {
+					nonAreaTypeDimension := dataset.VersionDimension{
+						Name:                 dim.Name,
+						URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
+						Label:                dim.Label,
+						Description:          dim.Description,
+						ID:                   dim.ID,
+						NumberOfOptions:      dim.NumberOfOptions,
+						QualityStatementText: dim.QualityStatementText,
+					}
+					m.Version.Dimensions = append(m.Version.Dimensions, nonAreaTypeDimension)
+					m.CSVHeader = append(m.CSVHeader, dim.Name)
 				}
-				m.Version.Dimensions = append(m.Version.Dimensions, nonAreaTypeDimension)
-				m.CSVHeader = append(m.CSVHeader, dim.Name)
 			}
-			if dim.IsAreaType != nil && *dim.IsAreaType {
-				areaTypeDimension := dataset.VersionDimension{
-					Name:                 dim.Name,
-					URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
-					Label:                dim.Label,
-					Description:          dim.Description,
-					ID:                   dim.ID,
-					NumberOfOptions:      dim.NumberOfOptions,
-					QualityStatementText: dim.QualityStatementText,
+			for _, vDim := range m.Version.Dimensions {
+				if dim.IsAreaType != nil && *dim.IsAreaType && dim.Label != vDim.Label {
+					areaTypeDimension := dataset.VersionDimension{
+						Name:                 dim.Name,
+						URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
+						Label:                dim.Label,
+						Description:          dim.Description,
+						ID:                   dim.ID,
+						NumberOfOptions:      dim.NumberOfOptions,
+						QualityStatementText: dim.QualityStatementText,
+					}
+					m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
+					m.CSVHeader = append(m.CSVHeader, dim.Name)
 				}
-				m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
-				m.CSVHeader = append(m.CSVHeader, dim.Name)
 			}
 		}
 	}
