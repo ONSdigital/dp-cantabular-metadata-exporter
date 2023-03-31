@@ -512,7 +512,7 @@ func removeDuplicateDimensions(vDims []dataset.VersionDimension) []dataset.Versi
 	allDims := make(map[dataset.VersionDimension]bool)
 	dimensions := []dataset.VersionDimension{}
 	for _, dims := range vDims {
-		if _, value := allDims[dims]; !value {
+		if _, dim := allDims[dims]; !dim {
 			allDims[dims] = true
 			dimensions = append(dimensions, dims)
 		}
