@@ -134,7 +134,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 			}
 		}
 		for _, dim := range dims {
-			if filterOutput.Type == multivariate && !*dim.IsAreaType {
+			if filterOutput.Type == multivariate && !*dim.IsAreaType && dim.IsAreaType != nil {
 				nonAreaTypeDimension := dataset.VersionDimension{
 					Name:                 dim.Name,
 					URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
@@ -512,7 +512,7 @@ func removeDuplicateDimensions(vDims []dataset.VersionDimension) []dataset.Versi
 	allDims := make(map[dataset.VersionDimension]bool)
 	dimensions := []dataset.VersionDimension{}
 	for _, dims := range vDims {
-		if _, dim := allDims[dims]; !dim {
+		if !allDims[dims] {
 			allDims[dims] = true
 			dimensions = append(dimensions, dims)
 		}
