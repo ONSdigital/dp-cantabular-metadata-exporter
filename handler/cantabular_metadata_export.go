@@ -134,31 +134,33 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 			}
 		}
 		for _, dim := range dims {
-			if filterOutput.Type == multivariate && !*dim.IsAreaType && dim.IsAreaType != nil {
-				nonAreaTypeDimension := dataset.VersionDimension{
-					Name:                 dim.Name,
-					URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
-					Label:                dim.Label,
-					Description:          dim.Description,
-					ID:                   dim.ID,
-					NumberOfOptions:      dim.NumberOfOptions,
-					QualityStatementText: dim.QualityStatementText,
+			if dim.IsAreaType != nil {
+				if filterOutput.Type == multivariate && !*dim.IsAreaType {
+					nonAreaTypeDimension := dataset.VersionDimension{
+						Name:                 dim.Name,
+						URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
+						Label:                dim.Label,
+						Description:          dim.Description,
+						ID:                   dim.ID,
+						NumberOfOptions:      dim.NumberOfOptions,
+						QualityStatementText: dim.QualityStatementText,
+					}
+					m.Version.Dimensions = append(m.Version.Dimensions, nonAreaTypeDimension)
+					m.CSVHeader = append(m.CSVHeader, dim.Name)
 				}
-				m.Version.Dimensions = append(m.Version.Dimensions, nonAreaTypeDimension)
-				m.CSVHeader = append(m.CSVHeader, dim.Name)
-			}
-			if dim.IsAreaType != nil && *dim.IsAreaType {
-				areaTypeDimension := dataset.VersionDimension{
-					Name:                 dim.Name,
-					URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
-					Label:                dim.Label,
-					Description:          dim.Description,
-					ID:                   dim.ID,
-					NumberOfOptions:      dim.NumberOfOptions,
-					QualityStatementText: dim.QualityStatementText,
+				if *dim.IsAreaType {
+					areaTypeDimension := dataset.VersionDimension{
+						Name:                 dim.Name,
+						URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
+						Label:                dim.Label,
+						Description:          dim.Description,
+						ID:                   dim.ID,
+						NumberOfOptions:      dim.NumberOfOptions,
+						QualityStatementText: dim.QualityStatementText,
+					}
+					m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
+					m.CSVHeader = append(m.CSVHeader, dim.Name)
 				}
-				m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
-				m.CSVHeader = append(m.CSVHeader, dim.Name)
 			}
 		}
 		m.Version.Dimensions = removeDuplicateDimensions(m.Version.Dimensions)
@@ -509,11 +511,11 @@ func (h *CantabularMetadataExport) GetFilterDimensions(ctx context.Context, filt
 }
 
 func removeDuplicateDimensions(vDims []dataset.VersionDimension) []dataset.VersionDimension {
-	allDims := make(map[dataset.VersionDimension]bool)
+	allDims := make(map[string]bool)
 	dimensions := []dataset.VersionDimension{}
 	for _, dims := range vDims {
-		if !allDims[dims] {
-			allDims[dims] = true
+		if !allDims[dims.ID] {
+			allDims[dims.ID] = true
 			dimensions = append(dimensions, dims)
 		}
 	}
