@@ -219,7 +219,12 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 }
 
 func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool, isCustom bool) (*downloadInfo, error) {
-	b := text.NewMetadata(&m, isCustom, e.FilterOutputID, h.cfg.DownloadServiceURL)
+	var b []byte
+	if isCustom {
+		b = text.NewMetadataCustom(&m, e.FilterOutputID, h.cfg.DownloadServiceURL)
+	} else {
+		b = text.NewMetadata(&m, e.FilterOutputID, h.cfg.DownloadServiceURL)
+	}
 	filename := h.generateTextFilename(e, isCustom)
 
 	var url string

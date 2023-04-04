@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
@@ -97,16 +96,13 @@ var errMissingDimensions = errors.New("no dimensions in provided metadata")
 // New CSVW returned with top level fields populated based on provided metadata
 func New(m *dataset.Metadata, csvURL, externalPrefixURL, filterOutputID, downloadServiceURL string, isCustom bool) *CSVW {
 	if isCustom {
-		var titleDims []string
 		dt := time.Now()
 		issuedDate := dt.Format("01-02-2006 15:04:05")
+		titleDims := GenerateCustomTitle(m.Version.Dimensions)
 
-		for _, d := range m.Version.Dimensions {
-			titleDims = append(titleDims, d.Label)
-		}
 		csvw := &CSVW{
 			Context: "http://www.w3.org/ns/csvw",
-			Title:   strings.Join(titleDims, " "),
+			Title:   titleDims,
 			Issued:  issuedDate,
 			URL:     fmt.Sprintf("%s/downloads/filter-outputs/%s.csvw", downloadServiceURL, filterOutputID),
 		}
@@ -356,4 +352,19 @@ func newColumn(title, label string) Column {
 	}
 
 	return c
+}
+
+func GenerateCustomTitle(dims []dataset.VersionDimension) string {
+	var title string
+	l := len(dims)
+	for i, d := range dims {
+		if i == 0 {
+			title += d.Label
+		} else if i == (l - 1) {
+			title += " and " + d.Label
+		} else {
+			title += ", " + d.Label
+		}
+	}
+	return title
 }
