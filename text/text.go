@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/custom"
 )
 
 func NewMetadata(m *dataset.Metadata, filterOutputID, downloadServiceURL string) []byte {
@@ -130,7 +131,7 @@ func NewMetadataCustom(m *dataset.Metadata, filterOutputID, downloadServiceURL s
 	dt := time.Now()
 	issuedDate := dt.Format("01-02-2006 15:04:05")
 
-	titleDims := GenerateCustomTitle(m.Version.Dimensions)
+	titleDims := custom.GenerateCustomTitle(m.Version.Dimensions)
 
 	b.WriteString(fmt.Sprintf("Title: %s\n", titleDims))
 	b.WriteString(fmt.Sprintf("Issued: %s\n", issuedDate))
@@ -170,19 +171,4 @@ func NewMetadataCustom(m *dataset.Metadata, filterOutputID, downloadServiceURL s
 	}
 
 	return b.Bytes()
-}
-
-func GenerateCustomTitle(dims []dataset.VersionDimension) string {
-	var title string
-	l := len(dims)
-	for i, d := range dims {
-		if i == 0 {
-			title += d.Label
-		} else if i == (l - 1) {
-			title += " and " + d.Label
-		} else {
-			title += ", " + d.Label
-		}
-	}
-	return title
 }

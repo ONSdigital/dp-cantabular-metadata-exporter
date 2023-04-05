@@ -3,6 +3,7 @@ package csvw
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 	. "github.com/smartystreets/goconvey/convey"
@@ -31,12 +32,44 @@ func TestNew(t *testing.T) {
 		}
 
 		Convey("When the New csvw function is called", func() {
-			csvw := New(m, fileURL, externalPrefixURL, filterOutputID, downloadServiceURL, isCustom)
+			csvw := New(m, fileURL, externalPrefixURL, filterOutputID, downloadServiceURL)
 
 			Convey("Then the values should be set to the expected fields", func() {
 				So(csvw.Context, ShouldEqual, "http://www.w3.org/ns/csvw")
 				So(csvw.Title, ShouldEqual, m.Title)
 				So(csvw.Description, ShouldEqual, m.Description)
+			})
+		})
+	})
+}
+
+func TestNewCustom(t *testing.T) {
+	Convey("Given a complete metadata struct", t, func() {
+		time := time.Now()
+		m := &dataset.Metadata{
+			Version: dataset.Version{
+				ReleaseDate: time.Format("01-02-2006 15:04:05"),
+				Dimensions: []dataset.VersionDimension{
+					{
+						Label: "Label 1",
+					},
+					{
+						Label: "Label 2",
+					},
+				},
+			},
+			DatasetDetails: dataset.DatasetDetails{
+				Title: "Label 1 and Label 2",
+			},
+		}
+
+		Convey("When the NewCustom csvw function is called", func() {
+			csvw := NewCustom(m, fileURL, externalPrefixURL, filterOutputID, downloadServiceURL)
+
+			Convey("Then the values should be set to the expected fields", func() {
+				So(csvw.Context, ShouldEqual, "http://www.w3.org/ns/csvw")
+				So(csvw.Title, ShouldEqual, m.Title)
+				So(csvw.Issued, ShouldEqual, m.ReleaseDate)
 			})
 		})
 	})

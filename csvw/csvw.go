@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
+	"github.com/ONSdigital/dp-cantabular-metadata-exporter/custom"
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
@@ -94,91 +95,92 @@ type Note struct {
 var errMissingDimensions = errors.New("no dimensions in provided metadata")
 
 // New CSVW returned with top level fields populated based on provided metadata
-func New(m *dataset.Metadata, csvURL, externalPrefixURL, filterOutputID, downloadServiceURL string, isCustom bool) *CSVW {
-	if isCustom {
-		dt := time.Now()
-		issuedDate := dt.Format("01-02-2006 15:04:05")
-		titleDims := GenerateCustomTitle(m.Version.Dimensions)
-
-		csvw := &CSVW{
-			Context: "http://www.w3.org/ns/csvw",
-			Title:   titleDims,
-			Issued:  issuedDate,
-			URL:     fmt.Sprintf("%s/downloads/filter-outputs/%s.csvw", downloadServiceURL, filterOutputID),
-		}
-		csvw.UnitOfMeasure = m.UnitOfMeasure
-		return csvw
-	} else {
-		csvw := &CSVW{
-			Context:     "http://www.w3.org/ns/csvw",
-			Title:       m.Title,
-			Description: m.Description,
-			Issued:      m.ReleaseDate,
-			Theme:       m.Theme,
-			License:     m.License,
-			Frequency:   m.ReleaseFrequency,
-			URL:         csvURL,
-		}
-
-		if m.Contacts != nil {
-			for _, c := range *m.Contacts {
-				csvw.Contact = append(csvw.Contact, Contact{
-					Name:      c.Name,
-					Telephone: c.Telephone,
-					Email:     c.Email,
-				})
-			}
-		}
-
-		if m.Publisher != nil {
-			csvw.Publisher = Publisher{
-				Name: m.Publisher.Name,
-				Type: m.Publisher.Type,
-				ID:   m.Publisher.URL,
-			}
-		}
-
-		if m.Downloads != nil {
-			csvw.Downloads = make(map[string]Download)
-			for k, v := range m.Downloads {
-				csvw.Downloads[k] = Download{
-					HREF: v.URL,
-					Size: v.Size,
-				}
-			}
-		}
-
-		if m.Keywords != nil {
-			csvw.Keywords = *m.Keywords
-		}
-
-		csvw.UnitOfMeasure = m.UnitOfMeasure
-		csvw.Version = m.Version.Version
-		if m.Version.IsBasedOn != nil {
-			csvw.IsBasedOn = m.Version.IsBasedOn.ID
-		}
-
-		re := regexp.MustCompile("https?://([^/]+)")
-		csvw.DatasetLinks = &DatasetLinks{
-			Editions: Link{
-				HREF: re.ReplaceAllString(m.DatasetLinks.Editions.URL, externalPrefixURL),
-				ID:   m.DatasetLinks.Editions.ID,
-			},
-			LatestVersion: Link{
-				HREF: re.ReplaceAllString(m.DatasetLinks.LatestVersion.URL, externalPrefixURL),
-				ID:   m.DatasetLinks.LatestVersion.ID,
-			},
-			Self: Link{
-				HREF: re.ReplaceAllString(m.DatasetLinks.Self.URL, externalPrefixURL),
-				ID:   m.DatasetLinks.Editions.ID,
-			},
-		}
-		return csvw
+func New(m *dataset.Metadata, csvURL, externalPrefixURL, filterOutputID, downloadServiceURL string) *CSVW {
+	csvw := &CSVW{
+		Context:     "http://www.w3.org/ns/csvw",
+		Title:       m.Title,
+		Description: m.Description,
+		Issued:      m.ReleaseDate,
+		Theme:       m.Theme,
+		License:     m.License,
+		Frequency:   m.ReleaseFrequency,
+		URL:         csvURL,
 	}
+
+	if m.Contacts != nil {
+		for _, c := range *m.Contacts {
+			csvw.Contact = append(csvw.Contact, Contact{
+				Name:      c.Name,
+				Telephone: c.Telephone,
+				Email:     c.Email,
+			})
+		}
+	}
+
+	if m.Publisher != nil {
+		csvw.Publisher = Publisher{
+			Name: m.Publisher.Name,
+			Type: m.Publisher.Type,
+			ID:   m.Publisher.URL,
+		}
+	}
+
+	if m.Downloads != nil {
+		csvw.Downloads = make(map[string]Download)
+		for k, v := range m.Downloads {
+			csvw.Downloads[k] = Download{
+				HREF: v.URL,
+				Size: v.Size,
+			}
+		}
+	}
+
+	if m.Keywords != nil {
+		csvw.Keywords = *m.Keywords
+	}
+
+	csvw.UnitOfMeasure = m.UnitOfMeasure
+	csvw.Version = m.Version.Version
+	if m.Version.IsBasedOn != nil {
+		csvw.IsBasedOn = m.Version.IsBasedOn.ID
+	}
+
+	re := regexp.MustCompile("https?://([^/]+)")
+	csvw.DatasetLinks = &DatasetLinks{
+		Editions: Link{
+			HREF: re.ReplaceAllString(m.DatasetLinks.Editions.URL, externalPrefixURL),
+			ID:   m.DatasetLinks.Editions.ID,
+		},
+		LatestVersion: Link{
+			HREF: re.ReplaceAllString(m.DatasetLinks.LatestVersion.URL, externalPrefixURL),
+			ID:   m.DatasetLinks.LatestVersion.ID,
+		},
+		Self: Link{
+			HREF: re.ReplaceAllString(m.DatasetLinks.Self.URL, externalPrefixURL),
+			ID:   m.DatasetLinks.Editions.ID,
+		},
+	}
+	return csvw
+}
+
+func NewCustom(m *dataset.Metadata, csvURL, externalPrefixURL, filterOutputID, downloadServiceURL string) *CSVW {
+	dt := time.Now()
+	issuedDate := dt.Format("01-02-2006 15:04:05")
+	titleDims := custom.GenerateCustomTitle(m.Version.Dimensions)
+
+	csvw := &CSVW{
+		Context: "http://www.w3.org/ns/csvw",
+		Title:   titleDims,
+		Issued:  issuedDate,
+		URL:     fmt.Sprintf("%s/downloads/filter-outputs/%s.csvw", downloadServiceURL, filterOutputID),
+	}
+	csvw.UnitOfMeasure = m.UnitOfMeasure
+	return csvw
 }
 
 // Generate the CSVW structured metadata file to describe a CSV
 func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, aboutURL, apiDomain, externalPrefixURL, filterOutputID, downloadServiceURL string, isCustom bool) ([]byte, error) {
+	var csvw *CSVW
 	logData := log.Data{
 		"dataset_id": metadata.DatasetDetails.ID,
 		"csv_header": metadata.CSVHeader,
@@ -202,7 +204,11 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 
 	h := metadata.CSVHeader
 
-	csvw := New(metadata, downloadURL, externalPrefixURL, filterOutputID, downloadServiceURL, isCustom)
+	if isCustom {
+		csvw = NewCustom(metadata, downloadURL, externalPrefixURL, filterOutputID, downloadServiceURL)
+	} else {
+		csvw = New(metadata, downloadURL, externalPrefixURL, filterOutputID, downloadServiceURL)
+	}
 
 	var list []Column
 	obs := newObservationColumn(h[0], metadata.UnitOfMeasure)
@@ -352,19 +358,4 @@ func newColumn(title, label string) Column {
 	}
 
 	return c
-}
-
-func GenerateCustomTitle(dims []dataset.VersionDimension) string {
-	var title string
-	l := len(dims)
-	for i, d := range dims {
-		if i == 0 {
-			title += d.Label
-		} else if i == (l - 1) {
-			title += " and " + d.Label
-		} else {
-			title += ", " + d.Label
-		}
-	}
-	return title
 }
