@@ -7,12 +7,13 @@ func GenerateCustomTitle(dims []dataset.VersionDimension) string {
 	var title string
 	lastIndex := len(dims) - 1
 	for i, d := range dims {
-		if i == lastIndex {
-			title += " and "
-		} else if i > 0 {
-			title += ", "
+		if i == 0 {
+			title += d.Label
+		} else if i == (lastIndex) {
+			title += " and " + d.Label
+		} else {
+			title += ", " + d.Label
 		}
-		title += d.Label
 	}
 	return title
 }

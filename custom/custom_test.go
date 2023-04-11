@@ -56,7 +56,7 @@ func TestGenerateCustomTitle(t *testing.T) {
 
 			Convey("when GenerateCustomTitle is called", func() {
 				title := custom.GenerateCustomTitle(dims)
-				expected := " and Label 1"
+				expected := "Label 1"
 				So(title, ShouldResemble, expected)
 			})
 		})
