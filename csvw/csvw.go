@@ -163,7 +163,7 @@ func New(m *dataset.Metadata, csvURL, externalPrefixURL, filterOutputID, downloa
 	return csvw
 }
 
-// New CSVW returned with top level fields populated based on provided metadata for custom datasets
+// NewCustom returns a CSVW with top level fields populated based on provided metadata for custom datasets
 func NewCustom(m *dataset.Metadata, csvURL, filterOutputID, downloadServiceURL string) *CSVW {
 	dt := time.Now()
 	issuedDate := dt.Format("01-02-2006 15:04:05")

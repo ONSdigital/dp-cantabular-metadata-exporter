@@ -11,13 +11,10 @@ import (
 
 var fileURL = "ons/file.csv"
 var apiURL = "api.example.com"
-var customURL = "download-service-url/downloads/filter-outputs/filter-output-id.csvw"
 var externalPrefixURL = "external.prefixurl.com"
 var filterOutputID = "filter-output-id"
 var downloadServiceURL = "download-service-url"
 var isCustom = false
-var customTitle = "Label 1 and Label 2"
-
 var ctx = context.Background()
 
 func TestNew(t *testing.T) {
@@ -47,6 +44,8 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewCustom(t *testing.T) {
+	var customTitle = "Label 1 and Label 2"
+	var customURL = "download-service-url/downloads/filter-outputs/filter-output-id.csvw"
 	Convey("Given a complete metadata struct", t, func() {
 		time := time.Now()
 		releaseDate := time.Format("01-02-2006 15:04:05")
