@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"sort"
 	"time"
 
 	"github.com/ONSdigital/dp-api-clients-go/v2/dataset"
@@ -38,7 +39,10 @@ func NewMetadata(m *dataset.Metadata, filterOutputID, downloadServiceURL string)
 	b.WriteString(fmt.Sprintf("Latest Changes: %s\n", m.LatestChanges))
 	b.WriteString(fmt.Sprintf("Periodicity: %s\n", m.ReleaseFrequency))
 	b.WriteString("Distribution:\n")
-	for k, v := range m.Downloads {
+
+	downloadKeys := getSortedKeys(m.Downloads)
+	for _, k := range downloadKeys {
+		v := m.Downloads[k]
 		b.WriteString(fmt.Sprintf("\tExtension: %s\n", k))
 		b.WriteString(fmt.Sprintf("\tSize: %s\n", v.Size))
 		b.WriteString(fmt.Sprintf("\tURL: %s\n\n", v.URL))
@@ -139,7 +143,9 @@ func NewMetadataCustom(m *dataset.Metadata, filterOutputID, downloadServiceURL s
 	b.WriteString(fmt.Sprintf("Issued: %s\n", issuedDate))
 	b.WriteString(fmt.Sprintf("Language: %s\n", "English"))
 	b.WriteString("Distribution:\n")
-	for k, v := range m.Downloads {
+	downloadKeys := getSortedKeys(m.Downloads)
+	for _, k := range downloadKeys {
+		v := m.Downloads[k]
 		if k == "csv" {
 			b.WriteString(fmt.Sprintf("\tExtension: %s\n", k))
 			b.WriteString(fmt.Sprintf("\tSize: %s\n", v.Size))
@@ -173,4 +179,13 @@ func NewMetadataCustom(m *dataset.Metadata, filterOutputID, downloadServiceURL s
 	}
 
 	return b.Bytes()
+}
+
+func getSortedKeys(m map[string]dataset.Download) []string {
+	keySlice := make([]string, 0)
+	for key, _ := range m {
+		keySlice = append(keySlice, key)
+	}
+	sort.Strings(keySlice)
+	return keySlice
 }

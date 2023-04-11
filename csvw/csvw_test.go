@@ -44,8 +44,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewCustom(t *testing.T) {
-	var customTitle = "Label 1 and Label 2"
-	var customURL = "download-service-url/downloads/filter-outputs/filter-output-id.csvw"
+
 	Convey("Given a complete metadata struct", t, func() {
 		time := time.Now()
 		releaseDate := time.Format("01-02-2006 15:04:05")
@@ -66,6 +65,8 @@ func TestNewCustom(t *testing.T) {
 		}
 
 		Convey("When the NewCustom csvw function is called", func() {
+			customTitle := "Label 1 and Label 2"
+			customURL := "download-service-url/downloads/filter-outputs/filter-output-id.csvw"
 			csvw := NewCustom(m, fileURL, filterOutputID, downloadServiceURL)
 
 			Convey("Then the values should be set to the expected fields", func() {
