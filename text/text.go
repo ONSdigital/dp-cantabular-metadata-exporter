@@ -183,7 +183,7 @@ func NewMetadataCustom(m *dataset.Metadata, filterOutputID, downloadServiceURL s
 
 func getSortedKeys[T interface{}](m map[string]T) []string {
 	keySlice := make([]string, 0)
-	for key, _ := range m {
+	for key := range m {
 		keySlice = append(keySlice, key)
 	}
 	sort.Strings(keySlice)
