@@ -10,7 +10,7 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/custom"
 )
 
-// New .txt metadata returned based on provided metadata
+// NewMetadata returns a .txt metadata based on provided metadata
 func NewMetadata(m *dataset.Metadata, filterOutputID, downloadServiceURL string) []byte {
 	var b bytes.Buffer
 
@@ -127,7 +127,7 @@ func NewMetadata(m *dataset.Metadata, filterOutputID, downloadServiceURL string)
 	return b.Bytes()
 }
 
-// New .txt metadata returned based on provided metadata for custom datasets
+// NewMetadataCustom returns .txt metadata based on provided metadata for custom datasets
 func NewMetadataCustom(m *dataset.Metadata, filterOutputID, downloadServiceURL string) []byte {
 	var b bytes.Buffer
 	dt := time.Now()

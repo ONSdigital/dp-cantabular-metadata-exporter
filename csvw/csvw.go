@@ -163,18 +163,19 @@ func New(m *dataset.Metadata, csvURL, externalPrefixURL, filterOutputID, downloa
 	return csvw
 }
 
-func NewCustom(m *dataset.Metadata, csvURL, externalPrefixURL, filterOutputID, downloadServiceURL string) *CSVW {
+// New CSVW returned with top level fields populated based on provided metadata for custom datasets
+func NewCustom(m *dataset.Metadata, csvURL, filterOutputID, downloadServiceURL string) *CSVW {
 	dt := time.Now()
 	issuedDate := dt.Format("01-02-2006 15:04:05")
 	titleDims := custom.GenerateCustomTitle(m.Version.Dimensions)
 
 	csvw := &CSVW{
-		Context: "http://www.w3.org/ns/csvw",
-		Title:   titleDims,
-		Issued:  issuedDate,
-		URL:     fmt.Sprintf("%s/downloads/filter-outputs/%s.csvw", downloadServiceURL, filterOutputID),
+		Context:       "http://www.w3.org/ns/csvw",
+		Title:         titleDims,
+		Issued:        issuedDate,
+		URL:           fmt.Sprintf("%s/downloads/filter-outputs/%s.csvw", downloadServiceURL, filterOutputID),
+		UnitOfMeasure: m.UnitOfMeasure,
 	}
-	csvw.UnitOfMeasure = m.UnitOfMeasure
 	return csvw
 }
 
@@ -205,7 +206,7 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 	h := metadata.CSVHeader
 
 	if isCustom {
-		csvw = NewCustom(metadata, downloadURL, externalPrefixURL, filterOutputID, downloadServiceURL)
+		csvw = NewCustom(metadata, downloadURL, filterOutputID, downloadServiceURL)
 	} else {
 		csvw = New(metadata, downloadURL, externalPrefixURL, filterOutputID, downloadServiceURL)
 	}

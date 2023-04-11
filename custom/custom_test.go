@@ -60,5 +60,15 @@ func TestGenerateCustomTitle(t *testing.T) {
 				So(title, ShouldResemble, expected)
 			})
 		})
+
+		Convey("given 0 filter dimensions", func() {
+			dims := []dataset.VersionDimension{}
+
+			Convey("when GenerateCustomTitle is called", func() {
+				title := custom.GenerateCustomTitle(dims)
+				expected := ""
+				So(title, ShouldResemble, expected)
+			})
+		})
 	})
 }

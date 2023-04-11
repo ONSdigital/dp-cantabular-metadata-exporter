@@ -11,10 +11,12 @@ import (
 
 var fileURL = "ons/file.csv"
 var apiURL = "api.example.com"
+var customURL = "download-service-url/downloads/filter-outputs/filter-output-id.csvw"
 var externalPrefixURL = "external.prefixurl.com"
 var filterOutputID = "filter-output-id"
 var downloadServiceURL = "download-service-url"
 var isCustom = false
+var customTitle = "Label 1 and Label 2"
 
 var ctx = context.Background()
 
@@ -38,6 +40,7 @@ func TestNew(t *testing.T) {
 				So(csvw.Context, ShouldEqual, "http://www.w3.org/ns/csvw")
 				So(csvw.Title, ShouldEqual, m.Title)
 				So(csvw.Description, ShouldEqual, m.Description)
+
 			})
 		})
 	})
@@ -46,9 +49,9 @@ func TestNew(t *testing.T) {
 func TestNewCustom(t *testing.T) {
 	Convey("Given a complete metadata struct", t, func() {
 		time := time.Now()
+		releaseDate := time.Format("01-02-2006 15:04:05")
 		m := &dataset.Metadata{
 			Version: dataset.Version{
-				ReleaseDate: time.Format("01-02-2006 15:04:05"),
 				Dimensions: []dataset.VersionDimension{
 					{
 						Label: "Label 1",
@@ -59,17 +62,19 @@ func TestNewCustom(t *testing.T) {
 				},
 			},
 			DatasetDetails: dataset.DatasetDetails{
-				Title: "Label 1 and Label 2",
+				UnitOfMeasure: "unit of measure",
 			},
 		}
 
 		Convey("When the NewCustom csvw function is called", func() {
-			csvw := NewCustom(m, fileURL, externalPrefixURL, filterOutputID, downloadServiceURL)
+			csvw := NewCustom(m, fileURL, filterOutputID, downloadServiceURL)
 
 			Convey("Then the values should be set to the expected fields", func() {
 				So(csvw.Context, ShouldEqual, "http://www.w3.org/ns/csvw")
-				So(csvw.Title, ShouldEqual, m.Title)
-				So(csvw.Issued, ShouldEqual, m.ReleaseDate)
+				So(csvw.Title, ShouldEqual, customTitle)
+				So(csvw.Issued, ShouldEqual, releaseDate)
+				So(csvw.URL, ShouldEqual, customURL)
+				So(csvw.UnitOfMeasure, ShouldEqual, m.UnitOfMeasure)
 			})
 		})
 	})
