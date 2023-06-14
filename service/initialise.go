@@ -16,7 +16,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	kafka "github.com/ONSdigital/dp-kafka/v3"
-	dphttp "github.com/ONSdigital/dp-net/http"
+	dphttp "github.com/ONSdigital/dp-net/v2/http"
 	vault "github.com/ONSdigital/dp-vault"
 
 	"github.com/aws/aws-sdk-go/aws"
