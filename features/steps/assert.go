@@ -48,7 +48,7 @@ func (p *putVersionAssertor) Assert(r *http.Request) error {
 	}
 
 	if diff := cmp.Diff(got, expected); diff != "" {
-		return fmt.Errorf("request body does not match expected (-got +expected)\n%s\n", diff)
+		return fmt.Errorf("request body does not match expected (-got +expected)\n%s", diff)
 	}
 
 	return err
@@ -81,7 +81,7 @@ func (p *putFilterOutputAssertor) Assert(r *http.Request) error {
 	}
 
 	if diff := cmp.Diff(got, expected); diff != "" {
-		return fmt.Errorf("request body does not match expected (-got +expected)\n%s\n", diff)
+		return fmt.Errorf("request body does not match expected (-got +expected)\n%s", diff)
 	}
 
 	return err

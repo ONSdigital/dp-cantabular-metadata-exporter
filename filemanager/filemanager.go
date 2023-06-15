@@ -13,7 +13,6 @@ import (
 )
 
 type FileManager struct {
-	cfg       Config
 	s3public  S3Uploader
 	s3private S3Uploader
 	vault     VaultClient

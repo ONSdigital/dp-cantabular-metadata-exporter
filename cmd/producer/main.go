@@ -22,7 +22,7 @@ func main() {
 	ctx := context.Background()
 
 	if err := run(ctx); err != nil {
-		log.Fatal(ctx, "fatal runtime error", err)
+		log.Error(ctx, "fatal runtime error", err)
 		os.Exit(1)
 	}
 }
@@ -31,7 +31,7 @@ func run(ctx context.Context) error {
 	// Get Config
 	cfg, err := config.Get()
 	if err != nil {
-		log.Fatal(ctx, "error getting config", err)
+		log.Error(ctx, "error getting config", err)
 		os.Exit(1)
 	}
 

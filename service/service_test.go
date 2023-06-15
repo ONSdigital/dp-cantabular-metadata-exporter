@@ -28,9 +28,7 @@ var (
 var errHealthcheck = errors.New("could not get healthcheck")
 
 func TestInit(t *testing.T) {
-
 	Convey("Having a set of mocked dependencies", t, func() {
-
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
 
@@ -49,9 +47,7 @@ func TestInit(t *testing.T) {
 
 		service.GetKafkaProducer = func(ctx context.Context, cfg *config.Config) (kafka.IProducer, error) {
 			return &kafkatest.IProducerMock{
-				ChannelsFunc: func() *kafka.ProducerChannels {
-					return kafka.CreateProducerChannels()
-				},
+				ChannelsFunc: kafka.CreateProducerChannels,
 			}, nil
 		}
 
@@ -85,8 +81,8 @@ func TestInit(t *testing.T) {
 				return nil, errHealthcheck
 			}
 			// setup (run before each `Convey` at this scope / indentation):
-			svc := service.New()
-			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
+			newSvc := service.New()
+			err := newSvc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 
 			Convey("Then service Init fails with an error", func() {
 				So(errors.Is(err, errHealthcheck), ShouldBeTrue)
@@ -98,7 +94,6 @@ func TestInit(t *testing.T) {
 		})
 
 		Convey("Given that all dependencies are successfully initialised", func() {
-
 			// setup (run before each `Convey` at this scope / indentation):
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
 
@@ -110,14 +105,11 @@ func TestInit(t *testing.T) {
 				// This reset is run after each `Convey` at the same scope (indentation)
 			})
 		})
-
 	})
 }
 
 func TestClose(t *testing.T) {
-
 	Convey("Having a correctly initialised service", t, func() {
-
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
 
@@ -186,7 +178,6 @@ func TestClose(t *testing.T) {
 		}
 
 		Convey("Closing the service results in all the dependencies being closed in the expected order", func() {
-
 			svcErrors := make(chan error, 1)
 			svc := service.New()
 			err := svc.Init(ctx, cfg, testBuildTime, testGitCommit, testVersion)
@@ -202,7 +193,6 @@ func TestClose(t *testing.T) {
 		})
 
 		Convey("If services fail to stop, the Close operation tries to close all dependencies and returns an error", func() {
-
 			failingserverMock := &mock.HTTPServerMock{
 				ListenAndServeFunc: func() error { return nil },
 				ShutdownFunc: func(ctx context.Context) error {

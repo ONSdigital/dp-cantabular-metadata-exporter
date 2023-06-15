@@ -41,7 +41,6 @@ var (
 
 type Component struct {
 	cmptest.ErrorFeature
-	apiFeature       *cmptest.APIFeature
 	DatasetAPI       *httpfake.HTTPFake
 	FilterAPI        *httpfake.HTTPFake
 	S3Downloader     *s3manager.Downloader
@@ -52,7 +51,6 @@ type Component struct {
 	svc              *service.Service
 	cfg              *config.Config
 	wg               *sync.WaitGroup
-	g                service.Generator
 	signals          chan os.Signal
 	waitEventTimeout time.Duration
 	minioRetries     int

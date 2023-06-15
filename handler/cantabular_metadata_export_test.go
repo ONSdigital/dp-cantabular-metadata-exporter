@@ -23,7 +23,6 @@ var eventTestFiltered = event.CSVCreated{
 }
 
 func TestGenerateTextFilename(t *testing.T) {
-
 	Convey("Succesfully return a string representing the .txt filename", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
@@ -31,7 +30,6 @@ func TestGenerateTextFilename(t *testing.T) {
 		filename := h.generateTextFilename(&eventTest, false)
 		expectedFilename := "datasets/test_id-test-edition-1.txt"
 		So(filename, ShouldResemble, expectedFilename)
-
 	})
 
 	Convey("Succesfully return a string representing the filtered .txt filename", t, func() {
@@ -41,13 +39,10 @@ func TestGenerateTextFilename(t *testing.T) {
 		filename := h.generateTextFilename(&eventTestFiltered, false)
 		expectedFilename := "datasets/test-filter-output-id/test_id-test-edition-1-2022-01-26T12:27:04Z.txt"
 		So(filename, ShouldResemble, expectedFilename)
-
 	})
-
 }
 
 func TestGenerateCSVWFilename(t *testing.T) {
-
 	Convey("Succesfully return a string representing the .csvw filename", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
@@ -55,7 +50,6 @@ func TestGenerateCSVWFilename(t *testing.T) {
 		filename := h.generateCSVWFilename(&eventTest, false)
 		expectedFilename := "datasets/test_id-test-edition-1.csvw"
 		So(filename, ShouldResemble, expectedFilename)
-
 	})
 
 	Convey("Succesfully return a string representing the filtered .txt filename", t, func() {
@@ -65,13 +59,10 @@ func TestGenerateCSVWFilename(t *testing.T) {
 		filename := h.generateCSVWFilename(&eventTestFiltered, false)
 		expectedFilename := "datasets/test-filter-output-id/test_id-test-edition-1-2022-01-26T12:27:04Z.csvw"
 		So(filename, ShouldResemble, expectedFilename)
-
 	})
-
 }
 
 func TestGenerateVaultPath(t *testing.T) {
-
 	Convey("Succesfully return a string representing the vault path with given file extension", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
@@ -89,11 +80,9 @@ func TestGenerateVaultPath(t *testing.T) {
 			So(vaultPath, ShouldResemble, expectedVaultPath)
 		})
 	})
-
 }
 
 func TestGenerateDownloadURL(t *testing.T) {
-
 	Convey("Succesfully return a string representing the download URL with given file extension", t, func() {
 		cfg, err := config.Get()
 		So(err, ShouldBeNil)
@@ -111,5 +100,4 @@ func TestGenerateDownloadURL(t *testing.T) {
 			So(vaultPath, ShouldResemble, expectedVaultPath)
 		})
 	})
-
 }

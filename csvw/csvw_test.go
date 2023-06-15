@@ -31,23 +31,21 @@ func TestNew(t *testing.T) {
 		}
 
 		Convey("When the New csvw function is called", func() {
-			csvw := New(m, fileURL, externalPrefixURL, filterOutputID, downloadServiceURL)
+			csvw := New(m, fileURL, externalPrefixURL)
 
 			Convey("Then the values should be set to the expected fields", func() {
 				So(csvw.Context, ShouldEqual, "http://www.w3.org/ns/csvw")
 				So(csvw.Title, ShouldEqual, m.Title)
 				So(csvw.Description, ShouldEqual, m.Description)
-
 			})
 		})
 	})
 }
 
 func TestNewCustom(t *testing.T) {
-
 	Convey("Given a complete metadata struct", t, func() {
-		time := time.Now()
-		releaseDate := time.Format("01-02-2006 15:04:05")
+		timeNow := time.Now()
+		releaseDate := timeNow.Format("01-02-2006 15:04:05")
 		m := &dataset.Metadata{
 			Version: dataset.Version{
 				Dimensions: []dataset.VersionDimension{
@@ -67,7 +65,7 @@ func TestNewCustom(t *testing.T) {
 		Convey("When the NewCustom csvw function is called", func() {
 			customTitle := "Label 1 and Label 2"
 			customURL := "download-service-url/downloads/filter-outputs/filter-output-id.csvw"
-			csvw := NewCustom(m, fileURL, filterOutputID, downloadServiceURL)
+			csvw := NewCustom(m, filterOutputID, downloadServiceURL)
 
 			Convey("Then the values should be set to the expected fields", func() {
 				So(csvw.Context, ShouldEqual, "http://www.w3.org/ns/csvw")
@@ -86,10 +84,10 @@ func TestFormatAboutURL(t *testing.T) {
 		url := "http://localhost:22000/datasets/1/editions/2/version/3/metadata"
 
 		Convey("When the formatAboutURL function is called", func() {
-			url, err := formatAboutURL(url, domain)
+			aboutURL, err := formatAboutURL(url, domain)
 
 			Convey("Then the returned values should be as expected", func() {
-				So(url, ShouldEqual, "http://api.example.com/v1/datasets/1/editions/2/version/3/metadata")
+				So(aboutURL, ShouldEqual, "http://api.example.com/v1/datasets/1/editions/2/version/3/metadata")
 				So(err, ShouldBeNil)
 			})
 		})
@@ -97,7 +95,6 @@ func TestFormatAboutURL(t *testing.T) {
 }
 
 func TestGenerate(t *testing.T) {
-
 	Convey("Given metadata that includes a dimension", t, func() {
 		m := &dataset.Metadata{
 			Version: dataset.Version{
@@ -128,22 +125,4 @@ func TestGenerate(t *testing.T) {
 			})
 		})
 	})
-
-	// Convey("Given metadata that does not include a dimension", t, func() {
-	// 	m := &dataset.Metadata{
-	// 		Version: dataset.Version{
-	// 			ReleaseDate: "1 Jan 2000",
-	// 		},
-	// 		DatasetDetails: dataset.DatasetDetails{},
-	// 	}
-
-	// 	Convey("When the Generate csvw function is called", func() {
-	// 		data, err := Generate(ctx, m, fileURL, fileURL, apiURL)
-
-	// 		Convey("Then results should be returned with no errors", func() {
-	// 			So(data, ShouldHaveLength, 0)
-	// 			So(errors.Is(err, errMissingDimensions), ShouldBeTrue)
-	// 		})
-	// 	})
-	// })
 }

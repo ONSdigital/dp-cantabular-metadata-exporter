@@ -206,7 +206,7 @@ func (c *Component) thisCantabularMetadataExportEventIsConsumed(input *godog.Doc
 	return nil
 }
 
-func (c *Component) theFollowingFileCanBeSeenInMinio(fileName string, bucket string) error {
+func (c *Component) theFollowingFileCanBeSeenInMinio(fileName, bucket string) error {
 	ctx := context.Background()
 
 	var b []byte
@@ -291,7 +291,7 @@ func (c *Component) theseCSVWCreatedEventsShouldBeProduced(events *godog.Table) 
 	}
 
 	if diff := cmp.Diff(got, expected); diff != "" {
-		return fmt.Errorf("-got +expected)\n%s\n", diff)
+		return fmt.Errorf("-got +expected)\n%s", diff)
 	}
 
 	return nil

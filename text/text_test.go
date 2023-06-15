@@ -147,7 +147,7 @@ func TestNewMetadata(t *testing.T) {
 		}
 
 		Convey("When the NewMetadata function is called", func() {
-			meta := string(NewMetadata(m, filterOutputID, downloadServiceURL))
+			meta := string(NewMetadata(m))
 			Convey("Then the returned value should be as expected", func() {
 				So(meta, ShouldResemble, expectedText)
 			})
@@ -208,8 +208,8 @@ func TestNewMetadataCustom(t *testing.T) {
 		}
 
 		Convey("When the NewMetadataCustom function is called", func() {
-			time := time.Now()
-			expectedText = strings.Replace(expectedText, "1 Jan 2000", time.Format("01-02-2006 15:04:05"), 1)
+			timeNow := time.Now()
+			expectedText = strings.Replace(expectedText, "1 Jan 2000", timeNow.Format("01-02-2006 15:04:05"), 1)
 			meta := string(NewMetadataCustom(m, filterOutputID, downloadServiceURL))
 			Convey("Then the returned value should be as expected", func() {
 				So(meta, ShouldResemble, expectedText)

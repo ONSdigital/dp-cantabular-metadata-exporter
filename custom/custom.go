@@ -6,13 +6,13 @@ import "github.com/ONSdigital/dp-api-clients-go/v2/dataset"
 func GenerateCustomTitle(dims []dataset.VersionDimension) string {
 	var title string
 	lastIndex := len(dims) - 1
-	for i, d := range dims {
+	for i := range dims {
 		if i > 0 && i == lastIndex {
 			title += " and "
 		} else if i > 0 {
 			title += ", "
 		}
-		title += d.Label
+		title += dims[i].Label
 	}
 	return title
 }

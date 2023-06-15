@@ -23,10 +23,12 @@ import (
 )
 
 const (
-	batchSize    = 1000
-	maxWorkers   = 10
-	flexible     = "flexible"
-	multivariate = "multivariate"
+	batchSize      = 1000
+	custom         = "custom"
+	datasetsPrefix = "datasets/"
+	maxWorkers     = 10
+	flexible       = "flexible"
+	multivariate   = "multivariate"
 )
 
 type downloadInfo struct {
@@ -38,17 +40,16 @@ type downloadInfo struct {
 
 // CantabularMetadataExport is the event handler for the CantabularMetadataExport event
 type CantabularMetadataExport struct {
-	cfg               config.Config
-	dataset           DatasetAPIClient
-	filter            FilterAPIClient
-	populationTypes   PopulationTypesAPIClient
-	ctblr             CantabularClient
-	file              FileManager
-	producer          kafka.IProducer
-	generate          Generator
-	csvwPrefix        string
-	metadataExtension string
-	apiDomainURL      string
+	cfg             config.Config
+	dataset         DatasetAPIClient
+	filter          FilterAPIClient
+	populationTypes PopulationTypesAPIClient
+	ctblr           CantabularClient
+	file            FileManager
+	producer        kafka.IProducer
+	generate        Generator
+	csvwPrefix      string
+	apiDomainURL    string
 }
 
 // NewCantabularMetadataExport creates a new CantabularMetadataExportHandler
@@ -65,8 +66,10 @@ func NewCantabularMetadataExport(cfg config.Config, d DatasetAPIClient, f Filter
 	}
 }
 
-// Handle takes a single event.
-func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg kafka.Message) error {
+// Handle takes a single event
+//
+//nolint:gocyclo //cyclomatic complexity 21
+func (h *CantabularMetadataExport) Handle(ctx context.Context, _ int, msg kafka.Message) error {
 	var err error
 	e := &event.CSVCreated{}
 	s := schema.CSVCreated
@@ -84,7 +87,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		"event": e,
 	}
 
-	isFilterJob := len(e.FilterOutputID) != 0
+	isFilterJob := e.FilterOutputID != ""
 
 	req := dataset.GetVersionMetadataSelectionInput{
 		UserAuthToken:    "",
@@ -116,7 +119,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 	}
 
 	if filterOutput.Type == multivariate {
-		m.Title = m.Title + " - customised"
+		m.Title += " - customised"
 	}
 	if filterOutput.Custom == nil {
 		falseFlag := false
@@ -133,33 +136,33 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 				logData: logData,
 			}
 		}
-		for _, dim := range dims {
-			if dim.IsAreaType != nil {
-				if filterOutput.Type == multivariate && !*dim.IsAreaType {
+		for i := range dims {
+			if dims[i].IsAreaType != nil {
+				if filterOutput.Type == multivariate && !*dims[i].IsAreaType {
 					nonAreaTypeDimension := dataset.VersionDimension{
-						Name:                 dim.Name,
-						URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
-						Label:                dim.Label,
-						Description:          dim.Description,
-						ID:                   dim.ID,
-						NumberOfOptions:      dim.NumberOfOptions,
-						QualityStatementText: dim.QualityStatementText,
+						Name:                 dims[i].Name,
+						URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dims[i].Name)),
+						Label:                dims[i].Label,
+						Description:          dims[i].Description,
+						ID:                   dims[i].ID,
+						NumberOfOptions:      dims[i].NumberOfOptions,
+						QualityStatementText: dims[i].QualityStatementText,
 					}
 					m.Version.Dimensions = append(m.Version.Dimensions, nonAreaTypeDimension)
-					m.CSVHeader = append(m.CSVHeader, dim.Name)
+					m.CSVHeader = append(m.CSVHeader, dims[i].Name)
 				}
-				if *dim.IsAreaType {
+				if *dims[i].IsAreaType {
 					areaTypeDimension := dataset.VersionDimension{
-						Name:                 dim.Name,
-						URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dim.Name)),
-						Label:                dim.Label,
-						Description:          dim.Description,
-						ID:                   dim.ID,
-						NumberOfOptions:      dim.NumberOfOptions,
-						QualityStatementText: dim.QualityStatementText,
+						Name:                 dims[i].Name,
+						URL:                  fmt.Sprintf("%s/code-lists/%s", h.cfg.ExternalPrefixURL, strings.ToLower(dims[i].Name)),
+						Label:                dims[i].Label,
+						Description:          dims[i].Description,
+						ID:                   dims[i].ID,
+						NumberOfOptions:      dims[i].NumberOfOptions,
+						QualityStatementText: dims[i].QualityStatementText,
 					}
 					m.Version.Dimensions = append(m.Version.Dimensions, areaTypeDimension)
-					m.CSVHeader = append(m.CSVHeader, dim.Name)
+					m.CSVHeader = append(m.CSVHeader, dims[i].Name)
 				}
 			}
 		}
@@ -184,7 +187,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 		}
 	}
 
-	txtDownload, err := h.exportTXTFile(ctx, e, *m, isPublished, *filterOutput.Custom)
+	txtDownload, err := h.exportTXTFile(e, *m, isPublished, *filterOutput.Custom)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to export metadata text file: %w", err),
@@ -218,12 +221,12 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, workerID int, msg
 	return nil
 }
 
-func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool, isCustom bool) (*downloadInfo, error) {
+func (h *CantabularMetadataExport) exportTXTFile(e *event.CSVCreated, m dataset.Metadata, isPublished, isCustom bool) (*downloadInfo, error) {
 	var b []byte
 	if isCustom {
 		b = text.NewMetadataCustom(&m, e.FilterOutputID, h.cfg.DownloadServiceURL)
 	} else {
-		b = text.NewMetadata(&m, e.FilterOutputID, h.cfg.DownloadServiceURL)
+		b = text.NewMetadata(&m)
 	}
 	filename := h.generateTextFilename(e, isCustom)
 
@@ -255,7 +258,7 @@ func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.C
 	return &d, nil
 }
 
-func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished bool, isCustom bool) (*downloadInfo, error) {
+func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished, isCustom bool) (*downloadInfo, error) {
 	filename := h.generateCSVWFilename(e, isCustom)
 	downloadURL := h.generateDownloadURL(e, "csv-metadata.json")
 	aboutURL := h.dataset.GetMetadataURL(e.DatasetID, e.Edition, e.Version)
@@ -300,8 +303,8 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated, isCustom bool) string {
 	var prefix, suffix, fn string
 
-	if len(e.FilterOutputID) == 0 {
-		prefix, suffix = "datasets/", ".txt"
+	if e.FilterOutputID == "" {
+		prefix, suffix = datasetsPrefix, ".txt"
 	} else {
 		prefix = fmt.Sprintf("datasets/%s/", e.FilterOutputID)
 		suffix = fmt.Sprintf("-%s.txt", h.generate.Timestamp().Format(time.RFC3339))
@@ -315,7 +318,7 @@ func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated, isC
 	)
 
 	if isCustom {
-		fn = "custom"
+		fn = custom
 	}
 
 	return prefix + fn + suffix
@@ -324,8 +327,8 @@ func (h *CantabularMetadataExport) generateTextFilename(e *event.CSVCreated, isC
 func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated, isCustom bool) string {
 	var prefix, suffix, fn string
 
-	if len(e.FilterOutputID) == 0 {
-		prefix, suffix = "datasets/", ".csvw"
+	if e.FilterOutputID == "" {
+		prefix, suffix = datasetsPrefix, ".csvw"
 	} else {
 		prefix = fmt.Sprintf("datasets/%s/", e.FilterOutputID)
 		suffix = fmt.Sprintf("-%s.csvw", h.generate.Timestamp().Format(time.RFC3339))
@@ -340,7 +343,7 @@ func (h *CantabularMetadataExport) generateCSVWFilename(e *event.CSVCreated, isC
 	)
 
 	if isCustom {
-		fn = "custom"
+		fn = custom
 	}
 
 	return prefix + fn + suffix
@@ -480,34 +483,34 @@ func (h *CantabularMetadataExport) UpdateFilterOutput(ctx context.Context, e *ev
 
 func (h *CantabularMetadataExport) GetFilterDimensions(ctx context.Context, filterOutput filter.Model) ([]dataset.VersionDimension, error) {
 	var areaType string
-	for _, d := range filterOutput.Dimensions {
-		if d.IsAreaType != nil && *d.IsAreaType {
-			areaType = d.ID
+	for i := range filterOutput.Dimensions {
+		if filterOutput.Dimensions[i].IsAreaType != nil && *filterOutput.Dimensions[i].IsAreaType {
+			areaType = filterOutput.Dimensions[i].ID
 		}
 	}
 
 	cReq := cantabular.GetDimensionsByNameRequest{
 		Dataset: filterOutput.PopulationType,
 	}
-	for _, d := range filterOutput.Dimensions {
-		cReq.DimensionNames = append(cReq.DimensionNames, d.ID)
+	for i := range filterOutput.Dimensions {
+		cReq.DimensionNames = append(cReq.DimensionNames, filterOutput.Dimensions[i].ID)
 	}
 	resp, err := h.ctblr.GetDimensionsByName(ctx, cReq)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query dimensions")
 	}
 
-	var dims []dataset.VersionDimension
-	for _, e := range resp.Dataset.Variables.Edges {
-		isAreaType := e.Node.Name == areaType
+	dims := []dataset.VersionDimension{}
+	for i := range resp.Dataset.Variables.Edges {
+		isAreaType := resp.Dataset.Variables.Edges[i].Node.Name == areaType
 		dim := dataset.VersionDimension{
-			ID:                   e.Node.Name,
-			Name:                 e.Node.Name,
-			Description:          e.Node.Description,
-			Label:                e.Node.Label,
-			NumberOfOptions:      e.Node.Categories.TotalCount,
+			ID:                   resp.Dataset.Variables.Edges[i].Node.Name,
+			Name:                 resp.Dataset.Variables.Edges[i].Node.Name,
+			Description:          resp.Dataset.Variables.Edges[i].Node.Description,
+			Label:                resp.Dataset.Variables.Edges[i].Node.Label,
+			NumberOfOptions:      resp.Dataset.Variables.Edges[i].Node.Categories.TotalCount,
 			IsAreaType:           &isAreaType,
-			QualityStatementText: e.Node.Meta.ONSVariable.QualityStatementText,
+			QualityStatementText: resp.Dataset.Variables.Edges[i].Node.Meta.ONSVariable.QualityStatementText,
 		}
 		dims = append(dims, dim)
 	}
@@ -518,10 +521,10 @@ func (h *CantabularMetadataExport) GetFilterDimensions(ctx context.Context, filt
 func removeDuplicateDimensions(vDims []dataset.VersionDimension) []dataset.VersionDimension {
 	allDims := make(map[string]bool)
 	dimensions := []dataset.VersionDimension{}
-	for _, dims := range vDims {
-		if !allDims[dims.ID] {
-			allDims[dims.ID] = true
-			dimensions = append(dimensions, dims)
+	for i := range vDims {
+		if !allDims[vDims[i].ID] {
+			allDims[vDims[i].ID] = true
+			dimensions = append(dimensions, vDims[i])
 		}
 	}
 	return dimensions

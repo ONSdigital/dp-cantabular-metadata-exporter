@@ -92,10 +92,8 @@ type Note struct {
 	Motivation string `json:"motivation,omitempty"` // how is this different from type? do we need this? is this an enum?
 }
 
-var errMissingDimensions = errors.New("no dimensions in provided metadata")
-
 // New CSVW returned with top level fields populated based on provided metadata
-func New(m *dataset.Metadata, csvURL, externalPrefixURL, filterOutputID, downloadServiceURL string) *CSVW {
+func New(m *dataset.Metadata, csvURL, externalPrefixURL string) *CSVW {
 	csvw := &CSVW{
 		Context:     "http://www.w3.org/ns/csvw",
 		Title:       m.Title,
@@ -164,7 +162,7 @@ func New(m *dataset.Metadata, csvURL, externalPrefixURL, filterOutputID, downloa
 }
 
 // NewCustom returns a CSVW with top level fields populated based on provided metadata for custom datasets
-func NewCustom(m *dataset.Metadata, csvURL, filterOutputID, downloadServiceURL string) *CSVW {
+func NewCustom(m *dataset.Metadata, filterOutputID, downloadServiceURL string) *CSVW {
 	dt := time.Now()
 	issuedDate := dt.Format("01-02-2006 15:04:05")
 	titleDims := custom.GenerateCustomTitle(m.Version.Dimensions)
@@ -189,13 +187,6 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 
 	log.Info(ctx, "generating csvw file", logData)
 
-	// if len(metadata.Dimensions) == 0 {
-	// 	return nil, Error{
-	// 		err:     errMissingDimensions,
-	// 		logData: logData,
-	// 	}
-	// }
-
 	if len(metadata.CSVHeader) < 1 {
 		return nil, Error{
 			err:     errors.New("CSV header empty or missing dimensions"),
@@ -206,9 +197,9 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 	h := metadata.CSVHeader
 
 	if isCustom {
-		csvw = NewCustom(metadata, downloadURL, filterOutputID, downloadServiceURL)
+		csvw = NewCustom(metadata, filterOutputID, downloadServiceURL)
 	} else {
-		csvw = New(metadata, downloadURL, externalPrefixURL, filterOutputID, downloadServiceURL)
+		csvw = New(metadata, downloadURL, externalPrefixURL)
 	}
 
 	var list []Column
@@ -217,8 +208,8 @@ func Generate(ctx context.Context, metadata *dataset.Metadata, downloadURL, abou
 
 	// add dimension columns
 	if len(metadata.Dimensions) > 0 {
-		for i, d := range metadata.Dimensions {
-			l, err := newLabelColumn(i, apiDomain, h, d)
+		for i := range metadata.Dimensions {
+			l, err := newLabelColumn(apiDomain, metadata.Dimensions[i])
 			if err != nil {
 				return nil, Error{
 					err:     fmt.Errorf("failed to create label column: %w", err),
@@ -288,13 +279,13 @@ func formatAboutURL(aboutURL, domain string) (string, error) {
 }
 
 // AddNotes to CSVW from alerts or usage notes in provided metadata
-func (csvw *CSVW) AddNotes(metadata *dataset.Metadata, url string) {
+func (csvw *CSVW) AddNotes(metadata *dataset.Metadata, targetURL string) {
 	if metadata.Alerts != nil {
 		for _, a := range *metadata.Alerts {
 			csvw.Notes = append(csvw.Notes, Note{
 				Type:   a.Type,
 				Body:   a.Description,
-				Target: url,
+				Target: targetURL,
 			})
 		}
 	}
@@ -322,7 +313,7 @@ func newObservationColumn(title, name string) Column {
 // TBC what the final content of these columns should be. For now is a rough port and amalgamation
 // of the code and label columns from the CMD implementation. Will be updated when we have full
 // metadata spec.
-func newLabelColumn(i int, apiDomain string, header []string, dim dataset.VersionDimension) (Column, error) {
+func newLabelColumn(apiDomain string, dim dataset.VersionDimension) (Column, error) {
 	dimURL := dim.URL
 	if len(apiDomain) > 0 {
 		uri, err := url.Parse(dimURL)

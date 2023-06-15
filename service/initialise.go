@@ -109,7 +109,7 @@ var GetDatasetAPIClient = func(cfg *config.Config) DatasetAPIClient {
 	return dataset.NewAPIClient(cfg.DatasetAPIURL)
 }
 
-// GetDatasetAPIClient gets and initialises the FilterAPI Client
+// GetFilterAPIClient gets and initialises the FilterAPI Client
 var GetFilterAPIClient = func(cfg *config.Config) FilterAPIClient {
 	return filter.New(cfg.FilterAPIURL)
 }

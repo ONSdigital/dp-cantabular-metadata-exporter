@@ -12,7 +12,9 @@ import (
 )
 
 // NewMetadata returns a .txt metadata based on provided metadata
-func NewMetadata(m *dataset.Metadata, filterOutputID, downloadServiceURL string) []byte {
+//
+//nolint:gocyclo //cyclomatic complexity 24
+func NewMetadata(m *dataset.Metadata) []byte {
 	var b bytes.Buffer
 
 	b.WriteString(fmt.Sprintf("Title: %s\n", m.Title))
@@ -67,7 +69,7 @@ func NewMetadata(m *dataset.Metadata, filterOutputID, downloadServiceURL string)
 	// New fields
 	// Combine alerts and useage notes as in csvw?
 	if m.Alerts != nil && len(*m.Alerts) != 0 {
-		b.WriteString(fmt.Sprintf("Alerts:\n"))
+		b.WriteString("Alerts:\n")
 
 		for _, a := range *m.Alerts {
 			b.WriteString(
@@ -121,12 +123,12 @@ func NewMetadata(m *dataset.Metadata, filterOutputID, downloadServiceURL string)
 	b.WriteString(fmt.Sprintf("%s\n\n%s\n\n%s\n\n", variables, coverage, scc))
 
 	b.WriteString("Dimensions:\n")
-	for _, d := range m.Version.Dimensions {
-		b.WriteString(fmt.Sprintf("\n\tID: %s\n", d.ID))
-		b.WriteString(fmt.Sprintf("\n\tLabel: %s\n", d.Label))
-		b.WriteString(fmt.Sprintf("\n\tDescription: %s\n", d.Description))
-		b.WriteString(fmt.Sprintf("\n\tNumber Of Options: %d\n", d.NumberOfOptions))
-		b.WriteString(fmt.Sprintf("\n\tQuality Statement: %s\n%s\n", d.QualityStatementText, d.QualityStatementURL))
+	for i := range m.Version.Dimensions {
+		b.WriteString(fmt.Sprintf("\n\tID: %s\n", m.Version.Dimensions[i].ID))
+		b.WriteString(fmt.Sprintf("\n\tLabel: %s\n", m.Version.Dimensions[i].Label))
+		b.WriteString(fmt.Sprintf("\n\tDescription: %s\n", m.Version.Dimensions[i].Description))
+		b.WriteString(fmt.Sprintf("\n\tNumber Of Options: %d\n", m.Version.Dimensions[i].NumberOfOptions))
+		b.WriteString(fmt.Sprintf("\n\tQuality Statement: %s\n%s\n", m.Version.Dimensions[i].QualityStatementText, m.Version.Dimensions[i].QualityStatementURL))
 	}
 	return b.Bytes()
 }
@@ -163,19 +165,18 @@ func NewMetadataCustom(m *dataset.Metadata, filterOutputID, downloadServiceURL s
 			b.WriteString(fmt.Sprintf("\tSize: %s\n", v.Size))
 			b.WriteString(fmt.Sprintf("\tURL: %s\n\n", fmt.Sprintf("%s/downloads/filter-outputs/%s.xlsx", downloadServiceURL, filterOutputID)))
 		}
-
 	}
 	if m.Version.IsBasedOn != nil {
 		b.WriteString(fmt.Sprintf("Is Based On: %s\n", m.Version.IsBasedOn.ID))
 	}
 	b.WriteString(fmt.Sprintf("%s\n\n%s\n\n%s\n\n", variables, coverage, scc))
 	b.WriteString("Dimensions:\n")
-	for _, d := range m.Version.Dimensions {
-		b.WriteString(fmt.Sprintf("\n\tID: %s\n", d.ID))
-		b.WriteString(fmt.Sprintf("\n\tLabel: %s\n", d.Label))
-		b.WriteString(fmt.Sprintf("\n\tDescription: %s\n", d.Description))
-		b.WriteString(fmt.Sprintf("\n\tNumber Of Options: %d\n", d.NumberOfOptions))
-		b.WriteString(fmt.Sprintf("\n\tQuality Statement: %s\n%s\n", d.QualityStatementText, d.QualityStatementURL))
+	for i := range m.Version.Dimensions {
+		b.WriteString(fmt.Sprintf("\n\tID: %s\n", m.Version.Dimensions[i].ID))
+		b.WriteString(fmt.Sprintf("\n\tLabel: %s\n", m.Version.Dimensions[i].Label))
+		b.WriteString(fmt.Sprintf("\n\tDescription: %s\n", m.Version.Dimensions[i].Description))
+		b.WriteString(fmt.Sprintf("\n\tNumber Of Options: %d\n", m.Version.Dimensions[i].NumberOfOptions))
+		b.WriteString(fmt.Sprintf("\n\tQuality Statement: %s\n%s\n", m.Version.Dimensions[i].QualityStatementText, m.Version.Dimensions[i].QualityStatementURL))
 	}
 
 	return b.Bytes()
