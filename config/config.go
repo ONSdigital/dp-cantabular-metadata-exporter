@@ -10,53 +10,53 @@ const KafkaTLSProtocolFlag = "TLS"
 
 // Config represents service configuration for dp-cantabular-metadata-exporter
 type Config struct {
-	BindAddr                   string        `envconfig:"BIND_ADDR"`
-	GracefulShutdownTimeout    time.Duration `envconfig:"GRACEFUL_SHUTDOWN_TIMEOUT"`
-	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
-	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
-	DefaultRequestTimeout      time.Duration `envconfig:"DEFAULT_REQUEST_TIMEOUT"`
-	DatasetAPIURL              string        `envconfig:"DATASET_API_URL"`
-	PopulationTypesAPIURL      string        `envconfig:"POPULATION_TYPES_API_URL"`
-	ExternalPrefixURL          string        `envconfig:"EXTERNAL_PREFIX_URL"`
-	CantabularURL              string        `envconfig:"CANTABULAR_URL"`
-	CantabularExtURL           string        `envconfig:"CANTABULAR_API_EXT_URL"`
 	AWSRegion                  string        `envconfig:"AWS_REGION"`
-	PublicBucket               string        `envconfig:"PUBLIC_BUCKET"`
-	PrivateBucket              string        `envconfig:"PRIVATE_BUCKET"`
-	S3BucketURL                string        `envconfig:"PUBLIC_URL"`
-	LocalObjectStore           string        `envconfig:"LOCAL_OBJECT_STORE"`
-	MinioAccessKey             string        `envconfig:"MINIO_ACCESS_KEY"`
-	MinioSecretKey             string        `envconfig:"MINIO_SECRET_KEY"`
-	VaultToken                 string        `envconfig:"VAULT_TOKEN"`
-	VaultAddress               string        `envconfig:"VAULT_ADDR"`
-	VaultPath                  string        `envconfig:"VAULT_PATH"`
-	EncryptionDisabled         bool          `envconfig:"ENCRYPTION_DISABLED"`
+	BindAddr                   string        `envconfig:"BIND_ADDR"`
+	CantabularExtURL           string        `envconfig:"CANTABULAR_API_EXT_URL"`
+	CantabularURL              string        `envconfig:"CANTABULAR_URL"`
 	ComponentTestUseLogFile    bool          `envconfig:"COMPONENT_TEST_USE_LOG_FILE"`
-	ServiceAuthToken           string        `envconfig:"SERVICE_AUTH_TOKEN"`
+	DatasetAPIURL              string        `envconfig:"DATASET_API_URL"`
+	DefaultRequestTimeout      time.Duration `envconfig:"DEFAULT_REQUEST_TIMEOUT"`
 	DownloadServiceURL         string        `envconfig:"DOWNLOAD_SERVICE_URL"`
+	EncryptionDisabled         bool          `envconfig:"ENCRYPTION_DISABLED"`
+	GracefulShutdownTimeout    time.Duration `envconfig:"GRACEFUL_SHUTDOWN_TIMEOUT"`
+	ExternalPrefixURL          string        `envconfig:"EXTERNAL_PREFIX_URL"`
 	FilterAPIURL               string        `envconfig:"FILTER_API_URL"`
-	StopConsumingOnUnhealthy   bool          `envconfig:"STOP_CONSUMING_ON_UNHEALTHY"`
-	S3PublicURL                string        `envconfig:"S3_PUBLIC_URL"`
+	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
+	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
 	Kafka                      KafkaConfig
+	LocalObjectStore           string `envconfig:"LOCAL_OBJECT_STORE"`
+	MinioAccessKey             string `envconfig:"MINIO_ACCESS_KEY"`
+	MinioSecretKey             string `envconfig:"MINIO_SECRET_KEY"`
+	PopulationTypesAPIURL      string `envconfig:"POPULATION_TYPES_API_URL"`
+	PublicBucket               string `envconfig:"PUBLIC_BUCKET"`
+	PrivateBucket              string `envconfig:"PRIVATE_BUCKET"`
+	ServiceAuthToken           string `envconfig:"SERVICE_AUTH_TOKEN"`
+	StopConsumingOnUnhealthy   bool   `envconfig:"STOP_CONSUMING_ON_UNHEALTHY"`
+	S3BucketURL                string `envconfig:"PUBLIC_URL"`
+	S3PublicURL                string `envconfig:"S3_PUBLIC_URL"`
+	VaultAddress               string `envconfig:"VAULT_ADDR"`
+	VaultPath                  string `envconfig:"VAULT_PATH"`
+	VaultToken                 string `envconfig:"VAULT_TOKEN"`
 }
 
 // KafkaConfig contains the config required to connect to Kafka
 type KafkaConfig struct {
 	Addr                          []string `envconfig:"KAFKA_ADDR"                            json:"-"`
-	Version                       string   `envconfig:"KAFKA_VERSION"`
-	OffsetOldest                  bool     `envconfig:"KAFKA_OFFSET_OLDEST"`
-	NumWorkers                    int      `envconfig:"KAFKA_NUM_WORKERS"`
-	MaxBytes                      int      `envconfig:"KAFKA_MAX_BYTES"`
-	SecProtocol                   string   `envconfig:"KAFKA_SEC_PROTO"`
-	SecCACerts                    string   `envconfig:"KAFKA_SEC_CA_CERTS"`
-	SecClientKey                  string   `envconfig:"KAFKA_SEC_CLIENT_KEY"                  json:"-"`
-	SecClientCert                 string   `envconfig:"KAFKA_SEC_CLIENT_CERT"`
-	SecSkipVerify                 bool     `envconfig:"KAFKA_SEC_SKIP_VERIFY"`
-	ConsumerMinBrokersHealthy     int      `envconfig:"KAFKA_CONSUMER_MIN_BROKERS_HEALTHY"`
-	ProducerMinBrokersHealthy     int      `envconfig:"KAFKA_PRODUCER_MIN_BROKERS_HEALTHY"`
 	CantabularCSVCreatedTopic     string   `envconfig:"KAFKA_TOPIC_CANTABULAR_CSV_CREATED"`
 	CantabularCSVWCreatedTopic    string   `envconfig:"KAFKA_TOPIC_CANTABULAR_CSVW_CREATED"`
 	CantabularMetadataExportGroup string   `envconfig:"KAFKA_GROUP_CANTABULAR_METADATA_EXPORT"`
+	ConsumerMinBrokersHealthy     int      `envconfig:"KAFKA_CONSUMER_MIN_BROKERS_HEALTHY"`
+	MaxBytes                      int      `envconfig:"KAFKA_MAX_BYTES"`
+	NumWorkers                    int      `envconfig:"KAFKA_NUM_WORKERS"`
+	OffsetOldest                  bool     `envconfig:"KAFKA_OFFSET_OLDEST"`
+	ProducerMinBrokersHealthy     int      `envconfig:"KAFKA_PRODUCER_MIN_BROKERS_HEALTHY"`
+	SecCACerts                    string   `envconfig:"KAFKA_SEC_CA_CERTS"`
+	SecClientCert                 string   `envconfig:"KAFKA_SEC_CLIENT_CERT"`
+	SecClientKey                  string   `envconfig:"KAFKA_SEC_CLIENT_KEY"                  json:"-"`
+	SecProtocol                   string   `envconfig:"KAFKA_SEC_PROTO"`
+	SecSkipVerify                 bool     `envconfig:"KAFKA_SEC_SKIP_VERIFY"`
+	Version                       string   `envconfig:"KAFKA_VERSION"`
 }
 
 var cfg *Config
@@ -69,45 +69,50 @@ func Get() (*Config, error) {
 	}
 
 	cfg = &Config{
-		BindAddr:                   ":26700",
-		GracefulShutdownTimeout:    5 * time.Second,
-		HealthCheckInterval:        30 * time.Second,
-		HealthCheckCriticalTimeout: 90 * time.Second,
-		DefaultRequestTimeout:      10 * time.Second,
 		AWSRegion:                  "eu-west-1",
-		VaultPath:                  "secret/shared/psk",
-		VaultAddress:               "http://localhost:8200",
-		VaultToken:                 "",
-		PublicBucket:               "dp-cantabular-metadata-exporter",
-		PrivateBucket:              "dp-cantabular-metadata-exporter",
-		S3BucketURL:                "",
-		DatasetAPIURL:              "http://localhost:22000",
-		FilterAPIURL:               "http://localhost:22100",
-		PopulationTypesAPIURL:      "http://localhost:27300",
-		CantabularURL:              "http://localhost:8491",
+		BindAddr:                   ":26700",
 		CantabularExtURL:           "http://localhost:8492",
-		ExternalPrefixURL:          "http://localhost:22000",
+		CantabularURL:              "http://localhost:8491",
 		ComponentTestUseLogFile:    false,
+		DatasetAPIURL:              "http://localhost:22000",
+		DefaultRequestTimeout:      10 * time.Second,
 		DownloadServiceURL:         "http://localhost:23600",
-		StopConsumingOnUnhealthy:   true,
-		S3PublicURL:                "http://public-bucket",
+		EncryptionDisabled:         false,
+		ExternalPrefixURL:          "http://localhost:22000",
+		FilterAPIURL:               "http://localhost:22100",
+		GracefulShutdownTimeout:    5 * time.Second,
+		HealthCheckCriticalTimeout: 90 * time.Second,
+		HealthCheckInterval:        30 * time.Second,
 		Kafka: KafkaConfig{
 			Addr:                          []string{"localhost:9092", "localhost:9093", "localhost:9094"},
-			Version:                       "1.0.2",
-			OffsetOldest:                  true,
-			NumWorkers:                    1,
-			MaxBytes:                      2000000,
-			SecProtocol:                   "",
-			SecCACerts:                    "",
-			SecClientKey:                  "",
-			SecClientCert:                 "",
-			SecSkipVerify:                 false,
-			ConsumerMinBrokersHealthy:     1,
-			ProducerMinBrokersHealthy:     2,
-			CantabularMetadataExportGroup: "cantabular-metadata-export",
 			CantabularCSVCreatedTopic:     "cantabular-csv-created",
 			CantabularCSVWCreatedTopic:    "cantabular-csvw-created",
+			CantabularMetadataExportGroup: "cantabular-metadata-export",
+			ConsumerMinBrokersHealthy:     1,
+			MaxBytes:                      2000000,
+			NumWorkers:                    1,
+			OffsetOldest:                  true,
+			ProducerMinBrokersHealthy:     2,
+			SecCACerts:                    "",
+			SecClientCert:                 "",
+			SecClientKey:                  "",
+			SecProtocol:                   "",
+			SecSkipVerify:                 false,
+			Version:                       "1.0.2",
 		},
+		LocalObjectStore:         "",
+		MinioAccessKey:           "",
+		MinioSecretKey:           "",
+		PopulationTypesAPIURL:    "http://localhost:27300",
+		PrivateBucket:            "dp-cantabular-metadata-exporter",
+		PublicBucket:             "dp-cantabular-metadata-exporter",
+		ServiceAuthToken:         "",
+		StopConsumingOnUnhealthy: true,
+		S3BucketURL:              "",
+		S3PublicURL:              "http://public-bucket",
+		VaultAddress:             "http://localhost:8200",
+		VaultPath:                "secret/shared/psk",
+		VaultToken:               "",
 	}
 
 	return cfg, envconfig.Process("", cfg)
