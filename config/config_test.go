@@ -40,7 +40,7 @@ func TestConfig(t *testing.T) {
 					DownloadServiceURL:         "http://localhost:23600",
 					CantabularURL:              "http://localhost:8491",
 					CantabularExtURL:           "http://localhost:8492",
-					AWSRegion:                  "eu-west-1",
+					AWSRegion:                  "eu-west-2",
 					StopConsumingOnUnhealthy:   true,
 					S3PublicURL:                "http://public-bucket",
 					Kafka: KafkaConfig{

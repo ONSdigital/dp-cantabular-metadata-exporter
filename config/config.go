@@ -26,18 +26,18 @@ type Config struct {
 	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
 	Kafka                      KafkaConfig
 	LocalObjectStore           string `envconfig:"LOCAL_OBJECT_STORE"`
-	MinioAccessKey             string `envconfig:"MINIO_ACCESS_KEY"`
-	MinioSecretKey             string `envconfig:"MINIO_SECRET_KEY"`
+	MinioAccessKey             string `envconfig:"MINIO_ACCESS_KEY"                           json:"-"`
+	MinioSecretKey             string `envconfig:"MINIO_SECRET_KEY"                           json:"-"`
 	PopulationTypesAPIURL      string `envconfig:"POPULATION_TYPES_API_URL"`
 	PublicBucket               string `envconfig:"PUBLIC_BUCKET"`
 	PrivateBucket              string `envconfig:"PRIVATE_BUCKET"`
-	ServiceAuthToken           string `envconfig:"SERVICE_AUTH_TOKEN"`
+	ServiceAuthToken           string `envconfig:"SERVICE_AUTH_TOKEN"                         json:"-"`
 	StopConsumingOnUnhealthy   bool   `envconfig:"STOP_CONSUMING_ON_UNHEALTHY"`
 	S3BucketURL                string `envconfig:"PUBLIC_URL"`
 	S3PublicURL                string `envconfig:"S3_PUBLIC_URL"`
 	VaultAddress               string `envconfig:"VAULT_ADDR"`
 	VaultPath                  string `envconfig:"VAULT_PATH"`
-	VaultToken                 string `envconfig:"VAULT_TOKEN"`
+	VaultToken                 string `envconfig:"VAULT_TOKEN"                                json:"-"`
 }
 
 // KafkaConfig contains the config required to connect to Kafka
@@ -69,7 +69,7 @@ func Get() (*Config, error) {
 	}
 
 	cfg = &Config{
-		AWSRegion:                  "eu-west-1",
+		AWSRegion:                  "eu-west-2",
 		BindAddr:                   ":26700",
 		CantabularExtURL:           "http://localhost:8492",
 		CantabularURL:              "http://localhost:8491",
