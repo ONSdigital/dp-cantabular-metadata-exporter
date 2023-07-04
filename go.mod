@@ -2,6 +2,9 @@ module github.com/ONSdigital/dp-cantabular-metadata-exporter
 
 go 1.20
 
+// to fix: [CVE-2023-32731] CWE-Other
+replace google.golang.org/grpc => google.golang.org/grpc v1.55.0
+
 require (
 	github.com/ONSdigital/dp-api-clients-go/v2 v2.254.0
 	github.com/ONSdigital/dp-assistdog v0.0.1
