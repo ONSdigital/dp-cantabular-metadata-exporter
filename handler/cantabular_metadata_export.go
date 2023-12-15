@@ -18,7 +18,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	kafka "github.com/ONSdigital/dp-kafka/v3"
+	kafka "github.com/ONSdigital/dp-kafka/v4"
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
@@ -211,7 +211,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, _ int, msg kafka.
 		}
 	}
 
-	if err := h.produceOutputMessage(e); err != nil {
+	if err := h.produceOutputMessage(ctx, e); err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to producer output kafka message: %w", err),
 			logData: logData,
@@ -383,7 +383,7 @@ func (h *CantabularMetadataExport) isVersionPublished(ctx context.Context, e *ev
 	return version.State == dataset.StatePublished.String(), nil
 }
 
-func (h *CantabularMetadataExport) produceOutputMessage(e *event.CSVCreated) error {
+func (h *CantabularMetadataExport) produceOutputMessage(ctx context.Context, e *event.CSVCreated) error {
 	s := schema.CSVWCreated
 
 	b, err := s.Marshal(&event.CSVWCreated{
@@ -398,7 +398,7 @@ func (h *CantabularMetadataExport) produceOutputMessage(e *event.CSVCreated) err
 	}
 
 	// Send bytes to kafka producer output channel
-	h.producer.Channels().Output <- b
+	h.producer.Channels().Output <- kafka.BytesMessage{Value: b, Context: ctx}
 
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/handler"
-	kafka "github.com/ONSdigital/dp-kafka/v3"
+	kafka "github.com/ONSdigital/dp-kafka/v4"
 	"github.com/ONSdigital/log.go/v2/log"
 
 	"github.com/go-chi/chi/v5"
@@ -97,7 +97,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 		return fmt.Errorf("unable to register checkers: %w", err)
 	}
 
-	svc.BuildRoutes()
+	svc.BuildRoutes(cfg.OTServiceName)
 	svc.Server = GetHTTPServer(cfg.BindAddr, svc.router)
 
 	return nil

@@ -15,7 +15,7 @@ import (
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service"
 
 	cmptest "github.com/ONSdigital/dp-component-test"
-	kafka "github.com/ONSdigital/dp-kafka/v3"
+	kafka "github.com/ONSdigital/dp-kafka/v4"
 	"github.com/ONSdigital/log.go/v2/log"
 
 	"github.com/aws/aws-sdk-go/aws"

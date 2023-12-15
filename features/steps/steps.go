@@ -10,6 +10,7 @@ import (
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/event"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/schema"
+	kafka "github.com/ONSdigital/dp-kafka/v4"
 
 	"github.com/ONSdigital/log.go/v2/log"
 
@@ -202,7 +203,7 @@ func (c *Component) thisCantabularMetadataExportEventIsConsumed(input *godog.Doc
 		"event": b,
 	})
 
-	c.producer.Channels().Output <- b
+	c.producer.Channels().Output <- kafka.BytesMessage{Value: b, Context: ctx}
 	return nil
 }
 

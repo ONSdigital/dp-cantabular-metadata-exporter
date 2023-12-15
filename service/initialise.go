@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/filemanager"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/generator"
@@ -15,7 +16,7 @@ import (
 	"github.com/ONSdigital/dp-api-clients-go/v2/filter"
 	"github.com/ONSdigital/dp-api-clients-go/v2/population"
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
-	kafka "github.com/ONSdigital/dp-kafka/v3"
+	kafka "github.com/ONSdigital/dp-kafka/v4"
 	dphttp "github.com/ONSdigital/dp-net/v2/http"
 	vault "github.com/ONSdigital/dp-vault"
 
@@ -30,7 +31,8 @@ const (
 
 // GetHTTPServer creates an http server
 var GetHTTPServer = func(bindAddr string, router http.Handler) HTTPServer {
-	s := dphttp.NewServer(bindAddr, router)
+	otelHandler := otelhttp.NewHandler(router, "/")
+	s := dphttp.NewServer(bindAddr, otelHandler)
 	s.HandleOSSignals = false
 	return s
 }

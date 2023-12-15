@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/config"
 	"github.com/ONSdigital/dp-cantabular-metadata-exporter/service"
+	dpotelgo "github.com/ONSdigital/dp-otel-go"
 	"github.com/ONSdigital/log.go/v2/log"
 )
 
@@ -54,6 +56,21 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to get config: %w", err)
 	}
+
+	// Set up OpenTelemetry
+	otelConfig := dpotelgo.Config{
+		OtelServiceName:          cfg.OTServiceName,
+		OtelExporterOtlpEndpoint: cfg.OTExporterOTLPEndpoint,
+	}
+
+	otelShutdown, oErr := dpotelgo.SetupOTelSDK(ctx, otelConfig)
+	if oErr != nil {
+		log.Error(ctx, "error setting up OpenTelemetry - hint: ensure OTEL_EXPORTER_OTLP_ENDPOINT is set", oErr)
+	}
+	// Handle shutdown properly so nothing leaks.
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
 
 	// Create, initialise and start service
 	svc := service.New()
