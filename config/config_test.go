@@ -43,8 +43,8 @@ func TestConfig(t *testing.T) {
 					AWSRegion:                  "eu-west-2",
 					StopConsumingOnUnhealthy:   true,
 					S3PublicURL:                "http://public-bucket",
-					OTExporterOTLPEndpoint:   	"localhost:4317",
-					OTServiceName:            	"dp-cantabular-metadata-exporter",
+					OTExporterOTLPEndpoint:     "localhost:4317",
+					OTServiceName:              "dp-cantabular-metadata-exporter",
 					Kafka: KafkaConfig{
 						Addr:                          []string{"localhost:9092", "localhost:9093", "localhost:9094"},
 						Version:                       "1.0.2",
