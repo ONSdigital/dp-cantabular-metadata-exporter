@@ -30,6 +30,7 @@ type Config struct {
 	MinioSecretKey             string `envconfig:"MINIO_SECRET_KEY"                           json:"-"`
 	OTExporterOTLPEndpoint     string `envconfig:"OTEL_EXPORTER_OTLP_ENDPOINT"`
 	OTServiceName              string `envconfig:"OTEL_SERVICE_NAME"`
+	OTBatchTimeout             time.Duration `envconfig:"OTEL_BATCH_TIMEOUT"`
 	PopulationTypesAPIURL      string `envconfig:"POPULATION_TYPES_API_URL"`
 	PublicBucket               string `envconfig:"PUBLIC_BUCKET"`
 	PrivateBucket              string `envconfig:"PRIVATE_BUCKET"`
@@ -107,6 +108,7 @@ func Get() (*Config, error) {
 		MinioSecretKey:           "",
 		OTExporterOTLPEndpoint:   "localhost:4317",
 		OTServiceName:            "dp-cantabular-metadata-exporter",
+		OTBatchTimeout:           5 * time.Second,
 		PopulationTypesAPIURL:    "http://localhost:27300",
 		PrivateBucket:            "dp-cantabular-metadata-exporter",
 		PublicBucket:             "dp-cantabular-metadata-exporter",
