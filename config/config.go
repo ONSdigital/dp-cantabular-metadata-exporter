@@ -25,22 +25,22 @@ type Config struct {
 	HealthCheckCriticalTimeout time.Duration `envconfig:"HEALTHCHECK_CRITICAL_TIMEOUT"`
 	HealthCheckInterval        time.Duration `envconfig:"HEALTHCHECK_INTERVAL"`
 	Kafka                      KafkaConfig
-	LocalObjectStore           string `envconfig:"LOCAL_OBJECT_STORE"`
-	MinioAccessKey             string `envconfig:"MINIO_ACCESS_KEY"                           json:"-"`
-	MinioSecretKey             string `envconfig:"MINIO_SECRET_KEY"                           json:"-"`
-	OTExporterOTLPEndpoint     string `envconfig:"OTEL_EXPORTER_OTLP_ENDPOINT"`
-	OTServiceName              string `envconfig:"OTEL_SERVICE_NAME"`
+	LocalObjectStore           string        `envconfig:"LOCAL_OBJECT_STORE"`
+	MinioAccessKey             string        `envconfig:"MINIO_ACCESS_KEY"                           json:"-"`
+	MinioSecretKey             string        `envconfig:"MINIO_SECRET_KEY"                           json:"-"`
+	OTExporterOTLPEndpoint     string        `envconfig:"OTEL_EXPORTER_OTLP_ENDPOINT"`
+	OTServiceName              string        `envconfig:"OTEL_SERVICE_NAME"`
 	OTBatchTimeout             time.Duration `envconfig:"OTEL_BATCH_TIMEOUT"`
-	PopulationTypesAPIURL      string `envconfig:"POPULATION_TYPES_API_URL"`
-	PublicBucket               string `envconfig:"PUBLIC_BUCKET"`
-	PrivateBucket              string `envconfig:"PRIVATE_BUCKET"`
-	ServiceAuthToken           string `envconfig:"SERVICE_AUTH_TOKEN"                         json:"-"`
-	StopConsumingOnUnhealthy   bool   `envconfig:"STOP_CONSUMING_ON_UNHEALTHY"`
-	S3BucketURL                string `envconfig:"PUBLIC_URL"`
-	S3PublicURL                string `envconfig:"S3_PUBLIC_URL"`
-	VaultAddress               string `envconfig:"VAULT_ADDR"`
-	VaultPath                  string `envconfig:"VAULT_PATH"`
-	VaultToken                 string `envconfig:"VAULT_TOKEN"                                json:"-"`
+	PopulationTypesAPIURL      string        `envconfig:"POPULATION_TYPES_API_URL"`
+	PublicBucket               string        `envconfig:"PUBLIC_BUCKET"`
+	PrivateBucket              string        `envconfig:"PRIVATE_BUCKET"`
+	ServiceAuthToken           string        `envconfig:"SERVICE_AUTH_TOKEN"                         json:"-"`
+	StopConsumingOnUnhealthy   bool          `envconfig:"STOP_CONSUMING_ON_UNHEALTHY"`
+	S3BucketURL                string        `envconfig:"PUBLIC_URL"`
+	S3PublicURL                string        `envconfig:"S3_PUBLIC_URL"`
+	VaultAddress               string        `envconfig:"VAULT_ADDR"`
+	VaultPath                  string        `envconfig:"VAULT_PATH"`
+	VaultToken                 string        `envconfig:"VAULT_TOKEN"                                json:"-"`
 }
 
 // KafkaConfig contains the config required to connect to Kafka
