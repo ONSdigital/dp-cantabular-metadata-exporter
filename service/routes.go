@@ -6,12 +6,19 @@ import (
 )
 
 // BuildRoutes builds the routing for the API
-func (svc *Service) BuildRoutes(otServiceName string) {
+func (svc *Service) BuildRoutesOtel(otServiceName string) {
 	r := chi.NewRouter()
 	r.Use(otelchi.Middleware(otServiceName))
 
 	// Healthcheck
 	r.HandleFunc("/health", svc.HealthCheck.Handler)
+	svc.router = r
+}
 
+func (svc *Service) BuildRoutes() {
+	r := chi.NewRouter()
+
+	// Healthcheck
+	r.HandleFunc("/health", svc.HealthCheck.Handler)
 	svc.router = r
 }

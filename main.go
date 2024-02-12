@@ -57,21 +57,23 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("failed to get config: %w", err)
 	}
 
-	// Set up OpenTelemetry
-	otelConfig := dpotelgo.Config{
-		OtelServiceName:          cfg.OTServiceName,
-		OtelExporterOtlpEndpoint: cfg.OTExporterOTLPEndpoint,
-		OtelBatchTimeout:         cfg.OTBatchTimeout,
-	}
+	if cfg.OtelEnabled {
+		// Set up OpenTelemetry
+		otelConfig := dpotelgo.Config{
+			OtelServiceName:          cfg.OTServiceName,
+			OtelExporterOtlpEndpoint: cfg.OTExporterOTLPEndpoint,
+			OtelBatchTimeout:         cfg.OTBatchTimeout,
+		}
 
-	otelShutdown, oErr := dpotelgo.SetupOTelSDK(ctx, otelConfig)
-	if oErr != nil {
-		log.Error(ctx, "error setting up OpenTelemetry - hint: ensure OTEL_EXPORTER_OTLP_ENDPOINT is set", oErr)
+		otelShutdown, oErr := dpotelgo.SetupOTelSDK(ctx, otelConfig)
+		if oErr != nil {
+			log.Error(ctx, "error setting up OpenTelemetry - hint: ensure OTEL_EXPORTER_OTLP_ENDPOINT is set", oErr)
+		}
+		// Handle shutdown properly so nothing leaks.
+		defer func() {
+			err = errors.Join(err, otelShutdown(context.Background()))
+		}()
 	}
-	// Handle shutdown properly so nothing leaks.
-	defer func() {
-		err = errors.Join(err, otelShutdown(context.Background()))
-	}()
 
 	// Create, initialise and start service
 	svc := service.New()

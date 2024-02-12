@@ -97,8 +97,13 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 		return fmt.Errorf("unable to register checkers: %w", err)
 	}
 
-	svc.BuildRoutes(cfg.OTServiceName)
-	svc.Server = GetHTTPServer(cfg.BindAddr, svc.router)
+	if cfg.OtelEnabled {
+		svc.BuildRoutesOtel(cfg.OTServiceName)
+		svc.Server = GetHTTPServerOtel(cfg.BindAddr, svc.router)
+	} else {
+		svc.BuildRoutes()
+		svc.Server = GetHTTPServer(cfg.BindAddr, svc.router)
+	}
 
 	return nil
 }
