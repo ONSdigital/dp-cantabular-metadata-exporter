@@ -36,7 +36,7 @@ var GetHTTPServer = func(bindAddr string, router http.Handler) HTTPServer {
 	return s
 }
 
-// GetHTTPServer creates an http server with OTEL
+// GetHTTPServerOtel creates an http server with OTEL
 var GetHTTPServerOtel = func(bindAddr string, router http.Handler) HTTPServer {
 	otelHandler := otelhttp.NewHandler(router, "/")
 	s := dphttp.NewServer(bindAddr, otelHandler)
