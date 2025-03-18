@@ -315,7 +315,7 @@ func newObservationColumn(title, name string) Column {
 // metadata spec.
 func newLabelColumn(apiDomain string, dim dataset.VersionDimension) (Column, error) {
 	dimURL := dim.URL
-	if len(apiDomain) > 0 {
+	if apiDomain != "" {
 		uri, err := url.Parse(dimURL)
 		if err != nil {
 			return nil, Error{
@@ -341,11 +341,11 @@ func newLabelColumn(apiDomain string, dim dataset.VersionDimension) (Column, err
 
 func newColumn(title, label string) Column {
 	c := make(Column)
-	if len(title) > 0 {
+	if title != "" {
 		c["titles"] = title
 	}
 
-	if len(label) > 0 {
+	if label != "" {
 		c["label"] = label
 	}
 
