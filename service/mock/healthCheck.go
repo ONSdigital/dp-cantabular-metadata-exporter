@@ -17,31 +17,31 @@ var _ service.HealthChecker = &HealthCheckerMock{}
 
 // HealthCheckerMock is a mock implementation of service.HealthChecker.
 //
-// 	func TestSomethingThatUsesHealthChecker(t *testing.T) {
+//	func TestSomethingThatUsesHealthChecker(t *testing.T) {
 //
-// 		// make and configure a mocked service.HealthChecker
-// 		mockedHealthChecker := &HealthCheckerMock{
-// 			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error) {
-// 				panic("mock out the AddAndGetCheck method")
-// 			},
-// 			HandlerFunc: func(w http.ResponseWriter, req *http.Request)  {
-// 				panic("mock out the Handler method")
-// 			},
-// 			StartFunc: func(ctx context.Context)  {
-// 				panic("mock out the Start method")
-// 			},
-// 			StopFunc: func()  {
-// 				panic("mock out the Stop method")
-// 			},
-// 			SubscribeAllFunc: func(s healthcheck.Subscriber)  {
-// 				panic("mock out the SubscribeAll method")
-// 			},
-// 		}
+//		// make and configure a mocked service.HealthChecker
+//		mockedHealthChecker := &HealthCheckerMock{
+//			AddAndGetCheckFunc: func(name string, checker healthcheck.Checker) (*healthcheck.Check, error) {
+//				panic("mock out the AddAndGetCheck method")
+//			},
+//			HandlerFunc: func(w http.ResponseWriter, req *http.Request)  {
+//				panic("mock out the Handler method")
+//			},
+//			StartFunc: func(ctx context.Context)  {
+//				panic("mock out the Start method")
+//			},
+//			StopFunc: func()  {
+//				panic("mock out the Stop method")
+//			},
+//			SubscribeAllFunc: func(s healthcheck.Subscriber)  {
+//				panic("mock out the SubscribeAll method")
+//			},
+//		}
 //
-// 		// use mockedHealthChecker in code that requires service.HealthChecker
-// 		// and then make assertions.
+//		// use mockedHealthChecker in code that requires service.HealthChecker
+//		// and then make assertions.
 //
-// 	}
+//	}
 type HealthCheckerMock struct {
 	// AddAndGetCheckFunc mocks the AddAndGetCheck method.
 	AddAndGetCheckFunc func(name string, checker healthcheck.Checker) (*healthcheck.Check, error)
@@ -115,7 +115,8 @@ func (mock *HealthCheckerMock) AddAndGetCheck(name string, checker healthcheck.C
 
 // AddAndGetCheckCalls gets all the calls that were made to AddAndGetCheck.
 // Check the length with:
-//     len(mockedHealthChecker.AddAndGetCheckCalls())
+//
+//	len(mockedHealthChecker.AddAndGetCheckCalls())
 func (mock *HealthCheckerMock) AddAndGetCheckCalls() []struct {
 	Name    string
 	Checker healthcheck.Checker
@@ -150,7 +151,8 @@ func (mock *HealthCheckerMock) Handler(w http.ResponseWriter, req *http.Request)
 
 // HandlerCalls gets all the calls that were made to Handler.
 // Check the length with:
-//     len(mockedHealthChecker.HandlerCalls())
+//
+//	len(mockedHealthChecker.HandlerCalls())
 func (mock *HealthCheckerMock) HandlerCalls() []struct {
 	W   http.ResponseWriter
 	Req *http.Request
@@ -183,7 +185,8 @@ func (mock *HealthCheckerMock) Start(ctx context.Context) {
 
 // StartCalls gets all the calls that were made to Start.
 // Check the length with:
-//     len(mockedHealthChecker.StartCalls())
+//
+//	len(mockedHealthChecker.StartCalls())
 func (mock *HealthCheckerMock) StartCalls() []struct {
 	Ctx context.Context
 } {
@@ -211,7 +214,8 @@ func (mock *HealthCheckerMock) Stop() {
 
 // StopCalls gets all the calls that were made to Stop.
 // Check the length with:
-//     len(mockedHealthChecker.StopCalls())
+//
+//	len(mockedHealthChecker.StopCalls())
 func (mock *HealthCheckerMock) StopCalls() []struct {
 } {
 	var calls []struct {
@@ -240,7 +244,8 @@ func (mock *HealthCheckerMock) SubscribeAll(s healthcheck.Subscriber) {
 
 // SubscribeAllCalls gets all the calls that were made to SubscribeAll.
 // Check the length with:
-//     len(mockedHealthChecker.SubscribeAllCalls())
+//
+//	len(mockedHealthChecker.SubscribeAllCalls())
 func (mock *HealthCheckerMock) SubscribeAllCalls() []struct {
 	S healthcheck.Subscriber
 } {
