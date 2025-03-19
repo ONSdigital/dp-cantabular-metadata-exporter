@@ -187,7 +187,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, _ int, msg kafka.
 		}
 	}
 
-	txtDownload, err := h.exportTXTFile(e, *m, isPublished, *filterOutput.Custom)
+	txtDownload, err := h.exportTXTFile(ctx, e, *m, isPublished, *filterOutput.Custom)
 	if err != nil {
 		return Error{
 			err:     fmt.Errorf("failed to export metadata text file: %w", err),
@@ -221,7 +221,7 @@ func (h *CantabularMetadataExport) Handle(ctx context.Context, _ int, msg kafka.
 	return nil
 }
 
-func (h *CantabularMetadataExport) exportTXTFile(e *event.CSVCreated, m dataset.Metadata, isPublished, isCustom bool) (*downloadInfo, error) {
+func (h *CantabularMetadataExport) exportTXTFile(ctx context.Context, e *event.CSVCreated, m dataset.Metadata, isPublished, isCustom bool) (*downloadInfo, error) {
 	var b []byte
 	if isCustom {
 		b = text.NewMetadataCustom(&m, e.FilterOutputID, h.cfg.DownloadServiceURL)
@@ -233,9 +233,9 @@ func (h *CantabularMetadataExport) exportTXTFile(e *event.CSVCreated, m dataset.
 	var url string
 	var err error
 	if isPublished {
-		url, err = h.file.Upload(bytes.NewReader(b), filename)
+		url, err = h.file.Upload(ctx, bytes.NewReader(b), filename)
 	} else {
-		url, err = h.file.UploadPrivate(bytes.NewReader(b), filename, h.generateVaultPath(e, "txt"))
+		url, err = h.file.UploadPrivate(ctx, bytes.NewReader(b), filename, h.generateVaultPath(e, "txt"))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %w", err)
@@ -275,9 +275,9 @@ func (h *CantabularMetadataExport) exportCSVW(ctx context.Context, e *event.CSVC
 
 	var url string
 	if isPublished {
-		url, err = h.file.Upload(bytes.NewReader(f), filename)
+		url, err = h.file.Upload(ctx, bytes.NewReader(f), filename)
 	} else {
-		url, err = h.file.UploadPrivate(bytes.NewReader(f), filename, h.generateVaultPath(e, "csvw"))
+		url, err = h.file.UploadPrivate(ctx, bytes.NewReader(f), filename, h.generateVaultPath(e, "csvw"))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %w", err)

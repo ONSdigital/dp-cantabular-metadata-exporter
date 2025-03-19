@@ -15,7 +15,8 @@ import (
 
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 //go:generate moq -out mock/server.go -pkg mock . HTTPServer
@@ -65,8 +66,8 @@ type CantabularClient interface {
 
 type S3Uploader interface {
 	Get(key string) (io.ReadCloser, *int64, error)
-	Upload(input *s3manager.UploadInput, options ...func(*s3manager.Uploader)) (*s3manager.UploadOutput, error)
-	UploadWithPSK(input *s3manager.UploadInput, psk []byte) (*s3manager.UploadOutput, error)
+	Upload(ctx context.Context, input *s3.PutObjectInput, options ...func(*manager.Uploader)) (*manager.UploadOutput, error)
+	UploadWithPSK(ctx context.Context, input *s3.PutObjectInput, psk []byte) (*manager.UploadOutput, error)
 	BucketName() string
 	Checker(context.Context, *healthcheck.CheckState) error
 }
@@ -77,8 +78,8 @@ type VaultClient interface {
 }
 
 type FileManager interface {
-	Upload(body io.Reader, filename string) (string, error)
-	UploadPrivate(body io.Reader, filename, vaultPath string) (string, error)
+	Upload(ctx context.Context, body io.Reader, filename string) (string, error)
+	UploadPrivate(ctx context.Context, body io.Reader, filename, vaultPath string) (string, error)
 	PrivateUploader() filemanager.S3Uploader
 	PublicUploader() filemanager.S3Uploader
 }

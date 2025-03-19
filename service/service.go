@@ -66,7 +66,7 @@ func (svc *Service) Init(ctx context.Context, cfg *config.Config, buildT, commit
 
 	svc.generator = GetGenerator()
 
-	if svc.fileManager, err = GetFileManager(cfg, svc.vaultClient, svc.generator); err != nil {
+	if svc.fileManager, err = GetFileManager(ctx, cfg, svc.vaultClient, svc.generator); err != nil {
 		return fmt.Errorf("failed to initialise file manager: %w", err)
 	}
 

@@ -1,30 +1,27 @@
 package filemanager
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"net/url"
 
-	dps3 "github.com/ONSdigital/dp-s3"
+	dps3 "github.com/ONSdigital/dp-s3/v3"
 
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 type FileManager struct {
-	s3public  S3Uploader
-	s3private S3Uploader
+	s3public  *dps3.Client
+	s3private *dps3.Client
 	vault     VaultClient
 	generator Generator
 	vaultKey  string
 	publicURL string
 }
 
-func New(cfg Config, s *session.Session, v VaultClient, g Generator) *FileManager {
-	s3pub := dps3.NewUploaderWithSession(cfg.PublicBucket, s)
-	s3priv := dps3.NewUploaderWithSession(cfg.PrivateBucket, s)
-
+func New(cfg Config, v VaultClient, g Generator, s3pub, s3priv *dps3.Client) *FileManager {
 	return &FileManager{
 		s3public:  s3pub,
 		s3private: s3priv,
@@ -45,9 +42,9 @@ func (f *FileManager) PrivateUploader() S3Uploader {
 	return f.s3private
 }
 
-func (f *FileManager) Upload(body io.Reader, filename string) (string, error) {
+func (f *FileManager) Upload(ctx context.Context, body io.Reader, filename string) (string, error) {
 	bucket := f.s3public.BucketName()
-	result, err := f.s3public.Upload(&s3manager.UploadInput{
+	result, err := f.s3public.Upload(ctx, &s3.PutObjectInput{
 		Body:   body,
 		Bucket: &bucket,
 		Key:    &filename,
@@ -65,7 +62,7 @@ func (f *FileManager) Upload(body io.Reader, filename string) (string, error) {
 	return url.PathUnescape(result.Location)
 }
 
-func (f *FileManager) UploadPrivate(body io.Reader, filename, vaultPath string) (string, error) {
+func (f *FileManager) UploadPrivate(ctx context.Context, body io.Reader, filename, vaultPath string) (string, error) {
 	psk, err := f.generator.NewPSK()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate PSK: %w", err)
@@ -83,7 +80,7 @@ func (f *FileManager) UploadPrivate(body io.Reader, filename, vaultPath string) 
 	}
 
 	bucket := f.s3private.BucketName()
-	result, err := f.s3private.UploadWithPSK(&s3manager.UploadInput{
+	result, err := f.s3private.UploadWithPSK(ctx, &s3.PutObjectInput{
 		Body:   body,
 		Bucket: &bucket,
 		Key:    &filename,

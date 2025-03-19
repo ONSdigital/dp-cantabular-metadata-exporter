@@ -18,10 +18,11 @@ import (
 	kafka "github.com/ONSdigital/dp-kafka/v4"
 	"github.com/ONSdigital/log.go/v2/log"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/maxcnunes/httpfake"
 )
 
@@ -43,7 +44,7 @@ type Component struct {
 	cmptest.ErrorFeature
 	DatasetAPI       *httpfake.HTTPFake
 	FilterAPI        *httpfake.HTTPFake
-	S3Downloader     *s3manager.Downloader
+	S3Downloader     *manager.Downloader
 	producer         kafka.IProducer
 	consumer         kafka.IConsumerGroup
 	errorChan        chan error
@@ -90,19 +91,19 @@ func (c *Component) initService(ctx context.Context) error {
 		return &mock.Generator{}
 	}
 
-	s3Config := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials(c.cfg.MinioAccessKey, c.cfg.MinioSecretKey, ""),
-		Endpoint:         aws.String(c.cfg.LocalObjectStore),
-		Region:           aws.String(c.cfg.AWSRegion),
-		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(true),
+	awsConfig, err := awsConfig.LoadDefaultConfig(ctx,
+		awsConfig.WithRegion(c.cfg.AWSRegion),
+		awsConfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(c.cfg.MinioAccessKey, c.cfg.MinioSecretKey, "")),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to load aws config: %w", err)
 	}
 
-	s, err := session.NewSession(s3Config)
-	if err != nil {
-		return fmt.Errorf("failed to create new aws session: %w", err)
-	}
-	c.S3Downloader = s3manager.NewDownloader(s)
+	s3Client := s3.NewFromConfig(awsConfig, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(c.cfg.LocalObjectStore)
+		o.UsePathStyle = true
+	})
+	c.S3Downloader = manager.NewDownloader(s3Client)
 
 	// producer for triggering test events that will be consumed by the service
 	if c.producer, err = kafka.NewProducer(

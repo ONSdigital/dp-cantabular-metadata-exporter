@@ -18,11 +18,13 @@ import (
 	"github.com/ONSdigital/dp-healthcheck/healthcheck"
 	kafka "github.com/ONSdigital/dp-kafka/v4"
 	dphttp "github.com/ONSdigital/dp-net/v2/http"
+	dps3 "github.com/ONSdigital/dp-s3/v3"
 	vault "github.com/ONSdigital/dp-vault"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 const (
@@ -141,26 +143,50 @@ var GetCantabularClient = func(cfg *config.Config) CantabularClient {
 	)
 }
 
-// GetFileManager instantiates teh service FileManager
-var GetFileManager = func(cfg *config.Config, vault VaultClient, generator Generator) (FileManager, error) {
-	awscfg := &aws.Config{
-		Region: aws.String(cfg.AWSRegion),
-	}
-
+// GetFileManager instantiates the service FileManager
+var GetFileManager = func(ctx context.Context, cfg *config.Config, vault VaultClient, generator Generator) (FileManager, error) {
 	if cfg.LocalObjectStore != "" {
-		awscfg = &aws.Config{
-			Credentials:      credentials.NewStaticCredentials(cfg.MinioAccessKey, cfg.MinioSecretKey, ""),
-			Endpoint:         aws.String(cfg.LocalObjectStore),
-			Region:           aws.String(cfg.AWSRegion),
-			DisableSSL:       aws.Bool(true),
-			S3ForcePathStyle: aws.Bool(true),
+		awsConfig, err := awsConfig.LoadDefaultConfig(ctx,
+			awsConfig.WithRegion(cfg.AWSRegion),
+			awsConfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(cfg.MinioAccessKey, cfg.MinioSecretKey, "")),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create aws config: %w", err)
 		}
+
+		s3pub := dps3.NewClientWithConfig(cfg.PublicBucket, awsConfig, func(o *s3.Options) {
+			o.BaseEndpoint = aws.String(cfg.LocalObjectStore)
+			o.UsePathStyle = true
+		})
+
+		s3priv := dps3.NewClientWithConfig(cfg.PrivateBucket, awsConfig, func(o *s3.Options) {
+			o.BaseEndpoint = aws.String(cfg.LocalObjectStore)
+			o.UsePathStyle = true
+		})
+
+		return filemanager.New(
+			filemanager.Config{
+				VaultKey:      "key",
+				PublicBucket:  cfg.PublicBucket,
+				PrivateBucket: cfg.PrivateBucket,
+				PublicURL:     cfg.S3BucketURL,
+			},
+			vault,
+			generator,
+			s3pub,
+			s3priv,
+		), nil
 	}
 
-	sess, err := session.NewSession(awscfg)
+	awsConfig, err := awsConfig.LoadDefaultConfig(ctx,
+		awsConfig.WithRegion(cfg.AWSRegion),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create aws session: %w", err)
+		return nil, fmt.Errorf("failed to create aws config: %w", err)
 	}
+
+	s3pub := dps3.NewClientWithConfig(cfg.PublicBucket, awsConfig)
+	s3priv := dps3.NewClientWithConfig(cfg.PrivateBucket, awsConfig)
 
 	return filemanager.New(
 		filemanager.Config{
@@ -169,8 +195,9 @@ var GetFileManager = func(cfg *config.Config, vault VaultClient, generator Gener
 			PrivateBucket: cfg.PrivateBucket,
 			PublicURL:     cfg.S3BucketURL,
 		},
-		sess,
 		vault,
 		generator,
+		s3pub,
+		s3priv,
 	), nil
 }

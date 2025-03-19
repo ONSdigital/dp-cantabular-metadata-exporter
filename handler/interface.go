@@ -15,8 +15,8 @@ import (
 //go:generate moq -out mock/dataset_api_client.go -pkg mock . DatasetAPIClient
 
 type FileManager interface {
-	Upload(body io.Reader, filename string) (string, error)
-	UploadPrivate(body io.Reader, filename, vaultPath string) (string, error)
+	Upload(ctx context.Context, body io.Reader, filename string) (string, error)
+	UploadPrivate(ctx context.Context, body io.Reader, filename, vaultPath string) (string, error)
 }
 
 type DatasetAPIClient interface {

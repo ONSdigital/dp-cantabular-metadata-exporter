@@ -15,8 +15,9 @@ import (
 	"github.com/ONSdigital/log.go/v2/log"
 
 	assistdog "github.com/ONSdigital/dp-assistdog"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/cucumber/godog"
 	"github.com/google/go-cmp/cmp"
 )
@@ -211,7 +212,7 @@ func (c *Component) theFollowingFileCanBeSeenInMinio(fileName, bucket string) er
 	ctx := context.Background()
 
 	var b []byte
-	f := aws.NewWriteAtBuffer(b)
+	f := manager.NewWriteAtBuffer(b)
 
 	// probe bucket with backoff to give time for event to be processed
 	retries := c.minioRetries
@@ -220,7 +221,7 @@ func (c *Component) theFollowingFileCanBeSeenInMinio(fileName, bucket string) er
 	var err error
 
 	for {
-		if numBytes, err = c.S3Downloader.Download(f, &s3.GetObjectInput{
+		if numBytes, err = c.S3Downloader.Download(ctx, f, &s3.GetObjectInput{
 			Bucket: aws.String(bucket),
 			Key:    aws.String(fileName),
 		}); err == nil || retries <= 0 {
