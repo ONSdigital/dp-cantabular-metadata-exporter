@@ -1,7 +1,8 @@
 #!/bin/bash -eux
 
-export cwd=$(pwd)
+go install golang.org/x/vuln/cmd/govulncheck@latest
+go install github.com/ONSdigital/dis-vulncheck@v0.6.1
 
-pushd $cwd/dp-cantabular-metadata-exporter
+pushd dp-cantabular-metadata-exporter
   make audit
 popd
